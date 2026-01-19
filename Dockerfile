@@ -35,9 +35,10 @@ COPY server/ ./server/
 COPY --from=client-build /app/client/dist ./client/dist
 
 # Expose port
-EXPOSE 3001
+EXPOSE 7111
 
 ENV NODE_ENV=production
+ENV PORT=7111
 
 # Start server
 WORKDIR /app/server

@@ -4,16 +4,16 @@ services:
     container_name: quizzy
     restart: unless-stopped
     ports:
-      - "3001:3001"
+      - "7111:7111"
     environment:
       - NODE_ENV=production
-      - PORT=3001
-      - CLIENT_URL=${CLIENT_URL:-http://localhost:3001}
+      - PORT=7111
+      - CLIENT_URL=${CLIENT_URL:-http://localhost:7111}
     volumes:
       # Mount genres.json so you can edit it without rebuilding
       - ./server/genres.json:/app/server/genres.json:ro
     healthcheck:
-      test: ["CMD", "wget", "-q", "--spider", "http://localhost:3001/api/genres"]
+      test: ["CMD", "wget", "-q", "--spider", "http://localhost:7111/api/genres"]
       interval: 30s
       timeout: 10s
       retries: 3
