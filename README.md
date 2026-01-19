@@ -31,7 +31,7 @@ quizzy/
 │   ├── genres.json             # Genre/playlist configuration (editable)
 │   └── package.json
 ├── Dockerfile                  # Multi-stage Docker build
-├── docker-compose.yml          # Production deployment
+├── compose.yml                 # Production deployment
 └── package.json                # Workspace root
 ```
 
@@ -95,15 +95,15 @@ docker compose restart
 ### Scoring
 
 **MCQ Mode:**
-- Base: 1000 points
-- Time penalty: -50 points per second
-- Minimum: 100 points for correct answer
-- Streak bonus: +50 per consecutive correct
+- 10 points for correct answer
+- Speed bonus: +3 (<3s), +2 (<6s), +1 (<10s)
+- Max per round: 13 points
 
 **Typed Mode:**
-- Artist correct: 600 base, -30/second, min 50
-- Title correct: 600 base, -30/second, min 50
-- Streak bonus: +50 per consecutive full correct (artist + title)
+- Artist correct: 10 points + speed bonus
+- Title correct: 15 points + speed bonus
+- Speed bonus: +3 (<5s), +2 (<10s), +1 (<15s)
+- Max per round: 31 points (13 artist + 18 title)
 
 ## Configuration
 
