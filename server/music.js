@@ -55,10 +55,53 @@ function dedupeStrings(arr) {
   });
 }
 
+// Clean up track titles by removing common suffixes
+function cleanTitle(title) {
+  if (!title) return '';
+
+  // Patterns to remove (case-insensitive)
+  const patterns = [
+    /\s*\(remaster(ed)?\)/gi,
+    /\s*\(remaster(ed)?\s+\d{4}\)/gi,
+    /\s*\(\d{4}\s+remaster(ed)?\)/gi,
+    /\s*\(deluxe( edition)?\)/gi,
+    /\s*\(bonus track\)/gi,
+    /\s*\(radio edit\)/gi,
+    /\s*\(single( version)?\)/gi,
+    /\s*\(album version\)/gi,
+    /\s*\(original( mix)?\)/gi,
+    /\s*\(extended( mix| version)?\)/gi,
+    /\s*\(live\)/gi,
+    /\s*\(live .*?\)/gi,
+    /\s*\(acoustic\)/gi,
+    /\s*\(unplugged\)/gi,
+    /\s*\(explicit\)/gi,
+    /\s*\(clean\)/gi,
+    /\s*\(mono\)/gi,
+    /\s*\(stereo\)/gi,
+    /\s*\(remix\)/gi,
+    /\s*\(feat\..*?\)/gi,
+    /\s*\(ft\..*?\)/gi,
+    /\s*\(with .*?\)/gi,
+    /\s*- remaster(ed)?(\s+\d{4})?/gi,
+    /\s*- \d{4} remaster(ed)?/gi,
+    /\s*- single version/gi,
+    /\s*- radio edit/gi,
+    /\s*- live/gi,
+  ];
+
+  let cleaned = title;
+  for (const pattern of patterns) {
+    cleaned = cleaned.replace(pattern, '');
+  }
+
+  return cleaned.trim();
+}
+
 function mapTrack(t) {
   return {
     id: String(t.id),
-    name: t.title,
+    name: cleanTitle(t.title),
     artist: t.artist?.name ?? "",
     previewUrl: t.preview,
     albumArt: t.album?.cover_medium ?? ""
