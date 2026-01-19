@@ -228,7 +228,8 @@ export function submitAnswer(code, playerId, payload) {
   const timeTaken = (Date.now() - room.roundStartTime) / 1000;
 
   // -----------------------
-  // MCQ MODE (existing behavior)
+  // MCQ MODE
+  // Scoring: 10 base + speed bonus (3 if <3s, 2 if <6s, 1 if <10s)
   // -----------------------
   if (room.answerMode !== 'typed') {
     // Backward compatibility: payload might be a raw answerId string
@@ -240,12 +241,15 @@ export function submitAnswer(code, playerId, payload) {
     const isCorrect = answerId === round.correctId;
 
     let points = 0;
+    let speedBonus = 0;
     if (isCorrect) {
-      // Base 1000 points, lose 50 per second, min 100
-      points = Math.max(100, Math.floor(1000 - timeTaken * 50));
-      // Streak bonus
+      points = 10; // Base points
+      // Speed bonus based on time taken
+      if (timeTaken < 3) speedBonus = 3;
+      else if (timeTaken < 6) speedBonus = 2;
+      else if (timeTaken < 10) speedBonus = 1;
+      points += speedBonus;
       player.streak++;
-      points += player.streak * 50;
     } else {
       player.streak = 0;
     }
@@ -258,6 +262,7 @@ export function submitAnswer(code, playerId, payload) {
       answerId,
       isCorrect,
       points,
+      speedBonus,
       timeTaken
     });
 
@@ -265,6 +270,7 @@ export function submitAnswer(code, playerId, payload) {
       mode: 'mcq',
       isCorrect,
       points,
+      speedBonus,
       totalScore: player.score,
       streak: player.streak
     };
@@ -272,6 +278,8 @@ export function submitAnswer(code, playerId, payload) {
 
   // -----------------------
   // TYPED MODE (two-step: artist then title)
+  // Scoring: Artist = 10 base + speed bonus, Title = 15 base + speed bonus
+  // Speed bonus: 3 if <5s, 2 if <10s, 1 if <15s
   // payload: { phase: 'artist'|'title', text: '...' }
   // -----------------------
   const phase = payload?.phase;
@@ -290,11 +298,13 @@ export function submitAnswer(code, playerId, payload) {
   const correctArtist = round.correctArtist;
   const correctTitle = round.correctName;
 
-  // Scoring model for typed mode (tweak anytime)
-  const artistPointsBase = 600;
-  const titlePointsBase = 600;
-  const losePerSecond = 30;
-  const minPoints = 50;
+  // Calculate speed bonus for typed mode
+  function getSpeedBonus(time) {
+    if (time < 5) return 3;
+    if (time < 10) return 2;
+    if (time < 15) return 1;
+    return 0;
+  }
 
   // --- Phase 1: ARTIST ---
   if (phase === 'artist') {
@@ -315,23 +325,26 @@ export function submitAnswer(code, playerId, payload) {
         artistCorrect: false,
         titleCorrect: false,
         points: 0,
+        speedBonus: 0,
         timeTaken
       });
 
       return {
         mode: 'typed',
         phase: 'artist',
-        // Keep isCorrect for UI compatibility (means “phase correct”)
         isCorrect: false,
         points: 0,
         pointsAwarded: 0,
+        speedBonus: 0,
         totalScore: player.score,
         streak: player.streak,
         allowTitle: false
       };
     }
 
-    const pointsAwarded = Math.max(minPoints, Math.floor(artistPointsBase - timeTaken * losePerSecond));
+    // Artist correct: 10 base + speed bonus
+    const speedBonus = getSpeedBonus(timeTaken);
+    const pointsAwarded = 10 + speedBonus;
     player.score += pointsAwarded;
 
     room.answers.set(playerId, {
@@ -341,8 +354,9 @@ export function submitAnswer(code, playerId, payload) {
       titleText: null,
       artistCorrect: true,
       titleCorrect: false,
-      points: pointsAwarded, // accumulate
-      timeTaken
+      points: pointsAwarded,
+      speedBonus,
+      artistTime: timeTaken
     });
 
     return {
@@ -351,8 +365,8 @@ export function submitAnswer(code, playerId, payload) {
       isCorrect: true,
       points: pointsAwarded,
       pointsAwarded,
+      speedBonus,
       totalScore: player.score,
-      // streak not updated until title phase completes
       streak: player.streak,
       allowTitle: true
     };
@@ -368,12 +382,13 @@ export function submitAnswer(code, playerId, payload) {
   const titleCorrect = looselyMatches(text, correctTitle);
 
   let pointsAwarded = 0;
+  let speedBonus = 0;
 
   if (titleCorrect) {
-    pointsAwarded = Math.max(minPoints, Math.floor(titlePointsBase - timeTaken * losePerSecond));
-    // Now streak counts (full answer)
+    // Title correct: 15 base + speed bonus
+    speedBonus = getSpeedBonus(timeTaken);
+    pointsAwarded = 15 + speedBonus;
     player.streak++;
-    pointsAwarded += player.streak * 50;
   } else {
     player.streak = 0;
   }
@@ -387,12 +402,10 @@ export function submitAnswer(code, playerId, payload) {
     finished: true,
     titleText: text,
     titleCorrect,
-    points: totalRoundPoints
+    points: totalRoundPoints,
+    titleSpeedBonus: speedBonus
   });
 
-  // For UI compatibility:
-  // - isCorrect = whether title phase is correct
-  // - you can also read fullCorrect if you want both artist+title
   return {
     mode: 'typed',
     phase: 'title',
@@ -400,6 +413,7 @@ export function submitAnswer(code, playerId, payload) {
     fullCorrect: !!(existing.artistCorrect && titleCorrect),
     points: pointsAwarded,
     pointsAwarded,
+    speedBonus,
     totalScore: player.score,
     streak: player.streak
   };
