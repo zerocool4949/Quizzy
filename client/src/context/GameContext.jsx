@@ -4,7 +4,8 @@ import { io } from 'socket.io-client';
 
 const GameContext = createContext(null);
 
-const SOCKET_URL = import.meta.env.VITE_SOCKET_URL || 'http://localhost:3001';
+// In production, connect to same origin. In dev, use localhost:3001
+const SOCKET_URL = import.meta.env.VITE_SOCKET_URL || (import.meta.env.PROD ? '' : 'http://localhost:3001');
 
 const initialState = {
   roomCode: null,

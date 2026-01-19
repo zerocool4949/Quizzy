@@ -1,0 +1,36 @@
+version: '3.8'
+
+services:
+  quizzy:
+    build: .
+    container_name: quizzy
+    restart: unless-stopped
+    ports:
+      - "3001:3001"
+    environment:
+      - NODE_ENV=production
+      - PORT=3001
+      - CLIENT_URL=${CLIENT_URL:-http://localhost:3001}
+    volumes:
+      # Mount genres.json so you can edit it without rebuilding
+      - ./server/genres.json:/app/server/genres.json:ro
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://localhost:3001/api/genres"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Optional: Nginx reverse proxy with SSL
+  # Uncomment if you want to use nginx
+  # nginx:
+  #   image: nginx:alpine
+  #   container_name: quizzy-nginx
+  #   restart: unless-stopped
+  #   ports:
+  #     - "80:80"
+  #     - "443:443"
+  #   volumes:
+  #     - ./nginx.conf:/etc/nginx/nginx.conf:ro
+  #     - ./ssl:/etc/nginx/ssl:ro
+  #   depends_on:
+  #     - quizzy

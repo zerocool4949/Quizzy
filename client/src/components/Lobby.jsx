@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
 import { useGame } from '../context/GameContext';
 
-const SOCKET_URL = import.meta.env.VITE_SOCKET_URL || 'http://localhost:3001';
+// In production, use same origin. In dev, use localhost:3001
+const API_URL = import.meta.env.VITE_SOCKET_URL || (import.meta.env.PROD ? '' : 'http://localhost:3001');
 
 const ANSWER_MODES = [
   { id: 'mcq', name: '4 answers (multiple choice)' },
@@ -18,7 +19,7 @@ export default function Lobby() {
 
   // Fetch genres from server
   useEffect(() => {
-    fetch(`${SOCKET_URL}/api/genres`)
+    fetch(`${API_URL}/api/genres`)
       .then(res => res.json())
       .then(data => {
         setGenres(data);
