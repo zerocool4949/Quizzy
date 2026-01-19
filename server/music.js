@@ -213,9 +213,27 @@ export async function getQuizTracks(genreId, count = 10) {
 
   console.log(`Total tracks available: ${tracks.length}`);
 
-  // Shuffle and pick tracks for rounds
+  // Shuffle tracks
   const shuffled = [...tracks].sort(() => Math.random() - 0.5);
-  const roundTracks = shuffled.slice(0, Math.min(count, shuffled.length));
+
+  // Pick tracks for rounds, limiting each artist to max 2 appearances
+  const maxPerArtist = 2;
+  const artistCount = new Map();
+  const roundTracks = [];
+
+  for (const track of shuffled) {
+    if (roundTracks.length >= count) break;
+
+    const artistLower = track.artist.toLowerCase();
+    const currentCount = artistCount.get(artistLower) || 0;
+
+    if (currentCount < maxPerArtist) {
+      roundTracks.push(track);
+      artistCount.set(artistLower, currentCount + 1);
+    }
+  }
+
+  console.log(`Selected ${roundTracks.length} tracks with artist diversity`);
 
   // For each round, create question with decoys from DIFFERENT artists
   return roundTracks.map((correctTrack, index) => {
