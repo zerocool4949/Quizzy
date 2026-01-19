@@ -104,9 +104,10 @@ export default function Home() {
         </form>
       )}
 
-      <p className="mt-8 text-gray-500 text-sm">
-        Powered by Spotify
-      </p>
+      <div className="mt-8 text-center text-gray-500 text-sm">
+        <p>Powered by Deezer</p>
+        <p className="mt-1">A Zerocool creation</p>
+      </div>
     </div>
   );
 }
