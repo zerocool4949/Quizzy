@@ -1,0 +1,11 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(taskkill //F //PID 47884)",
+      "Bash(npm run dev:*)",
+      "Bash(timeout:*)",
+      "Bash(git add:*)",
+      "Bash(git commit -m \"$\\(cat <<''EOF''\nInitial commit: Quizzy multiplayer music quiz game\n\nFeatures:\n- Real-time multiplayer with Socket.io\n- Two game modes: MCQ \\(multiple choice\\) and Typed \\(artist + title\\)\n- Fuzzy matching with typo tolerance for typed mode\n- Dynamic genre loading from genres.json config file\n- Deezer API integration for music previews\n- Room system with 6-character codes\n- Live scoreboard and streak bonuses\n\nCo-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>\nEOF\n\\)\")"
+    ]
+  }
+}

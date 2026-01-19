@@ -1,0 +1,240 @@
+import { createContext, useContext, useReducer, useEffect, useRef, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { io } from 'socket.io-client';
+
+const GameContext = createContext(null);
+
+const SOCKET_URL = import.meta.env.VITE_SOCKET_URL || 'http://localhost:3001';
+
+const initialState = {
+  roomCode: null,
+  players: [],
+  isHost: false,
+  playerName: '',
+  gameState: 'idle', // idle, lobby, countdown, playing, roundEnd, finished
+  currentRound: null,
+  roundResults: null,
+  gameResults: null,
+  myAnswer: null,
+  answerResult: null,
+  error: null,
+};
+
+function gameReducer(state, action) {
+  switch (action.type) {
+    case 'SET_PLAYER_NAME':
+      return { ...state, playerName: action.payload };
+    case 'ROOM_CREATED':
+    case 'ROOM_JOINED':
+      return {
+        ...state,
+        roomCode: action.payload.code,
+        players: action.payload.players,
+        isHost: action.payload.isHost,
+        gameState: 'lobby',
+        error: null,
+      };
+    case 'PLAYER_JOINED':
+    case 'PLAYER_LEFT':
+      return {
+        ...state,
+        players: action.payload.players,
+        isHost: action.payload.newHostId ? state.players.find(p => p.id === action.payload.newHostId)?.id === state.playerId : state.isHost,
+      };
+    case 'GAME_STARTING':
+      return { ...state, gameState: 'countdown' };
+    case 'NEW_ROUND':
+      return {
+        ...state,
+        gameState: 'playing',
+        currentRound: action.payload,
+        myAnswer: null,
+        answerResult: null,
+      };
+    case 'SUBMIT_ANSWER':
+      return { ...state, myAnswer: action.payload };
+    case 'ANSWER_RESULT':
+      return { ...state, answerResult: action.payload };
+    case 'ROUND_END':
+      // Update players with their latest scores from round results
+      const updatedPlayers = state.players.map(player => {
+        const result = action.payload.playerResults?.find(r => r.id === player.id);
+        return result ? { ...player, score: result.score, streak: result.streak } : player;
+      });
+      return {
+        ...state,
+        gameState: 'roundEnd',
+        roundResults: action.payload,
+        players: updatedPlayers,
+      };
+    case 'GAME_OVER':
+      return {
+        ...state,
+        gameState: 'finished',
+        gameResults: action.payload,
+      };
+    case 'ROOM_RESET':
+      return {
+        ...state,
+        gameState: 'lobby',
+        players: action.payload.players,
+        currentRound: null,
+        roundResults: null,
+        gameResults: null,
+        myAnswer: null,
+        answerResult: null,
+      };
+    case 'ERROR':
+      return { ...state, error: action.payload };
+    case 'CLEAR_ERROR':
+      return { ...state, error: null };
+    case 'RESET':
+      return { ...initialState, playerName: state.playerName };
+    default:
+      return state;
+  }
+}
+
+export function GameProvider({ children }) {
+  const [state, dispatch] = useReducer(gameReducer, initialState);
+  const socketRef = useRef(null);
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    socketRef.current = io(SOCKET_URL, {
+      autoConnect: true,
+      reconnection: true,
+    });
+
+    const socket = socketRef.current;
+
+    socket.on('room-created', (data) => {
+      dispatch({ type: 'ROOM_CREATED', payload: data });
+      navigate(`/lobby/${data.code}`);
+    });
+
+    socket.on('room-joined', (data) => {
+      dispatch({ type: 'ROOM_JOINED', payload: data });
+      navigate(`/lobby/${data.code}`);
+    });
+
+    socket.on('join-error', (data) => {
+      dispatch({ type: 'ERROR', payload: data.message });
+    });
+
+    socket.on('player-joined', (data) => {
+      dispatch({ type: 'PLAYER_JOINED', payload: data });
+    });
+
+    socket.on('player-left', (data) => {
+      dispatch({ type: 'PLAYER_LEFT', payload: data });
+    });
+
+    socket.on('game-starting', () => {
+      dispatch({ type: 'GAME_STARTING' });
+    });
+
+    socket.on('new-round', (data) => {
+      console.log('Received new-round:', data);
+      dispatch({ type: 'NEW_ROUND', payload: data });
+    });
+
+    socket.on('answer-result', (data) => {
+      dispatch({ type: 'ANSWER_RESULT', payload: data });
+    });
+
+    socket.on('round-end', (data) => {
+      dispatch({ type: 'ROUND_END', payload: data });
+    });
+
+    socket.on('game-over', (data) => {
+      dispatch({ type: 'GAME_OVER', payload: data });
+    });
+
+    socket.on('room-reset', (data) => {
+      dispatch({ type: 'ROOM_RESET', payload: data });
+    });
+
+    socket.on('game-error', (data) => {
+      dispatch({ type: 'ERROR', payload: data.message });
+    });
+
+    return () => {
+      socket.disconnect();
+    };
+  }, []);
+
+  // Navigate on state changes
+  useEffect(() => {
+    if (state.gameState === 'playing' && state.roomCode) {
+      navigate(`/game/${state.roomCode}`);
+    }
+  }, [state.gameState, state.roomCode]);
+
+  const createRoom = useCallback((playerName) => {
+    dispatch({ type: 'SET_PLAYER_NAME', payload: playerName });
+    socketRef.current?.emit('create-room', { playerName });
+  }, []);
+
+  const joinRoom = useCallback((code, playerName) => {
+    dispatch({ type: 'SET_PLAYER_NAME', payload: playerName });
+    socketRef.current?.emit('join-room', { code: code.toUpperCase(), playerName });
+  }, []);
+
+  const updateSettings = useCallback((settings) => {
+    socketRef.current?.emit('update-settings', settings);
+  }, []);
+
+  const startGame = useCallback(() => {
+    socketRef.current?.emit('start-game');
+  }, []);
+
+  const submitAnswer = useCallback((answerId) => {
+    dispatch({ type: 'SUBMIT_ANSWER', payload: answerId });
+    socketRef.current?.emit('submit-answer', { answerId });
+  }, []);
+
+  const submitTypedAnswer = useCallback((phase, text) => {
+    socketRef.current?.emit('submit-answer', { phase, text });
+  }, []);
+
+  const playAgain = useCallback(() => {
+    socketRef.current?.emit('play-again');
+  }, []);
+
+  const leaveGame = useCallback(() => {
+    dispatch({ type: 'RESET' });
+    navigate('/');
+  }, [navigate]);
+
+  const clearError = useCallback(() => {
+    dispatch({ type: 'CLEAR_ERROR' });
+  }, []);
+
+  return (
+    <GameContext.Provider
+      value={{
+        ...state,
+        createRoom,
+        joinRoom,
+        updateSettings,
+        startGame,
+        submitAnswer,
+        submitTypedAnswer,
+        playAgain,
+        leaveGame,
+        clearError,
+      }}
+    >
+      {children}
+    </GameContext.Provider>
+  );
+}
+
+export function useGame() {
+  const context = useContext(GameContext);
+  if (!context) {
+    throw new Error('useGame must be used within a GameProvider');
+  }
+  return context;
+}

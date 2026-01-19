@@ -1,0 +1,557 @@
+import { useEffect, useRef, useState } from 'react';
+import { useGame } from '../context/GameContext';
+
+export default function Game() {
+  const {
+    gameState,
+    currentRound,
+    roundResults,
+    gameResults,
+    myAnswer,
+    answerResult,
+    submitAnswer,
+    submitTypedAnswer,
+    playAgain,
+    leaveGame,
+    isHost,
+    players,
+  } = useGame();
+
+  const audioRef = useRef(null);
+  const volumeRef = useRef(0.7);
+  const audioTimeoutRef = useRef(null);
+  const [timeLeft, setTimeLeft] = useState(10);
+  const [songProgress, setSongProgress] = useState(0);
+
+  // Typed mode state
+  const [typedPhase, setTypedPhase] = useState('artist'); // 'artist' | 'title' | 'done'
+  const [typedInput, setTypedInput] = useState('');
+  const [artistResult, setArtistResult] = useState(null); // { correct: bool, text: string }
+  const [volume, setVolume] = useState(() => {
+    const saved = localStorage.getItem('quizzy-volume');
+    const vol = saved ? parseFloat(saved) : 0.7;
+    volumeRef.current = vol;
+    return vol;
+  });
+  const clipDuration = currentRound?.clipDuration || 10;
+
+  const handleVolumeChange = (e) => {
+    const newVolume = parseFloat(e.target.value);
+    setVolume(newVolume);
+    volumeRef.current = newVolume;
+    localStorage.setItem('quizzy-volume', newVolume.toString());
+    if (audioRef.current) {
+      audioRef.current.volume = newVolume;
+    }
+  };
+
+  // Reset typed mode state when new round starts
+  useEffect(() => {
+    if (gameState === 'playing') {
+      setTypedPhase('artist');
+      setTypedInput('');
+      setArtistResult(null);
+    }
+  }, [gameState, currentRound?.roundNumber]);
+
+  // Handle typed answer results to transition phases
+  useEffect(() => {
+    if (answerResult?.mode === 'typed') {
+      if (answerResult.phase === 'artist') {
+        setArtistResult({
+          correct: answerResult.isCorrect,
+          text: typedInput,
+          points: answerResult.pointsAwarded || 0,
+        });
+        setTypedInput('');
+        if (answerResult.allowTitle) {
+          setTypedPhase('title');
+        } else {
+          setTypedPhase('done');
+        }
+      } else if (answerResult.phase === 'title') {
+        setTypedPhase('done');
+      }
+    }
+  }, [answerResult]);
+
+  // Play audio when new round starts
+  useEffect(() => {
+    // Clear any existing timeout from previous round
+    if (audioTimeoutRef.current) {
+      clearTimeout(audioTimeoutRef.current);
+      audioTimeoutRef.current = null;
+    }
+
+    if (gameState === 'playing' && currentRound?.previewUrl) {
+      const duration = currentRound.clipDuration || 10;
+      const answerTime = currentRound.answerTime || 5;
+      setTimeLeft(duration + answerTime); // clip duration + answer time
+      setSongProgress(0);
+      if (audioRef.current) {
+        audioRef.current.src = currentRound.previewUrl;
+        audioRef.current.volume = volumeRef.current; // Use ref to avoid re-triggering effect
+        audioRef.current.play().catch(() => {});
+
+        // Stop audio after clip duration
+        audioTimeoutRef.current = setTimeout(() => {
+          if (audioRef.current) {
+            audioRef.current.pause();
+          }
+        }, duration * 1000);
+      }
+    }
+
+    // Cleanup on unmount or when effect re-runs
+    return () => {
+      if (audioTimeoutRef.current) {
+        clearTimeout(audioTimeoutRef.current);
+      }
+    };
+  }, [gameState, currentRound]);
+
+  // Song progress tracker
+  useEffect(() => {
+    if (gameState !== 'playing') return;
+
+    const duration = currentRound?.clipDuration || 10;
+    const startTime = Date.now();
+
+    const progressTimer = setInterval(() => {
+      const elapsed = (Date.now() - startTime) / 1000;
+      const progress = Math.min((elapsed / duration) * 100, 100);
+      setSongProgress(progress);
+
+      if (progress >= 100) {
+        clearInterval(progressTimer);
+      }
+    }, 50);
+
+    return () => clearInterval(progressTimer);
+  }, [gameState, currentRound]);
+
+  // Countdown timer
+  useEffect(() => {
+    if (gameState !== 'playing') return;
+
+    const timer = setInterval(() => {
+      setTimeLeft((prev) => {
+        if (prev <= 1) {
+          clearInterval(timer);
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+
+    return () => clearInterval(timer);
+  }, [gameState, currentRound]);
+
+  // Stop audio when round ends
+  useEffect(() => {
+    if (gameState === 'roundEnd' && audioRef.current) {
+      audioRef.current.pause();
+    }
+  }, [gameState]);
+
+  if (gameState === 'countdown') {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center p-4">
+        <div className="card text-center">
+          <h2 className="text-4xl font-bold mb-4">Get Ready!</h2>
+          <div className="text-8xl font-bold text-purple-500 animate-pulse">3</div>
+        </div>
+      </div>
+    );
+  }
+
+  if (gameState === 'finished' && gameResults) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center p-4">
+        <div className="card max-w-lg w-full text-center">
+          <h2 className="text-3xl font-bold mb-2">Game Over!</h2>
+          <div className="my-8">
+            <p className="text-gray-400 mb-2">Winner</p>
+            <p className="text-4xl font-bold text-yellow-400 animate-bounce-in">
+              {gameResults.winner.name}
+            </p>
+            <p className="text-2xl text-purple-400 mt-2">
+              {gameResults.winner.score.toLocaleString()} points
+            </p>
+          </div>
+
+          <div className="mb-8">
+            <h3 className="text-lg font-semibold mb-4 text-gray-300">Final Standings</h3>
+            <div className="space-y-2">
+              {gameResults.standings.map((player) => (
+                <div
+                  key={player.id}
+                  className={`flex items-center justify-between rounded-lg px-4 py-3 ${
+                    player.rank === 1
+                      ? 'bg-yellow-600/20 border border-yellow-500/50'
+                      : player.rank === 2
+                      ? 'bg-gray-400/20 border border-gray-400/50'
+                      : player.rank === 3
+                      ? 'bg-orange-600/20 border border-orange-500/50'
+                      : 'bg-gray-700/50'
+                  }`}
+                >
+                  <div className="flex items-center gap-3">
+                    <span className="text-2xl font-bold text-gray-500">#{player.rank}</span>
+                    <span className="font-medium">{player.name}</span>
+                  </div>
+                  <span className="font-bold text-purple-400">
+                    {player.score.toLocaleString()}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div className="space-y-3">
+            {isHost && (
+              <button onClick={playAgain} className="btn-primary w-full">
+                Play Again
+              </button>
+            )}
+            <button onClick={leaveGame} className="btn-secondary w-full">
+              Leave Game
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (gameState === 'roundEnd' && roundResults) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center p-4">
+        <div className="card max-w-lg w-full">
+          <div className="text-center mb-6">
+            <p className="text-gray-400 mb-2">The answer was</p>
+            <div className="flex items-center justify-center gap-4">
+              {roundResults.albumArt && (
+                <img
+                  src={roundResults.albumArt}
+                  alt="Album art"
+                  className="w-20 h-20 rounded-lg"
+                />
+              )}
+              <div className="text-left">
+                <p className="text-xl font-bold">{roundResults.correctName}</p>
+                <p className="text-gray-400">{roundResults.correctArtist}</p>
+              </div>
+            </div>
+          </div>
+
+          {answerResult && (
+            <div
+              className={`text-center p-4 rounded-xl mb-6 ${
+                answerResult.isCorrect ? 'bg-green-600/20' : 'bg-red-600/20'
+              }`}
+            >
+              <p className="text-2xl font-bold">
+                {answerResult.isCorrect ? '+' + answerResult.points : 'Wrong!'}
+              </p>
+              {answerResult.streak > 1 && (
+                <p className="text-yellow-400 text-sm">{answerResult.streak} streak!</p>
+              )}
+            </div>
+          )}
+
+          <div>
+            <h3 className="text-lg font-semibold mb-3 text-gray-300">Scoreboard</h3>
+            <div className="space-y-2">
+              {roundResults.playerResults.map((player, index) => (
+                <div
+                  key={player.id}
+                  className="flex items-center justify-between bg-gray-700/50 rounded-lg px-4 py-2"
+                >
+                  <div className="flex items-center gap-3">
+                    <span className="text-gray-500 font-bold">#{index + 1}</span>
+                    <span>{player.name}</span>
+                    {player.isCorrect && (
+                      <span className="text-green-400 text-sm">+{player.roundPoints}</span>
+                    )}
+                  </div>
+                  <span className="font-bold text-purple-400">
+                    {player.score.toLocaleString()}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <p className="text-center text-gray-400 mt-6">Next round starting...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Sort players by score for live scoreboard
+  const sortedPlayers = [...players].sort((a, b) => b.score - a.score);
+
+  // Playing state
+  return (
+    <div className="min-h-screen flex flex-col p-4">
+      <audio ref={audioRef} />
+
+      {/* Round progression bar at top */}
+      <div className="w-full max-w-4xl mx-auto mb-6">
+        <div className="flex justify-between items-center mb-2">
+          <span className="text-sm text-gray-400">Round Progress</span>
+          <span className="text-sm text-gray-400">
+            {currentRound?.roundNumber}/{currentRound?.totalRounds}
+          </span>
+        </div>
+        <div className="flex gap-1">
+          {Array.from({ length: currentRound?.totalRounds || 10 }).map((_, i) => (
+            <div
+              key={i}
+              className={`h-2 flex-1 rounded-full transition-all ${
+                i < (currentRound?.roundNumber || 1) - 1
+                  ? 'bg-green-500'
+                  : i === (currentRound?.roundNumber || 1) - 1
+                  ? 'bg-purple-500'
+                  : 'bg-gray-700'
+              }`}
+            />
+          ))}
+        </div>
+      </div>
+
+      <div className="flex flex-col md:flex-row gap-4 max-w-4xl mx-auto w-full">
+        {/* Main game card */}
+        <div className="card flex-1 md:max-w-lg">
+          {/* Big Timer */}
+        <div className="text-center mb-6">
+          <div
+            className={`text-6xl font-bold tabular-nums ${
+              timeLeft <= 5 ? 'text-red-500 animate-pulse' : 'text-purple-400'
+            }`}
+          >
+            {timeLeft}
+          </div>
+          <span className="text-gray-500 text-sm">seconds left</span>
+        </div>
+
+        {/* Song progress bar */}
+        <div className="mb-6">
+          <div className="flex justify-between items-center mb-1">
+            <span className="text-xs text-gray-500">
+              {songProgress < 100 ? 'Playing...' : 'Song ended'}
+            </span>
+            <span className="text-xs text-gray-500">{clipDuration}s clip</span>
+          </div>
+          <div className="h-2 bg-gray-700 rounded-full overflow-hidden">
+            <div
+              className={`h-full transition-all duration-100 ${
+                songProgress >= 100 ? 'bg-gray-500' : 'bg-purple-500'
+              }`}
+              style={{ width: `${songProgress}%` }}
+            />
+          </div>
+        </div>
+
+        <div className="flex flex-col items-center mb-6">
+          <div className="w-20 h-20 bg-purple-600/30 rounded-full flex items-center justify-center mb-3">
+            <div className={`w-14 h-14 bg-purple-500/50 rounded-full flex items-center justify-center ${songProgress < 100 ? 'animate-pulse' : ''}`}>
+              <svg
+                className="w-7 h-7 text-white"
+                fill="currentColor"
+                viewBox="0 0 20 20"
+              >
+                <path d="M18 3a1 1 0 00-1.196-.98l-10 2A1 1 0 006 5v9.114A4.369 4.369 0 005 14c-1.657 0-3 .895-3 2s1.343 2 3 2 3-.895 3-2V7.82l8-1.6v5.894A4.37 4.37 0 0015 12c-1.657 0-3 .895-3 2s1.343 2 3 2 3-.895 3-2V3z" />
+              </svg>
+            </div>
+          </div>
+          {/* Volume slider */}
+          <div className="flex items-center gap-2 w-36">
+            <svg className="w-4 h-4 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
+              <path fillRule="evenodd" d="M9.383 3.076A1 1 0 0110 4v12a1 1 0 01-1.707.707L4.586 13H2a1 1 0 01-1-1V8a1 1 0 011-1h2.586l3.707-3.707a1 1 0 011.09-.217z" clipRule="evenodd" />
+            </svg>
+            <input
+              type="range"
+              min="0"
+              max="1"
+              step="0.05"
+              value={volume}
+              onChange={handleVolumeChange}
+              className="flex-1 h-1.5 bg-gray-600 rounded-lg appearance-none cursor-pointer accent-purple-500"
+            />
+            <svg className="w-4 h-4 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
+              <path fillRule="evenodd" d="M9.383 3.076A1 1 0 0110 4v12a1 1 0 01-1.707.707L4.586 13H2a1 1 0 01-1-1V8a1 1 0 011-1h2.586l3.707-3.707a1 1 0 011.09-.217zM14.657 2.929a1 1 0 011.414 0A9.972 9.972 0 0119 10a9.972 9.972 0 01-2.929 7.071 1 1 0 01-1.414-1.414A7.971 7.971 0 0017 10c0-2.21-.894-4.208-2.343-5.657a1 1 0 010-1.414zm-2.829 2.828a1 1 0 011.415 0A5.983 5.983 0 0115 10a5.984 5.984 0 01-1.757 4.243 1 1 0 01-1.415-1.415A3.984 3.984 0 0013 10a3.983 3.983 0 00-1.172-2.828 1 1 0 010-1.415z" clipRule="evenodd" />
+            </svg>
+          </div>
+        </div>
+
+        <p className="text-center text-gray-400 mb-4">What song is this?</p>
+
+        {/* MCQ Mode */}
+        {currentRound?.answerMode !== 'typed' && (
+          <div className="grid grid-cols-1 gap-3">
+            {currentRound?.options?.map((option) => {
+              const isSelected = myAnswer === option.id;
+              const showResult = answerResult && isSelected;
+
+              return (
+                <button
+                  key={option.id}
+                  onClick={() => !myAnswer && submitAnswer(option.id)}
+                  disabled={!!myAnswer}
+                  className={`p-4 rounded-xl text-left transition-all ${
+                    showResult
+                      ? answerResult.isCorrect
+                        ? 'bg-green-600 border-green-500'
+                        : 'bg-red-600 border-red-500'
+                      : isSelected
+                      ? 'bg-purple-600 border-purple-500'
+                      : 'bg-gray-700/50 hover:bg-gray-600/50 border-gray-600'
+                  } border-2 ${myAnswer && !isSelected ? 'opacity-50' : ''}`}
+                >
+                  <p className="font-semibold">{option.name}</p>
+                  <p className="text-sm text-gray-300">{option.artist}</p>
+                </button>
+              );
+            })}
+          </div>
+        )}
+
+        {/* Typed Mode */}
+        {currentRound?.answerMode === 'typed' && (
+          <div className="space-y-4">
+            {/* Artist phase */}
+            {typedPhase === 'artist' && (
+              <div>
+                <label className="block text-sm text-gray-400 mb-2">Who is the artist?</label>
+                <form
+                  onSubmit={(e) => {
+                    e.preventDefault();
+                    if (!typedInput.trim()) return;
+                    submitTypedAnswer('artist', typedInput.trim());
+                  }}
+                  className="flex gap-2"
+                >
+                  <input
+                    type="text"
+                    value={typedInput}
+                    onChange={(e) => setTypedInput(e.target.value)}
+                    placeholder="Type artist name..."
+                    className="flex-1 bg-gray-700 border border-gray-600 rounded-xl px-4 py-3 focus:outline-none focus:border-purple-500"
+                    autoFocus
+                  />
+                  <button
+                    type="submit"
+                    disabled={!typedInput.trim()}
+                    className="btn-primary px-6"
+                  >
+                    Submit
+                  </button>
+                </form>
+              </div>
+            )}
+
+            {/* Title phase */}
+            {typedPhase === 'title' && (
+              <div>
+                <div className={`p-3 rounded-xl mb-4 ${artistResult?.correct ? 'bg-green-600/20' : 'bg-red-600/20'}`}>
+                  <p className="text-sm">
+                    Artist: <span className="font-bold">{artistResult?.text}</span>
+                    {artistResult?.correct ? ' ✓' : ' ✗'}
+                  </p>
+                  {artistResult?.points > 0 && (
+                    <p className="text-green-400 text-sm">+{artistResult.points} points</p>
+                  )}
+                </div>
+                <label className="block text-sm text-gray-400 mb-2">What is the song title?</label>
+                <form
+                  onSubmit={(e) => {
+                    e.preventDefault();
+                    if (!typedInput.trim()) return;
+                    submitTypedAnswer('title', typedInput.trim());
+                  }}
+                  className="flex gap-2"
+                >
+                  <input
+                    type="text"
+                    value={typedInput}
+                    onChange={(e) => setTypedInput(e.target.value)}
+                    placeholder="Type song title..."
+                    className="flex-1 bg-gray-700 border border-gray-600 rounded-xl px-4 py-3 focus:outline-none focus:border-purple-500"
+                    autoFocus
+                  />
+                  <button
+                    type="submit"
+                    disabled={!typedInput.trim()}
+                    className="btn-primary px-6"
+                  >
+                    Submit
+                  </button>
+                </form>
+              </div>
+            )}
+
+            {/* Done - waiting */}
+            {typedPhase === 'done' && (
+              <div className="text-center">
+                <div className={`p-4 rounded-xl ${answerResult?.isCorrect || answerResult?.fullCorrect ? 'bg-green-600/20' : 'bg-red-600/20'}`}>
+                  {artistResult && (
+                    <p className="text-sm mb-1">
+                      Artist: <span className="font-bold">{artistResult.text}</span>
+                      {artistResult.correct ? ' ✓' : ' ✗'}
+                    </p>
+                  )}
+                  {answerResult && (
+                    <p className="text-lg font-bold">
+                      {answerResult.fullCorrect ? 'Perfect!' : answerResult.isCorrect ? 'Title correct!' : 'Wrong!'}
+                    </p>
+                  )}
+                  {answerResult?.points > 0 && (
+                    <p className="text-green-400">+{answerResult.points} points</p>
+                  )}
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
+        {myAnswer && !answerResult && currentRound?.answerMode !== 'typed' && (
+          <p className="text-center text-gray-400 mt-4">Waiting for other players...</p>
+        )}
+        </div>
+
+        {/* Live Scoreboard */}
+        <div className="w-full md:w-56 shrink-0 order-first md:order-last mb-4 md:mb-0">
+          <div className="bg-gray-800/50 rounded-xl p-4 md:sticky md:top-4">
+              <h3 className="text-sm font-semibold text-gray-400 mb-3 flex items-center gap-2">
+                <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                  <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                </svg>
+                Live Scores
+              </h3>
+              <div className="space-y-2">
+                {sortedPlayers.map((player, index) => (
+                  <div
+                    key={player.id}
+                    className={`flex items-center justify-between rounded-lg px-3 py-2 text-sm ${
+                      index === 0 ? 'bg-yellow-600/20' : 'bg-gray-700/30'
+                    }`}
+                  >
+                    <div className="flex items-center gap-2 min-w-0">
+                      <span className={`font-bold ${index === 0 ? 'text-yellow-400' : 'text-gray-500'}`}>
+                        {index + 1}
+                      </span>
+                      <span className="truncate">{player.name}</span>
+                    </div>
+                    <span className="font-bold text-purple-400 ml-2">
+                      {player.score.toLocaleString()}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+      </div>
+    </div>
+  );
+}
