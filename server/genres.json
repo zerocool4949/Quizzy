@@ -48,7 +48,6 @@
       "Halsey",
       "The Chainsmokers",
       "Lizzo",
-      /* one-hit legends */
       "Gotye",
       "PSY",
       "Carly Rae Jepsen",
@@ -67,7 +66,7 @@
     ]
   },
   "2000-2010": {
-    "name": "2000–2010 Classics",
+    "name": "2000-2010 Classics",
     "artists": [
       "Eminem",
       "50 Cent",
@@ -128,7 +127,6 @@
       "Maroon 5",
       "OneRepublic",
       "The Black Eyed Peas",
-      "Imagine Dragons",
       "Daft Punk",
       "David Guetta",
       "Bob Sinclar",
@@ -152,7 +150,7 @@
     ]
   },
   "FR-TOP_1980-2025": {
-    "name": "French 90s-2025",
+    "name": "French 1980-2025",
     "artists": [
       "Jean-Jacques Goldman",
       "Johnny Hallyday",
@@ -280,6 +278,61 @@
       "Magic System",
       "K-Maro",
       "Mika"
+    ]
+  },
+  "rock-60s-now": {
+    "name": "Rock Classics (60s–Now)",
+    "artists": [
+      "The Beatles",
+      "The Rolling Stones",
+      "The Who",
+      "Led Zeppelin",
+      "Pink Floyd",
+      "The Doors",
+      "Jimi Hendrix",
+      "Creedence Clearwater Revival",
+      "Deep Purple",
+      "Black Sabbath",
+      "Queen",
+      "AC/DC",
+      "Aerosmith",
+      "Kiss",
+      "Lynyrd Skynyrd",
+      "Fleetwood Mac",
+      "Eagles",
+      "Dire Straits",
+      "Boston",
+      "Journey",
+      "Guns N' Roses",
+      "Metallica",
+      "Bon Jovi",
+      "U2",
+      "Red Hot Chili Peppers",
+      "Nirvana",
+      "Pearl Jam",
+      "Soundgarden",
+      "Alice in Chains",
+      "Green Day",
+      "Foo Fighters",
+      "Linkin Park",
+      "System of a Down",
+      "Blink-182",
+      "The Offspring",
+      "Rammstein",
+      "Muse",
+      "Radiohead",
+      "Coldplay",
+      "Oasis",
+      "The Killers",
+      "Arctic Monkeys",
+      "Kings of Leon",
+      "Imagine Dragons",
+      "Twenty One Pilots",
+      "Fall Out Boy",
+      "My Chemical Romance",
+      "Paramore",
+      "The White Stripes",
+      "The Strokes"
     ]
   }
 }
