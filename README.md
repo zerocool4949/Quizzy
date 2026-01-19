@@ -58,12 +58,12 @@ cd Quizzy
 docker compose up -d --build
 ```
 
-3. Access at `http://your-server:3001`
+3. Access at `http://your-server:7111`
 
-To change the external port, edit `docker-compose.yml`:
+To change the external port, edit `compose.yml`:
 ```yaml
 ports:
-  - "8080:3001"  # Change 8080 to your desired port
+  - "8080:7111"  # Change 8080 to your desired port
 ```
 
 The `genres.json` file is mounted as a volume, so you can edit it without rebuilding:
