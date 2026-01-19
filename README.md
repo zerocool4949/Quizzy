@@ -166,4 +166,10 @@ No code changes needed - just restart the server.
 - Audio auto-stops after configured clip duration
 - Round auto-ends after clip + answer time (5s MCQ, 20s Typed)
 - Fuzzy matching uses Levenshtein distance with ~25% typo tolerance
+- Each artist appears max 2 times per quiz for variety
+- Track titles are cleaned (removes "Remastered", "Live", etc.)
 - In production, the built client is served from the Express server
+
+---
+
+*A Zerocool creation*
