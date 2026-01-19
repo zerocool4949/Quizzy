@@ -217,10 +217,16 @@ export async function getQuizTracks(genreId, count = 10) {
   const shuffled = [...tracks].sort(() => Math.random() - 0.5);
   const roundTracks = shuffled.slice(0, Math.min(count, shuffled.length));
 
-  // For each round, create question with decoys
+  // For each round, create question with decoys from DIFFERENT artists
   return roundTracks.map((correctTrack, index) => {
-    const otherTracks = shuffled.filter(t => t.id !== correctTrack.id);
-    const decoys = otherTracks
+    // Filter out tracks from the same artist (case-insensitive comparison)
+    const correctArtistLower = correctTrack.artist.toLowerCase();
+    const otherArtistTracks = shuffled.filter(t =>
+      t.id !== correctTrack.id && t.artist.toLowerCase() !== correctArtistLower
+    );
+
+    // Pick 3 decoys from different artists
+    const decoys = otherArtistTracks
       .sort(() => Math.random() - 0.5)
       .slice(0, 3);
 
