@@ -16,6 +16,24 @@ export default function Lobby() {
   const [selectedGenre, setSelectedGenre] = useState(null);
   const [answerMode, setAnswerMode] = useState(ANSWER_MODES[0].id);
   const [showGenreList, setShowGenreList] = useState(false);
+  const [countdown, setCountdown] = useState(3);
+
+  // Countdown timer effect
+  useEffect(() => {
+    if (gameState === 'countdown') {
+      setCountdown(3);
+      const interval = setInterval(() => {
+        setCountdown(prev => {
+          if (prev <= 1) {
+            clearInterval(interval);
+            return 1;
+          }
+          return prev - 1;
+        });
+      }, 1000);
+      return () => clearInterval(interval);
+    }
+  }, [gameState]);
 
   // Fetch genres from server
   useEffect(() => {
@@ -49,8 +67,8 @@ export default function Lobby() {
       <div className="min-h-screen flex flex-col items-center justify-center p-4">
         <div className="card text-center">
           <h2 className="text-4xl font-bold mb-4">Get Ready!</h2>
-          <div className="text-8xl font-bold text-purple-500 animate-pulse">
-            3
+          <div className="text-8xl font-bold text-purple-500 animate-pulse" key={countdown}>
+            {countdown}
           </div>
           <p className="text-gray-400 mt-4">Game starting...</p>
         </div>
