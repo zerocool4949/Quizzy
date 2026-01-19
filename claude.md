@@ -7,6 +7,7 @@ A real-time multiplayer music quiz where players listen to song clips and compet
 - **Frontend**: React + Vite + Tailwind CSS
 - **Backend**: Node.js + Express + Socket.io
 - **Music API**: Deezer (free 30-second previews, no auth required)
+- **Deployment**: Docker + Docker Compose
 
 ## Project Structure
 
@@ -26,19 +27,30 @@ quizzy/
 ├── server/
 │   ├── index.js                # Express + Socket.io server
 │   ├── music.js                # Deezer API integration
-│   ├── gameManager.js          # Room & game logic
+│   ├── gameManager.js          # Room & game logic + answer matching
+│   ├── genres.json             # Genre/playlist configuration (editable)
 │   └── package.json
+├── Dockerfile                  # Multi-stage Docker build
+├── docker-compose.yml          # Production deployment
 └── package.json                # Workspace root
 ```
 
 ## Running the App
 
+### Development
 ```bash
 npm install    # Install all dependencies
-s    # Start both client (5173) and server (3001)
+npm run dev    # Start both client (5173) and server (3001)
 ```
 
 Open http://localhost:5173 in your browser.
+
+### Production (Docker)
+```bash
+docker-compose up -d --build
+```
+
+Access at http://your-server:3001
 
 ## Game Features
 
@@ -47,58 +59,94 @@ Open http://localhost:5173 in your browser.
 - Up to 8 players per room
 - Host controls game settings
 
+### Answer Modes
+- **MCQ Mode**: 4 multiple choice options, 5 seconds to answer after clip
+- **Typed Mode**: Type artist name, then song title
+  - 20 seconds to answer after clip
+  - Fuzzy matching with typo tolerance (Levenshtein distance)
+  - Case insensitive, accent insensitive
+  - Partial matches accepted (e.g., "Weeknd" matches "The Weeknd")
+
 ### Game Settings (Host)
 - **Clip Duration**: 5-15 seconds slider
-- **Music Genres**: 15 presets including:
-  - Top Hits, French 90s-2025, French Classics
-  - US Pop, US Hip-Hop, Rock Classics
-  - 80s/90s/2000s/2010s Hits
-  - EDM, Latino, R&B, Disney, Movie Soundtracks
-
-### Gameplay
-- 10 rounds per game
-- 4 multiple choice options per round
-- Audio stops after configured duration
-- 5 extra seconds to answer after audio ends
+- **Answer Mode**: MCQ or Typed
+- **Music Genres**: Loaded from `server/genres.json`
 
 ### Scoring
+
+**MCQ Mode:**
 - Base: 1000 points
 - Time penalty: -50 points per second
 - Minimum: 100 points for correct answer
 - Streak bonus: +50 per consecutive correct
+
+**Typed Mode:**
+- Artist correct: 600 base, -30/second, min 50
+- Title correct: 600 base, -30/second, min 50
+- Streak bonus: +50 per consecutive full correct (artist + title)
+
+## Configuration
+
+### Adding/Editing Genres
+
+Edit `server/genres.json`:
+```json
+{
+  "genre-id": {
+    "name": "Display Name",
+    "artists": [
+      "Artist 1",
+      "Artist 2"
+    ]
+  }
+}
+```
+
+No code changes needed - just restart the server.
 
 ## Socket.io Events
 
 ### Client → Server
 - `create-room` - Host creates room
 - `join-room` - Player joins with code
-- `update-settings` - Host changes game config
+- `update-settings` - Host changes game config (clipDuration, genreId, answerMode)
 - `start-game` - Host starts quiz
 - `submit-answer` - Player submits guess
+  - MCQ: `{ answerId: string }`
+  - Typed: `{ phase: 'artist'|'title', text: string }`
 - `play-again` - Host restarts game
 
 ### Server → Client
 - `room-created` / `room-joined` - Room confirmation
 - `player-joined` / `player-left` - Player updates
 - `game-starting` - Countdown begins
-- `new-round` - Song preview + options + clipDuration
-- `answer-result` - Individual feedback
+- `new-round` - Song preview + options + clipDuration + answerMode + answerTime
+- `answer-result` - Individual feedback (includes `mode`, `phase` for typed)
 - `round-end` - Correct answer + scores
 - `game-over` - Final standings
+
+## API Endpoints
+
+- `GET /api/genres` - List available genres from genres.json
+- `GET /api/playlists/featured` - Spotify featured playlists (legacy)
+- `GET /api/playlists/search?q=query` - Search playlists (legacy)
 
 ## Key Files
 
 | File | Purpose |
 |------|---------|
-| `server/music.js` | Deezer API search & track fetching |
-| `server/gameManager.js` | Room state, scoring, game loop |
+| `server/genres.json` | Genre/artist configuration (edit this!) |
+| `server/music.js` | Deezer API + genre loading |
+| `server/gameManager.js` | Room state, scoring, fuzzy matching |
 | `client/src/context/GameContext.jsx` | React state + socket events |
 | `client/src/components/Lobby.jsx` | Game settings UI |
-| `client/src/components/Game.jsx` | Quiz interface |
+| `client/src/components/Game.jsx` | Quiz interface (MCQ + Typed modes) |
 
 ## Notes
 
 - No API keys needed - Deezer API is free and public
 - Spotify integration exists but disabled (no previews available)
 - Audio auto-stops after clip duration
-- Round auto-ends after clip + 10 seconds timeout
+- Round auto-ends after clip + answer time (5s MCQ, 20s Typed)
+- Fuzzy matching uses Levenshtein distance with ~25% typo tolerance
+- In production, client is served from the same server (port 3001)
