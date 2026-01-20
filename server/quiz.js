@@ -150,8 +150,8 @@ export async function getQuizTracks(categoryIds, count = 10, difficulty = 1, mus
   // Shuffle tracks
   const shuffled = [...tracks].sort(() => Math.random() - 0.5);
 
-  // Pick tracks for rounds, limiting each artist to max 2 appearances
-  const maxPerArtist = 2;
+  // Pick tracks for rounds, limiting each artist to 1 appearance
+  const maxPerArtist = 1;
   const artistCount = new Map();
   const roundTracks = [];
 

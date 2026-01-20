@@ -254,7 +254,7 @@ Imported playlists are stored in `server/imported-playlists.json` and persist ac
 - Clip duration is fixed at 15 seconds
 - Round auto-ends after clip + answer time (5s MCQ, 10s Typed)
 - Fuzzy matching uses Levenshtein distance with ~25% typo tolerance
-- Each artist appears max 2 times per quiz for variety
+- Each artist appears only once per quiz for variety
 - Track titles are cleaned (removes "Remastered", "Live", etc.)
 - Artists are randomly sampled (50 per game) from selected categories for playable tracks
 - MCQ decoy answers are drawn from the full category artist list for harder guessing
