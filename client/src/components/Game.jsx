@@ -182,7 +182,7 @@ export default function Game() {
       <div className="min-h-screen flex flex-col items-center justify-center p-4">
         <div className="card text-center">
           <h2 className="text-4xl font-bold mb-4">Get Ready!</h2>
-          <div className="text-8xl font-bold text-purple-500 animate-pulse">3</div>
+          <div className="text-8xl font-bold text-sky-500 animate-pulse">3</div>
         </div>
       </div>
     );
@@ -198,7 +198,7 @@ export default function Game() {
             <p className="text-4xl font-bold text-yellow-400 animate-bounce-in">
               {gameResults.winner.name}
             </p>
-            <p className="text-2xl text-purple-400 mt-2">
+            <p className="text-2xl text-sky-400 mt-2">
               {gameResults.winner.score.toLocaleString()} points
             </p>
           </div>
@@ -223,7 +223,7 @@ export default function Game() {
                     <span className="text-2xl font-bold text-gray-500">#{player.rank}</span>
                     <span className="font-medium">{player.name}</span>
                   </div>
-                  <span className="font-bold text-purple-400">
+                  <span className="font-bold text-sky-400">
                     {player.score.toLocaleString()}
                   </span>
                 </div>
@@ -297,7 +297,7 @@ export default function Game() {
                       <span className="text-green-400 text-sm">+{player.roundPoints}</span>
                     )}
                   </div>
-                  <span className="font-bold text-purple-400">
+                  <span className="font-bold text-sky-400">
                     {player.score.toLocaleString()}
                   </span>
                 </div>
@@ -335,7 +335,7 @@ export default function Game() {
                 i < (currentRound?.roundNumber || 1) - 1
                   ? 'bg-green-500'
                   : i === (currentRound?.roundNumber || 1) - 1
-                  ? 'bg-purple-500'
+                  ? 'bg-sky-500'
                   : 'bg-gray-700'
               }`}
             />
@@ -350,7 +350,7 @@ export default function Game() {
         <div className="text-center mb-6">
           <div
             className={`text-6xl font-bold tabular-nums ${
-              timeLeft <= 5 ? 'text-red-500 animate-pulse' : 'text-purple-400'
+              timeLeft <= 5 ? 'text-red-500 animate-pulse' : 'text-sky-400'
             }`}
           >
             {timeLeft}
@@ -369,7 +369,7 @@ export default function Game() {
           <div className="h-2 bg-gray-700 rounded-full overflow-hidden">
             <div
               className={`h-full transition-all duration-100 ${
-                songProgress >= 100 ? 'bg-gray-500' : 'bg-purple-500'
+                songProgress >= 100 ? 'bg-gray-500' : 'bg-sky-500'
               }`}
               style={{ width: `${songProgress}%` }}
             />
@@ -377,8 +377,8 @@ export default function Game() {
         </div>
 
         <div className="flex flex-col items-center mb-6">
-          <div className="w-20 h-20 bg-purple-600/30 rounded-full flex items-center justify-center mb-3">
-            <div className={`w-14 h-14 bg-purple-500/50 rounded-full flex items-center justify-center ${songProgress < 100 ? 'animate-pulse' : ''}`}>
+          <div className="w-20 h-20 bg-sky-600/30 rounded-full flex items-center justify-center mb-3">
+            <div className={`w-14 h-14 bg-sky-500/50 rounded-full flex items-center justify-center ${songProgress < 100 ? 'animate-pulse' : ''}`}>
               <svg
                 className="w-7 h-7 text-white"
                 fill="currentColor"
@@ -400,7 +400,7 @@ export default function Game() {
               step="0.05"
               value={volume}
               onChange={handleVolumeChange}
-              className="flex-1 h-1.5 bg-gray-600 rounded-lg appearance-none cursor-pointer accent-purple-500"
+              className="flex-1 h-1.5 bg-gray-600 rounded-lg appearance-none cursor-pointer accent-sky-500"
             />
             <svg className="w-4 h-4 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
               <path fillRule="evenodd" d="M9.383 3.076A1 1 0 0110 4v12a1 1 0 01-1.707.707L4.586 13H2a1 1 0 01-1-1V8a1 1 0 011-1h2.586l3.707-3.707a1 1 0 011.09-.217zM14.657 2.929a1 1 0 011.414 0A9.972 9.972 0 0119 10a9.972 9.972 0 01-2.929 7.071 1 1 0 01-1.414-1.414A7.971 7.971 0 0017 10c0-2.21-.894-4.208-2.343-5.657a1 1 0 010-1.414zm-2.829 2.828a1 1 0 011.415 0A5.983 5.983 0 0115 10a5.984 5.984 0 01-1.757 4.243 1 1 0 01-1.415-1.415A3.984 3.984 0 0013 10a3.983 3.983 0 00-1.172-2.828 1 1 0 010-1.415z" clipRule="evenodd" />
@@ -428,7 +428,7 @@ export default function Game() {
                         ? 'bg-green-600 border-green-500'
                         : 'bg-red-600 border-red-500'
                       : isSelected
-                      ? 'bg-purple-600 border-purple-500'
+                      ? 'bg-sky-600 border-sky-500'
                       : 'bg-gray-700/50 hover:bg-gray-600/50 border-gray-600'
                   } border-2 ${myAnswer && !isSelected ? 'opacity-50' : ''}`}
                 >
@@ -482,7 +482,7 @@ export default function Game() {
                     value={typedInput}
                     onChange={(e) => setTypedInput(e.target.value)}
                     placeholder="Type artist name..."
-                    className="flex-1 bg-gray-700 border border-gray-600 rounded-xl px-4 py-3 focus:outline-none focus:border-purple-500"
+                    className="flex-1 bg-gray-700 border border-gray-600 rounded-xl px-4 py-3 focus:outline-none focus:border-sky-500"
                     autoFocus
                   />
                   <button
@@ -522,7 +522,7 @@ export default function Game() {
                     value={typedInput}
                     onChange={(e) => setTypedInput(e.target.value)}
                     placeholder="Type song title..."
-                    className="flex-1 bg-gray-700 border border-gray-600 rounded-xl px-4 py-3 focus:outline-none focus:border-purple-500"
+                    className="flex-1 bg-gray-700 border border-gray-600 rounded-xl px-4 py-3 focus:outline-none focus:border-sky-500"
                     autoFocus
                   />
                   <button
@@ -588,7 +588,7 @@ export default function Game() {
                       </span>
                       <span className="truncate">{player.name}</span>
                     </div>
-                    <span className="font-bold text-purple-400 ml-2">
+                    <span className="font-bold text-sky-400 ml-2">
                       {player.score.toLocaleString()}
                     </span>
                   </div>

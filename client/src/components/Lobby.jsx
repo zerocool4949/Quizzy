@@ -153,7 +153,7 @@ export default function Lobby() {
       <div className="min-h-screen flex flex-col items-center justify-center p-4">
         <div className="card text-center">
           <h2 className="text-4xl font-bold mb-4">Get Ready!</h2>
-          <div className="text-8xl font-bold text-purple-500 animate-pulse" key={countdown}>
+          <div className="text-8xl font-bold text-sky-500 animate-pulse" key={countdown}>
             {countdown}
           </div>
           <p className="text-gray-400 mt-4">Game starting...</p>
@@ -169,7 +169,7 @@ export default function Lobby() {
           <p className="text-gray-400 mb-2">Room Code</p>
           <button
             onClick={copyCode}
-            className="text-4xl font-bold tracking-widest text-purple-400 hover:text-purple-300 transition-colors"
+            className="text-4xl font-bold tracking-widest text-sky-400 hover:text-sky-300 transition-colors"
             title="Click to copy"
           >
             {roomCode}
@@ -189,7 +189,7 @@ export default function Lobby() {
               >
                 <span className="font-medium">{player.name}</span>
                 {player.isHost && (
-                  <span className="text-xs bg-purple-600 px-2 py-1 rounded-full">HOST</span>
+                  <span className="text-xs bg-sky-600 px-2 py-1 rounded-full">HOST</span>
                 )}
               </div>
             ))}
@@ -210,7 +210,7 @@ export default function Lobby() {
                       onClick={() => setRounds(num)}
                       className={`flex-1 px-2 py-1.5 rounded-lg text-sm border transition-colors ${
                         rounds === num
-                          ? 'bg-purple-600/30 border-purple-500 text-purple-200'
+                          ? 'bg-sky-600/30 border-sky-500 text-sky-200'
                           : 'bg-gray-700/50 border-gray-600 hover:bg-gray-600/50 text-gray-300'
                       }`}
                     >
@@ -234,7 +234,7 @@ export default function Lobby() {
                       onClick={() => setDifficulty(level.id)}
                       className={`flex-1 px-2 py-1.5 rounded-lg text-sm border transition-colors ${
                         difficulty === level.id
-                          ? 'bg-purple-600/30 border-purple-500 text-purple-200'
+                          ? 'bg-sky-600/30 border-sky-500 text-sky-200'
                           : 'bg-gray-700/50 border-gray-600 hover:bg-gray-600/50 text-gray-300'
                       }`}
                     >
@@ -253,7 +253,7 @@ export default function Lobby() {
                   onClick={() => setAnswerMode('typed')}
                   className={`flex-1 px-3 py-1.5 rounded-md text-sm transition-colors ${
                     answerMode === 'typed'
-                      ? 'bg-purple-600 text-white'
+                      ? 'bg-sky-600 text-white'
                       : 'text-gray-400 hover:text-gray-200'
                   }`}
                 >
@@ -263,7 +263,7 @@ export default function Lobby() {
                   onClick={() => setAnswerMode('mcq')}
                   className={`flex-1 px-3 py-1.5 rounded-md text-sm transition-colors ${
                     answerMode === 'mcq'
-                      ? 'bg-purple-600 text-white'
+                      ? 'bg-sky-600 text-white'
                       : 'text-gray-400 hover:text-gray-200'
                   }`}
                 >
@@ -276,7 +276,7 @@ export default function Lobby() {
             <div>
               <div className="flex items-center justify-between mb-2">
                 <label className="text-xs text-gray-400">
-                  Categories <span className="text-purple-400">({selectedCategories.length})</span>
+                  Categories <span className="text-sky-400">({selectedCategories.length})</span>
                 </label>
                 <button
                   onClick={() => setShowImport(!showImport)}
@@ -295,7 +295,7 @@ export default function Lobby() {
                       value={importUrl}
                       onChange={(e) => setImportUrl(e.target.value)}
                       placeholder="Spotify playlist URL..."
-                      className="flex-1 px-2 py-1.5 text-sm bg-gray-700 border border-gray-600 rounded text-white placeholder-gray-500 focus:outline-none focus:border-purple-500"
+                      className="flex-1 px-2 py-1.5 text-sm bg-gray-700 border border-gray-600 rounded text-white placeholder-gray-500 focus:outline-none focus:border-sky-500"
                     />
                     <button
                       onClick={handleImportPlaylist}
@@ -318,7 +318,7 @@ export default function Lobby() {
                     key={category.id}
                     className={`flex items-center gap-2 px-3 py-2 cursor-pointer transition-colors group ${
                       selectedCategories.includes(category.id)
-                        ? 'bg-purple-600/20'
+                        ? 'bg-sky-600/20'
                         : 'hover:bg-gray-700/50'
                     }`}
                   >
@@ -326,10 +326,10 @@ export default function Lobby() {
                       type="checkbox"
                       checked={selectedCategories.includes(category.id)}
                       onChange={() => toggleCategory(category.id)}
-                      className="w-4 h-4 rounded border-gray-500 text-purple-500 focus:ring-purple-500 focus:ring-offset-gray-800 shrink-0"
+                      className="w-4 h-4 rounded border-gray-500 text-sky-500 focus:ring-sky-500 focus:ring-offset-gray-800 shrink-0"
                     />
                     <span className={`text-sm flex-1 ${
-                      selectedCategories.includes(category.id) ? 'text-purple-200' : 'text-gray-300'
+                      selectedCategories.includes(category.id) ? 'text-sky-200' : 'text-gray-300'
                     }`}>
                       {category.name}
                       {category.imported && (

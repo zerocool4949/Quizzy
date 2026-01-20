@@ -24,7 +24,7 @@ export default function Home() {
   return (
     <div className="min-h-screen flex flex-col items-center justify-center p-4">
       <div className="text-center mb-12">
-        <h1 className="text-6xl font-bold mb-4 bg-gradient-to-r from-purple-400 via-pink-500 to-red-500 text-transparent bg-clip-text">
+        <h1 className="text-6xl font-bold mb-4 bg-gradient-to-r from-sky-400 via-cyan-400 to-teal-400 text-transparent bg-clip-text">
           Quizzy
         </h1>
         <p className="text-gray-400 text-lg">The multiplayer music quiz game</p>
