@@ -90,6 +90,18 @@ async function getMultiCategoryTracks(categoryIds, difficulty = 1) {
   return tracks;
 }
 
+// Get all artists from categories (for decoy generation)
+function getAllArtistsFromCategories(categoryIds) {
+  let allArtists = [];
+  for (const categoryId of categoryIds) {
+    const artists = getArtistsForCategory(categoryId);
+    if (artists && artists.length > 0) {
+      allArtists.push(...artists);
+    }
+  }
+  return dedupeStrings(allArtists);
+}
+
 // Main quiz generation function - now accepts array of category IDs
 export async function getQuizTracks(categoryIds, count = 10, difficulty = 1) {
   // Handle both single categoryId (string) and array of categoryIds for backward compatibility
@@ -151,22 +163,45 @@ export async function getQuizTracks(categoryIds, count = 10, difficulty = 1) {
 
   console.log(`Selected ${roundTracks.length} tracks with artist diversity`);
 
-  // For each round, create question with decoys from DIFFERENT artists
+  // Get ALL artists from categories for decoy generation (not just the 50 sampled)
+  const allCategoryArtists = getAllArtistsFromCategories(categories);
+  console.log(`Using ${allCategoryArtists.length} artists from full category list for decoys`);
+
+  // For each round, create question with decoys from the FULL artist list
   return roundTracks.map((correctTrack, index) => {
-    // Filter out tracks from the same artist (case-insensitive comparison)
     const correctArtistLower = correctTrack.artist.toLowerCase();
-    const otherArtistTracks = shuffled.filter(t =>
-      t.id !== correctTrack.id && t.artist.toLowerCase() !== correctArtistLower
+
+    // Filter out the correct artist from decoy candidates
+    const decoyArtists = allCategoryArtists.filter(
+      artist => artist.toLowerCase() !== correctArtistLower
     );
 
-    // Pick 3 decoys from different artists
-    const decoys = otherArtistTracks
-      .sort(() => Math.random() - 0.5)
-      .slice(0, 3);
+    // Pick 3 random artists for decoys
+    const shuffledDecoyArtists = [...decoyArtists].sort(() => Math.random() - 0.5).slice(0, 3);
+
+    // Create fake track entries for decoys using artist names
+    // Use tracks from shuffled pool if available, otherwise just use artist name
+    const decoys = shuffledDecoyArtists.map(artistName => {
+      // Try to find a real track from this artist in our pool
+      const artistTrack = shuffled.find(
+        t => t.artist.toLowerCase() === artistName.toLowerCase() && t.id !== correctTrack.id
+      );
+
+      if (artistTrack) {
+        return { id: artistTrack.id, name: artistTrack.name, artist: artistTrack.artist };
+      }
+
+      // No track found - create a decoy with just the artist name and a generic song
+      return {
+        id: `decoy-${artistName.replace(/\s+/g, '-').toLowerCase()}-${index}`,
+        name: 'Popular Hit',
+        artist: artistName
+      };
+    });
 
     const options = [
       { id: correctTrack.id, name: correctTrack.name, artist: correctTrack.artist },
-      ...decoys.map(t => ({ id: t.id, name: t.name, artist: t.artist }))
+      ...decoys
     ].sort(() => Math.random() - 0.5);
 
     return {
