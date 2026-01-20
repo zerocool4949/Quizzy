@@ -58,17 +58,25 @@ export async function getArtistTopTracks(artistIdObj, limit = 10) {
     const query = `${track.artist} ${track.name}`;
     const deezerResults = await deezer.searchTracks(query, 3);
 
-    // Find best match
+    // Find best match - must match both artist AND have similar title
     const normalizedName = normalizeForSearch(track.name);
     const normalizedArtist = normalizeForSearch(track.artist);
 
     const match = deezerResults.find(d => {
       const dName = normalizeForSearch(d.name);
       const dArtist = normalizeForSearch(d.artist);
-      return dName.includes(normalizedName) || normalizedName.includes(dName) ||
-             (dArtist.includes(normalizedArtist) && dName.length > 0);
-    }) || deezerResults[0];
 
+      // Artist must match
+      const artistMatch = dArtist.includes(normalizedArtist) || normalizedArtist.includes(dArtist);
+      if (!artistMatch) return false;
+
+      // Title must have some similarity (not just any track by the artist)
+      const titleMatch = dName.includes(normalizedName) || normalizedName.includes(dName) ||
+                         dName.split(' ').some(word => word.length > 3 && normalizedName.includes(word));
+      return titleMatch;
+    });
+
+    // Only use if we found a proper match (no fallback to random results)
     if (match && match.previewUrl) {
       // Avoid duplicates
       if (!results.some(r => r.id === match.id)) {
