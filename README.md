@@ -127,9 +127,11 @@ docker compose up -d --build
 
 ### Answer Modes
 - **MCQ Mode**: 4 multiple choice options, 5 seconds to answer after clip
-- **Typed Mode** (default): Type artist name, then song title
+- **Typed Mode** (default): Single input field - guess artist and title in any order
   - 10 seconds to answer after clip
   - 3 lives per round (hearts) - wrong guesses cost a life
+  - Guess artist or title in any order (or both at once!)
+  - Type "Drake Hotline Bling" to get credit for both in one go
   - Fuzzy matching with typo tolerance (Levenshtein distance)
   - Case insensitive, accent insensitive
   - Partial matches accepted (e.g., "Weeknd" matches "The Weeknd")
@@ -213,7 +215,8 @@ Imported playlists are stored in `server/imported-playlists.json` and persist ac
 - `start-game` - Host starts quiz
 - `submit-answer` - Player submits guess
   - MCQ: `{ answerId: string }`
-  - Typed: `{ phase: 'artist'|'title', text: string }`
+  - Typed: `{ text: string }` (matches against artist/title automatically)
+- `leave-room` - Player leaves the room
 - `play-again` - Host restarts game
 
 ### Server → Client

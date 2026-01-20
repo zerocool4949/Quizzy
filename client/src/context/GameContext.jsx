@@ -197,8 +197,8 @@ export function GameProvider({ children }) {
     socketRef.current?.emit('submit-answer', { answerId });
   }, []);
 
-  const submitTypedAnswer = useCallback((phase, text) => {
-    socketRef.current?.emit('submit-answer', { phase, text });
+  const submitTypedAnswer = useCallback((_, text) => {
+    socketRef.current?.emit('submit-answer', { text });
   }, []);
 
   const playAgain = useCallback(() => {
@@ -206,6 +206,7 @@ export function GameProvider({ children }) {
   }, []);
 
   const leaveGame = useCallback(() => {
+    socketRef.current?.emit('leave-room');
     dispatch({ type: 'RESET' });
     navigate('/');
   }, [navigate]);

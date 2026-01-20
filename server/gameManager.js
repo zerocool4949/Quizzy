@@ -271,16 +271,15 @@ export function submitAnswer(code, playerId, payload) {
   }
 
   // -----------------------
-  // TYPED MODE (two-step: artist then title)
+  // TYPED MODE (single input - guess artist or title in any order)
   // 3 lives total - wrong guesses lose a life
   // Scoring: Artist = 10 base + speed bonus, Title = 15 base + speed bonus
   // Speed bonus: 3 if <5s, 2 if <10s, 1 if <15s
-  // payload: { phase: 'artist'|'title', text: '...' }
+  // payload: { text: '...' }
   // -----------------------
-  const phase = payload?.phase;
   const text = payload?.text;
 
-  if (phase !== 'artist' && phase !== 'title') return null;
+  if (!text) return null;
 
   let existing = room.answers.get(playerId);
 
@@ -300,9 +299,6 @@ export function submitAnswer(code, playerId, payload) {
   // If already finished, block further submissions
   if (existing.finished) return null;
 
-  // If trying title but artist not yet correct, reject
-  if (phase === 'title' && !existing.artistCorrect) return null;
-
   const correctArtist = round.correctArtist;
   const correctTitle = round.correctName;
 
@@ -314,85 +310,38 @@ export function submitAnswer(code, playerId, payload) {
     return 0;
   }
 
-  // --- Phase 1: ARTIST ---
-  if (phase === 'artist') {
-    // Already got artist correct, can't retry
-    if (existing.artistCorrect) return null;
+  // Check if the guess matches artist or title (in any order)
+  // Also check if both are contained in a single input (e.g., "Drake Hotline Bling")
+  let matchesArtist = !existing.artistCorrect && looselyMatches(text, correctArtist);
+  let matchesTitle = !existing.titleCorrect && looselyMatches(text, correctTitle);
 
-    const artistCorrect = looselyMatches(text, correctArtist);
+  // If input is long enough, check if it contains both artist AND title
+  if (text.length >= 6 && !existing.artistCorrect && !existing.titleCorrect) {
+    const normalizedInput = normalize(text);
+    const normalizedArtist = normalize(correctArtist);
+    const normalizedTitle = normalize(correctTitle);
 
-    if (!artistCorrect) {
-      // Wrong - lose a life
-      existing.lives--;
-
-      if (existing.lives <= 0) {
-        // Out of lives - round over for this player
-        player.streak = 0;
-        existing.finished = true;
-        existing.artistText = text;
-      }
-
-      room.answers.set(playerId, existing);
-
-      return {
-        mode: 'typed',
-        phase: 'artist',
-        isCorrect: false,
-        points: 0,
-        pointsAwarded: 0,
-        speedBonus: 0,
-        totalScore: player.score,
-        streak: player.streak,
-        livesLeft: existing.lives
-      };
+    // Check if input contains both (e.g., "drake hotline bling" contains "drake" and "hotline bling")
+    if (normalizedInput.includes(normalizedArtist) && normalizedInput.includes(normalizedTitle)) {
+      matchesArtist = true;
+      matchesTitle = true;
     }
-
-    // Artist correct: 10 base + speed bonus
-    const speedBonus = getSpeedBonus(timeTaken);
-    const pointsAwarded = 10 + speedBonus;
-    player.score += pointsAwarded;
-
-    existing.artistText = text;
-    existing.artistCorrect = true;
-    existing.points = pointsAwarded;
-    existing.speedBonus = speedBonus;
-    existing.artistTime = timeTaken;
-
-    room.answers.set(playerId, existing);
-
-    return {
-      mode: 'typed',
-      phase: 'artist',
-      isCorrect: true,
-      points: pointsAwarded,
-      pointsAwarded,
-      speedBonus,
-      totalScore: player.score,
-      streak: player.streak,
-      livesLeft: existing.lives
-    };
   }
 
-  // --- Phase 2: TITLE ---
-  const titleCorrect = looselyMatches(text, correctTitle);
-
-  if (!titleCorrect) {
-    // Wrong - lose a life
+  // If matches neither, lose a life
+  if (!matchesArtist && !matchesTitle) {
     existing.lives--;
 
     if (existing.lives <= 0) {
-      // Out of lives - round over
       player.streak = 0;
       existing.finished = true;
-      existing.titleText = text;
-      existing.titleCorrect = false;
     }
 
     room.answers.set(playerId, existing);
 
     return {
       mode: 'typed',
-      phase: 'title',
+      matched: null,
       isCorrect: false,
       fullCorrect: false,
       points: 0,
@@ -400,35 +349,67 @@ export function submitAnswer(code, playerId, payload) {
       speedBonus: 0,
       totalScore: player.score,
       streak: player.streak,
-      livesLeft: existing.lives
+      livesLeft: existing.lives,
+      artistCorrect: existing.artistCorrect,
+      titleCorrect: existing.titleCorrect
     };
   }
 
-  // Title correct: 15 base + speed bonus
-  const speedBonus = getSpeedBonus(timeTaken);
-  const pointsAwarded = 15 + speedBonus;
-  player.streak++;
-  player.score += pointsAwarded;
+  // Process artist match
+  if (matchesArtist) {
+    const speedBonus = getSpeedBonus(timeTaken);
+    const pointsAwarded = 10 + speedBonus;
+    player.score += pointsAwarded;
 
-  existing.finished = true;
-  existing.titleText = text;
-  existing.titleCorrect = true;
-  existing.points = (existing.points || 0) + pointsAwarded;
-  existing.titleSpeedBonus = speedBonus;
+    existing.artistText = text;
+    existing.artistCorrect = true;
+    existing.points = (existing.points || 0) + pointsAwarded;
+    existing.artistSpeedBonus = speedBonus;
+    existing.artistTime = timeTaken;
+  }
+
+  // Process title match
+  if (matchesTitle) {
+    const speedBonus = getSpeedBonus(timeTaken);
+    const pointsAwarded = 15 + speedBonus;
+    player.score += pointsAwarded;
+
+    existing.titleText = text;
+    existing.titleCorrect = true;
+    existing.points = (existing.points || 0) + pointsAwarded;
+    existing.titleSpeedBonus = speedBonus;
+    existing.titleTime = timeTaken;
+  }
+
+  // Check if both are now correct
+  const fullCorrect = existing.artistCorrect && existing.titleCorrect;
+  if (fullCorrect) {
+    player.streak++;
+    existing.finished = true;
+  }
 
   room.answers.set(playerId, existing);
 
+  // Determine what was matched this submission
+  const matchedBoth = matchesArtist && matchesTitle;
+  const matched = matchedBoth ? 'both' : (matchesArtist ? 'artist' : 'title');
+  const pointsAwarded = (matchesArtist ? 10 + (existing.artistSpeedBonus || 0) : 0) +
+                        (matchesTitle ? 15 + (existing.titleSpeedBonus || 0) : 0);
+
   return {
     mode: 'typed',
-    phase: 'title',
+    matched,
     isCorrect: true,
-    fullCorrect: true,
-    points: pointsAwarded,
+    fullCorrect,
+    points: existing.points,
     pointsAwarded,
-    speedBonus,
+    speedBonus: matchedBoth ? (existing.artistSpeedBonus || 0) + (existing.titleSpeedBonus || 0) :
+                (matchesArtist ? existing.artistSpeedBonus : existing.titleSpeedBonus),
     totalScore: player.score,
     streak: player.streak,
-    livesLeft: existing.lives
+    livesLeft: existing.lives,
+    artistCorrect: existing.artistCorrect,
+    titleCorrect: existing.titleCorrect
   };
 }
 

@@ -24,10 +24,11 @@ export default function Game() {
   const [songProgress, setSongProgress] = useState(0);
 
   // Typed mode state
-  const [typedPhase, setTypedPhase] = useState('artist'); // 'artist' | 'title' | 'done'
   const [typedInput, setTypedInput] = useState('');
-  const [artistResult, setArtistResult] = useState(null); // { correct: bool, text: string }
+  const [artistCorrect, setArtistCorrect] = useState(false);
+  const [titleCorrect, setTitleCorrect] = useState(false);
   const [lives, setLives] = useState(3); // 3 lives for typed mode
+  const [totalPoints, setTotalPoints] = useState(0);
   const [volume, setVolume] = useState(() => {
     const saved = localStorage.getItem('quizzy-volume');
     const vol = saved ? parseFloat(saved) : 0.7;
@@ -49,52 +50,32 @@ export default function Game() {
   // Reset typed mode state when new round starts
   useEffect(() => {
     if (gameState === 'playing') {
-      setTypedPhase('artist');
       setTypedInput('');
-      setArtistResult(null);
-      setLives(3); // Reset lives each round
+      setArtistCorrect(false);
+      setTitleCorrect(false);
+      setLives(3);
+      setTotalPoints(0);
     }
   }, [gameState, currentRound?.roundNumber]);
 
-  // Handle typed answer results to transition phases
+  // Handle typed answer results
   useEffect(() => {
     if (answerResult?.mode === 'typed') {
-      // Update lives from server response
+      // Update state from server response
       if (typeof answerResult.livesLeft === 'number') {
         setLives(answerResult.livesLeft);
       }
-
-      if (answerResult.phase === 'artist') {
-        if (answerResult.isCorrect) {
-          setArtistResult({
-            correct: true,
-            text: typedInput,
-            points: answerResult.pointsAwarded || 0,
-          });
-          setTypedInput('');
-          setTypedPhase('title');
-        } else {
-          // Wrong artist - check if out of lives
-          if (answerResult.livesLeft === 0) {
-            setArtistResult({
-              correct: false,
-              text: typedInput,
-              points: 0,
-            });
-            setTypedPhase('done');
-          } else {
-            // Still have lives - clear input for retry
-            setTypedInput('');
-          }
-        }
-      } else if (answerResult.phase === 'title') {
-        if (answerResult.isCorrect || answerResult.livesLeft === 0) {
-          setTypedPhase('done');
-        } else {
-          // Wrong title but still have lives - clear input for retry
-          setTypedInput('');
-        }
+      if (typeof answerResult.artistCorrect === 'boolean') {
+        setArtistCorrect(answerResult.artistCorrect);
       }
+      if (typeof answerResult.titleCorrect === 'boolean') {
+        setTitleCorrect(answerResult.titleCorrect);
+      }
+      if (typeof answerResult.points === 'number') {
+        setTotalPoints(answerResult.points);
+      }
+      // Clear input for next guess
+      setTypedInput('');
     }
   }, [answerResult]);
 
@@ -443,8 +424,22 @@ export default function Game() {
         {/* Typed Mode */}
         {currentRound?.answerMode === 'typed' && (
           <div className="space-y-4">
+            {/* Status indicators for artist and title */}
+            <div className="flex justify-center gap-4 mb-2">
+              <div className={`px-3 py-1 rounded-full text-sm ${
+                artistCorrect ? 'bg-green-600/30 text-green-400' : 'bg-gray-700 text-gray-400'
+              }`}>
+                Artist {artistCorrect ? '✓' : '?'}
+              </div>
+              <div className={`px-3 py-1 rounded-full text-sm ${
+                titleCorrect ? 'bg-green-600/30 text-green-400' : 'bg-gray-700 text-gray-400'
+              }`}>
+                Title {titleCorrect ? '✓' : '?'}
+              </div>
+            </div>
+
             {/* Lives display */}
-            {typedPhase !== 'done' && (
+            {!(artistCorrect && titleCorrect) && lives > 0 && (
               <div className="flex justify-center gap-2 mb-2">
                 {[0, 1, 2].map((i) => (
                   <svg
@@ -465,15 +460,26 @@ export default function Game() {
               </div>
             )}
 
-            {/* Artist phase */}
-            {typedPhase === 'artist' && (
+            {/* Points earned so far */}
+            {totalPoints > 0 && (
+              <div className="text-center text-green-400 text-sm">
+                +{totalPoints} points
+              </div>
+            )}
+
+            {/* Single input for artist or title */}
+            {!(artistCorrect && titleCorrect) && lives > 0 && (
               <div>
-                <label className="block text-sm text-gray-400 mb-2">Who is the artist?</label>
+                <label className="block text-sm text-gray-400 mb-2">
+                  {!artistCorrect && !titleCorrect && 'Type the artist or song title'}
+                  {artistCorrect && !titleCorrect && 'Now guess the song title'}
+                  {!artistCorrect && titleCorrect && 'Now guess the artist'}
+                </label>
                 <form
                   onSubmit={(e) => {
                     e.preventDefault();
                     if (!typedInput.trim()) return;
-                    submitTypedAnswer('artist', typedInput.trim());
+                    submitTypedAnswer(null, typedInput.trim());
                   }}
                   className="flex gap-2"
                 >
@@ -481,7 +487,7 @@ export default function Game() {
                     type="text"
                     value={typedInput}
                     onChange={(e) => setTypedInput(e.target.value)}
-                    placeholder="Type artist name..."
+                    placeholder="Type your answer..."
                     className="flex-1 bg-gray-700 border border-gray-600 rounded-xl px-4 py-3 focus:outline-none focus:border-sky-500"
                     autoFocus
                   />
@@ -496,63 +502,22 @@ export default function Game() {
               </div>
             )}
 
-            {/* Title phase */}
-            {typedPhase === 'title' && (
-              <div>
-                <div className={`p-3 rounded-xl mb-4 ${artistResult?.correct ? 'bg-green-600/20' : 'bg-red-600/20'}`}>
-                  <p className="text-sm">
-                    Artist: <span className="font-bold">{artistResult?.text}</span>
-                    {artistResult?.correct ? ' ✓' : ' ✗'}
-                  </p>
-                  {artistResult?.points > 0 && (
-                    <p className="text-green-400 text-sm">+{artistResult.points} points</p>
-                  )}
-                </div>
-                <label className="block text-sm text-gray-400 mb-2">What is the song title?</label>
-                <form
-                  onSubmit={(e) => {
-                    e.preventDefault();
-                    if (!typedInput.trim()) return;
-                    submitTypedAnswer('title', typedInput.trim());
-                  }}
-                  className="flex gap-2"
-                >
-                  <input
-                    type="text"
-                    value={typedInput}
-                    onChange={(e) => setTypedInput(e.target.value)}
-                    placeholder="Type song title..."
-                    className="flex-1 bg-gray-700 border border-gray-600 rounded-xl px-4 py-3 focus:outline-none focus:border-sky-500"
-                    autoFocus
-                  />
-                  <button
-                    type="submit"
-                    disabled={!typedInput.trim()}
-                    className="btn-primary px-6"
-                  >
-                    Submit
-                  </button>
-                </form>
-              </div>
-            )}
-
-            {/* Done - waiting */}
-            {typedPhase === 'done' && (
+            {/* Done - both correct or out of lives */}
+            {(artistCorrect && titleCorrect) && (
               <div className="text-center">
-                <div className={`p-4 rounded-xl ${answerResult?.isCorrect || answerResult?.fullCorrect ? 'bg-green-600/20' : 'bg-red-600/20'}`}>
-                  {artistResult && (
-                    <p className="text-sm mb-1">
-                      Artist: <span className="font-bold">{artistResult.text}</span>
-                      {artistResult.correct ? ' ✓' : ' ✗'}
-                    </p>
-                  )}
-                  {answerResult && (
-                    <p className="text-lg font-bold">
-                      {answerResult.fullCorrect ? 'Perfect!' : answerResult.isCorrect ? 'Title correct!' : 'Wrong!'}
-                    </p>
-                  )}
-                  {answerResult?.points > 0 && (
-                    <p className="text-green-400">+{answerResult.points} points</p>
+                <div className="p-4 rounded-xl bg-green-600/20">
+                  <p className="text-lg font-bold">Perfect!</p>
+                  <p className="text-green-400">+{totalPoints} points</p>
+                </div>
+              </div>
+            )}
+
+            {lives === 0 && !(artistCorrect && titleCorrect) && (
+              <div className="text-center">
+                <div className="p-4 rounded-xl bg-red-600/20">
+                  <p className="text-lg font-bold">Out of lives!</p>
+                  {totalPoints > 0 && (
+                    <p className="text-green-400">+{totalPoints} points</p>
                   )}
                 </div>
               </div>

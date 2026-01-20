@@ -212,6 +212,24 @@ io.on('connection', (socket) => {
 });
 
 
+  // Player explicitly leaves the room
+  socket.on('leave-room', () => {
+    if (!currentRoom) return;
+
+    console.log(`Player ${socket.id} leaving room ${currentRoom}`);
+    const room = leaveRoom(currentRoom, socket.id);
+    socket.leave(currentRoom);
+
+    if (room) {
+      io.to(currentRoom).emit('player-left', {
+        players: room.players,
+        newHostId: room.hostId
+      });
+    }
+
+    currentRoom = null;
+  });
+
   // Handle disconnection
   socket.on('disconnect', () => {
     console.log(`Player disconnected: ${socket.id}`);
