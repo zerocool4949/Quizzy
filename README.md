@@ -102,6 +102,7 @@ docker compose restart
 - **Music Source**: Deezer (free) or Spotify hybrid (uses Spotify rankings with Deezer audio)
 - **Answer Mode**: MCQ or Typed
 - **Music Categories**: Multi-select from `server/categories.json` (mix categories!)
+- **Import Spotify Playlists**: Import any public Spotify playlist as a new category
 
 ### Scoring
 
@@ -148,6 +149,20 @@ SPOTIFY_CLIENT_SECRET=your_client_secret
 
 Get credentials from [Spotify Developer Dashboard](https://developer.spotify.com/dashboard).
 
+### Importing Spotify Playlists
+
+In the lobby, hosts can import any public Spotify playlist as a new quiz category:
+
+1. Click **"+ Import Playlist"** in the Music Categories section
+2. Paste a Spotify playlist URL (e.g., `https://open.spotify.com/playlist/...`)
+3. Click **Import** - the playlist's artists will be extracted and saved
+4. The imported category will appear with a green "(imported)" label
+5. Hover over imported categories to see the delete button (X)
+
+Imported playlists are stored in `server/imported-playlists.json` and persist across restarts.
+
+**Note:** Spotify's personalized playlists (like "Today's Top Hits") may not be accessible - use public user-created playlists instead.
+
 ## Socket.io Events
 
 ### Client → Server
@@ -171,8 +186,10 @@ Get credentials from [Spotify Developer Dashboard](https://developer.spotify.com
 
 ## API Endpoints
 
-- `GET /api/categories` - List available categories from categories.json
+- `GET /api/categories` - List available categories (static + imported)
 - `GET /api/providers` - List available music providers (Deezer, Spotify)
+- `POST /api/playlists/import` - Import a Spotify playlist as category (`{ url: string }`)
+- `DELETE /api/playlists/:categoryId` - Delete an imported playlist
 
 ## Key Files
 

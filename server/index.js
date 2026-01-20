@@ -24,6 +24,8 @@ import {
   resetRoom
 } from './gameManager.js';
 import { getCategoryList, getProviderList } from './music.js';
+import { importPlaylist, deleteImportedPlaylist } from './categories.js';
+import { getPlaylist } from './spotify.js';
 
 dotenv.config();
 
@@ -47,6 +49,50 @@ app.get('/api/categories', (_req, res) => {
 // Get available music providers
 app.get('/api/providers', (_req, res) => {
   res.json(getProviderList());
+});
+
+// Import a Spotify playlist as a new category
+app.post('/api/playlists/import', async (req, res) => {
+  const { url } = req.body;
+
+  if (!url) {
+    return res.status(400).json({ error: 'Playlist URL is required' });
+  }
+
+  // Fetch playlist from Spotify
+  const playlist = await getPlaylist(url);
+
+  if (playlist.error) {
+    return res.status(400).json({ error: playlist.error });
+  }
+
+  if (playlist.artists.length === 0) {
+    return res.status(400).json({ error: 'Playlist has no tracks with artists' });
+  }
+
+  // Import the playlist
+  const result = importPlaylist(playlist);
+
+  if (result.error) {
+    return res.status(400).json({ error: result.error });
+  }
+
+  console.log(`Imported playlist "${result.name}" with ${result.artistCount} artists`);
+  res.json(result);
+});
+
+// Delete an imported playlist
+app.delete('/api/playlists/:categoryId', (req, res) => {
+  const { categoryId } = req.params;
+
+  const result = deleteImportedPlaylist(categoryId);
+
+  if (result.error) {
+    return res.status(400).json({ error: result.error });
+  }
+
+  console.log(`Deleted imported playlist "${result.name}"`);
+  res.json(result);
 });
 
 // Serve static files in production

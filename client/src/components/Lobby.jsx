@@ -26,6 +26,12 @@ export default function Lobby() {
   const [rounds, setRounds] = useState(10);
   const [countdown, setCountdown] = useState(3);
 
+  // Playlist import state
+  const [showImport, setShowImport] = useState(false);
+  const [importUrl, setImportUrl] = useState('');
+  const [importLoading, setImportLoading] = useState(false);
+  const [importError, setImportError] = useState('');
+
   // Countdown timer effect
   useEffect(() => {
     if (gameState === 'countdown') {
@@ -43,8 +49,8 @@ export default function Lobby() {
     }
   }, [gameState]);
 
-  // Fetch categories and providers from server
-  useEffect(() => {
+  // Fetch categories from server
+  const fetchCategories = () => {
     fetch(`${API_URL}/api/categories`)
       .then(res => res.json())
       .then(data => {
@@ -55,12 +61,72 @@ export default function Lobby() {
         }
       })
       .catch(err => console.error('Failed to fetch categories:', err));
+  };
+
+  // Fetch categories and providers from server
+  useEffect(() => {
+    fetchCategories();
 
     fetch(`${API_URL}/api/providers`)
       .then(res => res.json())
       .then(data => setProviders(data))
       .catch(err => console.error('Failed to fetch providers:', err));
   }, []);
+
+  // Import Spotify playlist
+  const handleImportPlaylist = async () => {
+    if (!importUrl.trim()) return;
+
+    setImportLoading(true);
+    setImportError('');
+
+    try {
+      const res = await fetch(`${API_URL}/api/playlists/import`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ url: importUrl })
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        setImportError(data.error || 'Failed to import playlist');
+        return;
+      }
+
+      // Refresh categories and select the new one
+      fetchCategories();
+      setSelectedCategories(prev => [...prev, data.categoryId]);
+      setImportUrl('');
+      setShowImport(false);
+    } catch (err) {
+      setImportError('Failed to import playlist');
+    } finally {
+      setImportLoading(false);
+    }
+  };
+
+  // Delete imported playlist
+  const handleDeletePlaylist = async (categoryId, e) => {
+    e.stopPropagation();
+
+    if (!confirm('Delete this imported playlist?')) return;
+
+    try {
+      const res = await fetch(`${API_URL}/api/playlists/${categoryId}`, {
+        method: 'DELETE'
+      });
+
+      if (res.ok) {
+        // Remove from selection if selected
+        setSelectedCategories(prev => prev.filter(id => id !== categoryId));
+        // Refresh categories
+        fetchCategories();
+      }
+    } catch (err) {
+      console.error('Failed to delete playlist:', err);
+    }
+  };
 
   const copyCode = () => {
     navigator.clipboard.writeText(roomCode);
@@ -227,14 +293,49 @@ export default function Lobby() {
 
             {/* Category Selector - Multi-select checkboxes */}
             <div>
-              <label className="block text-sm text-gray-400 mb-2">
-                Music Categories <span className="text-purple-400">({selectedCategories.length} selected)</span>
-              </label>
+              <div className="flex items-center justify-between mb-2">
+                <label className="text-sm text-gray-400">
+                  Music Categories <span className="text-purple-400">({selectedCategories.length} selected)</span>
+                </label>
+                <button
+                  onClick={() => setShowImport(!showImport)}
+                  className="text-xs px-2 py-1 rounded bg-green-600/30 text-green-300 hover:bg-green-600/50 transition-colors"
+                >
+                  + Import Playlist
+                </button>
+              </div>
+
+              {/* Import Playlist Form */}
+              {showImport && (
+                <div className="mb-3 p-3 bg-gray-800 rounded-lg border border-gray-600">
+                  <p className="text-xs text-gray-400 mb-2">Paste a Spotify playlist URL:</p>
+                  <div className="flex gap-2">
+                    <input
+                      type="text"
+                      value={importUrl}
+                      onChange={(e) => setImportUrl(e.target.value)}
+                      placeholder="https://open.spotify.com/playlist/..."
+                      className="flex-1 px-3 py-2 text-sm bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-purple-500"
+                    />
+                    <button
+                      onClick={handleImportPlaylist}
+                      disabled={importLoading || !importUrl.trim()}
+                      className="px-4 py-2 text-sm bg-green-600 text-white rounded-lg hover:bg-green-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                    >
+                      {importLoading ? '...' : 'Import'}
+                    </button>
+                  </div>
+                  {importError && (
+                    <p className="text-xs text-red-400 mt-2">{importError}</p>
+                  )}
+                </div>
+              )}
+
               <div className="max-h-48 overflow-y-auto bg-gray-800 rounded-xl border border-gray-600 p-2 grid grid-cols-2 gap-2">
                 {categories.map((category) => (
                   <label
                     key={category.id}
-                    className={`flex items-center gap-2 px-3 py-2 rounded-lg cursor-pointer transition-colors ${
+                    className={`flex items-center gap-2 px-3 py-2 rounded-lg cursor-pointer transition-colors relative group ${
                       selectedCategories.includes(category.id)
                         ? 'bg-purple-600/30 text-purple-200'
                         : 'hover:bg-gray-700 text-gray-300'
@@ -246,7 +347,21 @@ export default function Lobby() {
                       onChange={() => toggleCategory(category.id)}
                       className="w-4 h-4 rounded border-gray-500 text-purple-500 focus:ring-purple-500 focus:ring-offset-gray-800"
                     />
-                    <span className="text-sm truncate">{category.name}</span>
+                    <span className="text-sm truncate flex-1">
+                      {category.name}
+                      {category.imported && (
+                        <span className="ml-1 text-xs text-green-400">(imported)</span>
+                      )}
+                    </span>
+                    {category.imported && (
+                      <button
+                        onClick={(e) => handleDeletePlaylist(category.id, e)}
+                        className="absolute right-2 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 text-red-400 hover:text-red-300 text-xs px-1"
+                        title="Delete imported playlist"
+                      >
+                        X
+                      </button>
+                    )}
                   </label>
                 ))}
               </div>

@@ -185,3 +185,89 @@ export async function isAvailable() {
   const token = await getAccessToken();
   return token !== null;
 }
+
+// Extract playlist ID from Spotify URL or ID
+function extractPlaylistId(input) {
+  if (!input) return null;
+
+  // Already a plain ID
+  if (/^[a-zA-Z0-9]{22}$/.test(input)) {
+    return input;
+  }
+
+  // URL format: https://open.spotify.com/playlist/37i9dQZF1DXcBWIGoYBM5M
+  const urlMatch = input.match(/playlist\/([a-zA-Z0-9]{22})/);
+  if (urlMatch) return urlMatch[1];
+
+  // Spotify URI: spotify:playlist:37i9dQZF1DXcBWIGoYBM5M
+  const uriMatch = input.match(/spotify:playlist:([a-zA-Z0-9]{22})/);
+  if (uriMatch) return uriMatch[1];
+
+  return null;
+}
+
+// Fetch playlist details and tracks from Spotify
+export async function getPlaylist(playlistIdOrUrl) {
+  const token = await getAccessToken();
+  if (!token) return { error: 'Spotify not configured' };
+
+  const playlistId = extractPlaylistId(playlistIdOrUrl);
+  if (!playlistId) {
+    return { error: 'Invalid playlist URL or ID' };
+  }
+
+  try {
+    // Get playlist metadata
+    const playlistRes = await fetch(
+      `https://api.spotify.com/v1/playlists/${playlistId}`,
+      { headers: { 'Authorization': `Bearer ${token}` } }
+    );
+
+    if (!playlistRes.ok) {
+      if (playlistRes.status === 404) return { error: 'Playlist not found' };
+      return { error: `Spotify API error: ${playlistRes.status}` };
+    }
+
+    const playlist = await playlistRes.json();
+
+    // Extract unique artists from playlist tracks
+    const artistSet = new Set();
+    for (const item of playlist.tracks?.items || []) {
+      const track = item.track;
+      if (track?.artists?.[0]?.name) {
+        artistSet.add(track.artists[0].name);
+      }
+    }
+
+    // If playlist has more tracks, fetch them (Spotify paginates at 100)
+    let nextUrl = playlist.tracks?.next;
+    while (nextUrl) {
+      const nextRes = await fetch(nextUrl, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      if (!nextRes.ok) break;
+
+      const nextData = await nextRes.json();
+      for (const item of nextData.items || []) {
+        const track = item.track;
+        if (track?.artists?.[0]?.name) {
+          artistSet.add(track.artists[0].name);
+        }
+      }
+      nextUrl = nextData.next;
+    }
+
+    return {
+      id: playlistId,
+      name: playlist.name,
+      description: playlist.description || '',
+      imageUrl: playlist.images?.[0]?.url || '',
+      owner: playlist.owner?.display_name || 'Unknown',
+      trackCount: playlist.tracks?.total || 0,
+      artists: Array.from(artistSet)
+    };
+  } catch (error) {
+    console.error('Spotify playlist fetch error:', error.message);
+    return { error: 'Failed to fetch playlist' };
+  }
+}
