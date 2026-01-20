@@ -20,7 +20,6 @@ export function getProvider(name = 'deezer') {
 // List available providers for the UI
 export function getProviderList() {
   return [
-    { id: 'deezer', name: 'Deezer', description: 'Free, no account needed' },
     { id: 'spotify', name: 'Spotify', description: 'Spotify rankings + Deezer audio' }
   ];
 }

@@ -20,7 +20,7 @@ export default function Lobby() {
   const [categories, setCategories] = useState([]);
   const [selectedCategories, setSelectedCategories] = useState([]);
   const [providers, setProviders] = useState([]);
-  const [musicProvider, setMusicProvider] = useState('deezer');
+  const [musicProvider, setMusicProvider] = useState('spotify');
   const [answerMode, setAnswerMode] = useState(ANSWER_MODES[0].id);
   const [difficulty, setDifficulty] = useState(1);
   const [rounds, setRounds] = useState(10);
