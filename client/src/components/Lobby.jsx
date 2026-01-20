@@ -4,25 +4,13 @@ import { useGame } from '../context/GameContext';
 // In production, use same origin. In dev, use localhost:3001
 const API_URL = import.meta.env.VITE_SOCKET_URL || (import.meta.env.PROD ? '' : 'http://localhost:3001');
 
-const ANSWER_MODES = [
-  { id: 'typed', name: 'Type it (Artist then Title)' },
-  { id: 'mcq', name: '4 answers (multiple choice)' },
-];
-
-const DIFFICULTY_LEVELS = [
-  { id: 1, name: 'Easy', description: 'Top 1 hit per artist' },
-  { id: 2, name: 'Medium', description: 'Top 3 hits per artist' },
-  { id: 3, name: 'Hard', description: 'Top 10 hits per artist' },
-];
-
 export default function Lobby() {
   const { roomCode, players, isHost, startGame, leaveGame, gameState, updateSettings } = useGame();
   const [categories, setCategories] = useState([]);
   const [selectedCategories, setSelectedCategories] = useState([]);
-  const [providers, setProviders] = useState([]);
   const [musicProvider, setMusicProvider] = useState('spotify');
-  const [answerMode, setAnswerMode] = useState(ANSWER_MODES[0].id);
-  const [difficulty, setDifficulty] = useState(1);
+  const [answerMode, setAnswerMode] = useState('typed');
+  const [difficulty, setDifficulty] = useState(2);
   const [rounds, setRounds] = useState(10);
   const [countdown, setCountdown] = useState(3);
 
@@ -67,9 +55,14 @@ export default function Lobby() {
   useEffect(() => {
     fetchCategories();
 
+    // Auto-select best provider (spotify if available)
     fetch(`${API_URL}/api/providers`)
       .then(res => res.json())
-      .then(data => setProviders(data))
+      .then(data => {
+        const spotify = data.find(p => p.id === 'spotify');
+        if (spotify) setMusicProvider('spotify');
+        else if (data.length > 0) setMusicProvider(data[0].id);
+      })
       .catch(err => console.error('Failed to fetch providers:', err));
   }, []);
 
@@ -204,162 +197,152 @@ export default function Lobby() {
         </div>
 
         {isHost && (
-          <div className="mb-6 p-4 bg-gray-700/30 rounded-xl space-y-5">
-            <h3 className="text-lg font-semibold text-gray-300">Game Settings</h3>
-
-            {/* Rounds Selector */}
-            <div>
-              <label className="block text-sm text-gray-400 mb-2">
-                Rounds: <span className="text-purple-400 font-bold">{rounds}</span>
-              </label>
-              <div className="grid grid-cols-3 gap-2">
-                {[10, 15, 20].map((num) => (
-                  <button
-                    key={num}
-                    onClick={() => setRounds(num)}
-                    className={`px-3 py-2 rounded-xl text-center border transition-colors ${
-                      rounds === num
-                        ? 'bg-purple-600/30 border-purple-500 text-purple-200'
-                        : 'bg-gray-700/50 border-gray-600 hover:bg-gray-600/50 text-gray-200'
-                    }`}
-                  >
-                    {num}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            {/* Difficulty Level Selector */}
-            <div>
-              <label className="block text-sm text-gray-400 mb-2">Difficulty</label>
-              <div className="grid grid-cols-3 gap-2">
-                {DIFFICULTY_LEVELS.map((level) => (
-                  <button
-                    key={level.id}
-                    onClick={() => setDifficulty(level.id)}
-                    className={`px-3 py-2 rounded-xl text-center border transition-colors ${
-                      difficulty === level.id
-                        ? 'bg-purple-600/30 border-purple-500 text-purple-200'
-                        : 'bg-gray-700/50 border-gray-600 hover:bg-gray-600/50 text-gray-200'
-                    }`}
-                  >
-                    <div className="font-medium">{level.name}</div>
-                    <div className="text-xs text-gray-400 mt-1">{level.description}</div>
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            {/* Music Provider Selector */}
-            <div>
-              <label className="block text-sm text-gray-400 mb-2">Music Source</label>
-              <div className="grid grid-cols-2 gap-2">
-                {providers.map((provider) => (
-                  <button
-                    key={provider.id}
-                    onClick={() => setMusicProvider(provider.id)}
-                    className={`px-3 py-2 rounded-xl text-center border transition-colors ${
-                      musicProvider === provider.id
-                        ? 'bg-purple-600/30 border-purple-500 text-purple-200'
-                        : 'bg-gray-700/50 border-gray-600 hover:bg-gray-600/50 text-gray-200'
-                    }`}
-                  >
-                    <div className="font-medium">{provider.name}</div>
-                    <div className="text-xs text-gray-400 mt-1">{provider.description}</div>
-                  </button>
-                ))}
-              </div>
-            </div>
-
-              {/* Answer Mode Selector */}
-              <div>
-                <label className="block text-sm text-gray-400 mb-2">Answer Mode</label>
-                <div className="grid grid-cols-1 gap-2">
-                  {ANSWER_MODES.map((m) => (
+          <div className="mb-6 p-4 bg-gray-700/30 rounded-xl space-y-4">
+            {/* Compact row: Rounds + Difficulty + Mode */}
+            <div className="flex gap-3">
+              {/* Rounds */}
+              <div className="flex-1">
+                <label className="block text-xs text-gray-400 mb-1">Rounds</label>
+                <div className="flex gap-1">
+                  {[10, 15, 20].map((num) => (
                     <button
-                      key={m.id}
-                      onClick={() => setAnswerMode(m.id)}
-                      className={`w-full px-4 py-3 rounded-xl text-left border transition-colors ${
-                        answerMode === m.id
+                      key={num}
+                      onClick={() => setRounds(num)}
+                      className={`flex-1 px-2 py-1.5 rounded-lg text-sm border transition-colors ${
+                        rounds === num
                           ? 'bg-purple-600/30 border-purple-500 text-purple-200'
-                          : 'bg-gray-700/50 border-gray-600 hover:bg-gray-600/50 text-gray-200'
+                          : 'bg-gray-700/50 border-gray-600 hover:bg-gray-600/50 text-gray-300'
                       }`}
                     >
-                      {m.name}
+                      {num}
                     </button>
                   ))}
                 </div>
               </div>
 
-            {/* Category Selector - Multi-select checkboxes */}
+              {/* Difficulty */}
+              <div className="flex-1">
+                <label className="block text-xs text-gray-400 mb-1">Difficulty</label>
+                <div className="flex gap-1">
+                  {[
+                    { id: 1, name: 'Easy' },
+                    { id: 2, name: 'Med' },
+                    { id: 3, name: 'Hard' },
+                  ].map((level) => (
+                    <button
+                      key={level.id}
+                      onClick={() => setDifficulty(level.id)}
+                      className={`flex-1 px-2 py-1.5 rounded-lg text-sm border transition-colors ${
+                        difficulty === level.id
+                          ? 'bg-purple-600/30 border-purple-500 text-purple-200'
+                          : 'bg-gray-700/50 border-gray-600 hover:bg-gray-600/50 text-gray-300'
+                      }`}
+                    >
+                      {level.name}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            {/* Answer Mode Toggle */}
+            <div className="flex items-center gap-3">
+              <span className="text-xs text-gray-400">Mode:</span>
+              <div className="flex flex-1 bg-gray-800 rounded-lg p-0.5">
+                <button
+                  onClick={() => setAnswerMode('typed')}
+                  className={`flex-1 px-3 py-1.5 rounded-md text-sm transition-colors ${
+                    answerMode === 'typed'
+                      ? 'bg-purple-600 text-white'
+                      : 'text-gray-400 hover:text-gray-200'
+                  }`}
+                >
+                  Type Answer
+                </button>
+                <button
+                  onClick={() => setAnswerMode('mcq')}
+                  className={`flex-1 px-3 py-1.5 rounded-md text-sm transition-colors ${
+                    answerMode === 'mcq'
+                      ? 'bg-purple-600 text-white'
+                      : 'text-gray-400 hover:text-gray-200'
+                  }`}
+                >
+                  Multiple Choice
+                </button>
+              </div>
+            </div>
+
+            {/* Category Selector */}
             <div>
               <div className="flex items-center justify-between mb-2">
-                <label className="text-sm text-gray-400">
-                  Music Categories <span className="text-purple-400">({selectedCategories.length} selected)</span>
+                <label className="text-xs text-gray-400">
+                  Categories <span className="text-purple-400">({selectedCategories.length})</span>
                 </label>
                 <button
                   onClick={() => setShowImport(!showImport)}
-                  className="text-xs px-2 py-1 rounded bg-green-600/30 text-green-300 hover:bg-green-600/50 transition-colors"
+                  className="text-xs px-2 py-0.5 rounded bg-green-600/30 text-green-300 hover:bg-green-600/50 transition-colors"
                 >
-                  + Import Playlist
+                  + Import
                 </button>
               </div>
 
               {/* Import Playlist Form */}
               {showImport && (
-                <div className="mb-3 p-3 bg-gray-800 rounded-lg border border-gray-600">
-                  <p className="text-xs text-gray-400 mb-2">Paste a Spotify playlist URL:</p>
+                <div className="mb-2 p-2 bg-gray-800 rounded-lg border border-gray-600">
                   <div className="flex gap-2">
                     <input
                       type="text"
                       value={importUrl}
                       onChange={(e) => setImportUrl(e.target.value)}
-                      placeholder="https://open.spotify.com/playlist/..."
-                      className="flex-1 px-3 py-2 text-sm bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-purple-500"
+                      placeholder="Spotify playlist URL..."
+                      className="flex-1 px-2 py-1.5 text-sm bg-gray-700 border border-gray-600 rounded text-white placeholder-gray-500 focus:outline-none focus:border-purple-500"
                     />
                     <button
                       onClick={handleImportPlaylist}
                       disabled={importLoading || !importUrl.trim()}
-                      className="px-4 py-2 text-sm bg-green-600 text-white rounded-lg hover:bg-green-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                      className="px-3 py-1.5 text-sm bg-green-600 text-white rounded hover:bg-green-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                     >
-                      {importLoading ? '...' : 'Import'}
+                      {importLoading ? '...' : 'Add'}
                     </button>
                   </div>
                   {importError && (
-                    <p className="text-xs text-red-400 mt-2">{importError}</p>
+                    <p className="text-xs text-red-400 mt-1">{importError}</p>
                   )}
                 </div>
               )}
 
-              <div className="max-h-48 overflow-y-auto bg-gray-800 rounded-xl border border-gray-600 p-2 grid grid-cols-2 gap-2">
+              {/* Single column list for better readability */}
+              <div className="max-h-40 overflow-y-auto bg-gray-800 rounded-lg border border-gray-600 divide-y divide-gray-700">
                 {categories.map((category) => (
                   <label
                     key={category.id}
-                    className={`flex items-center gap-2 px-3 py-2 rounded-lg cursor-pointer transition-colors relative group ${
+                    className={`flex items-center gap-2 px-3 py-2 cursor-pointer transition-colors group ${
                       selectedCategories.includes(category.id)
-                        ? 'bg-purple-600/30 text-purple-200'
-                        : 'hover:bg-gray-700 text-gray-300'
+                        ? 'bg-purple-600/20'
+                        : 'hover:bg-gray-700/50'
                     }`}
                   >
                     <input
                       type="checkbox"
                       checked={selectedCategories.includes(category.id)}
                       onChange={() => toggleCategory(category.id)}
-                      className="w-4 h-4 rounded border-gray-500 text-purple-500 focus:ring-purple-500 focus:ring-offset-gray-800"
+                      className="w-4 h-4 rounded border-gray-500 text-purple-500 focus:ring-purple-500 focus:ring-offset-gray-800 shrink-0"
                     />
-                    <span className="text-sm truncate flex-1">
+                    <span className={`text-sm flex-1 ${
+                      selectedCategories.includes(category.id) ? 'text-purple-200' : 'text-gray-300'
+                    }`}>
                       {category.name}
                       {category.imported && (
-                        <span className="ml-1 text-xs text-green-400">(imported)</span>
+                        <span className="ml-1.5 text-xs text-green-400/80">imported</span>
                       )}
                     </span>
                     {category.imported && (
                       <button
                         onClick={(e) => handleDeletePlaylist(category.id, e)}
-                        className="absolute right-2 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 text-red-400 hover:text-red-300 text-xs px-1"
-                        title="Delete imported playlist"
+                        className="opacity-0 group-hover:opacity-100 text-red-400 hover:text-red-300 text-xs px-1 transition-opacity"
+                        title="Delete"
                       >
-                        X
+                        ×
                       </button>
                     )}
                   </label>

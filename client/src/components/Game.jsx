@@ -594,6 +594,13 @@ export default function Game() {
                   </div>
                 ))}
               </div>
+              {/* Exit button */}
+              <button
+                onClick={leaveGame}
+                className="w-full mt-4 px-3 py-2 text-xs text-gray-400 hover:text-white bg-gray-700/50 hover:bg-red-600/50 rounded-lg transition-colors"
+              >
+                Leave Game
+              </button>
             </div>
           </div>
       </div>
