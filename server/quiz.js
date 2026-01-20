@@ -174,7 +174,10 @@ export async function getQuizTracks(categoryIds, count = 10, difficulty = 1, mus
   console.log(`Using ${allCategoryArtists.length} artists from full category list for decoys`);
 
   // For each round, create question with decoys from the FULL artist list
-  return roundTracks.map((correctTrack, index) => {
+  const rounds = [];
+
+  for (let index = 0; index < roundTracks.length; index++) {
+    const correctTrack = roundTracks[index];
     const correctArtistLower = correctTrack.artist.toLowerCase();
 
     // Filter out the correct artist from decoy candidates
@@ -185,32 +188,42 @@ export async function getQuizTracks(categoryIds, count = 10, difficulty = 1, mus
     // Pick 3 random artists for decoys
     const shuffledDecoyArtists = [...decoyArtists].sort(() => Math.random() - 0.5).slice(0, 3);
 
-    // Create fake track entries for decoys using artist names
-    // Use tracks from shuffled pool if available, otherwise just use artist name
-    const decoys = shuffledDecoyArtists.map(artistName => {
+    // Create decoy entries - try pool first, then fetch if needed
+    const decoys = [];
+    for (const artistName of shuffledDecoyArtists) {
       // Try to find a real track from this artist in our pool
       const artistTrack = shuffled.find(
         t => t.artist.toLowerCase() === artistName.toLowerCase() && t.id !== correctTrack.id
       );
 
       if (artistTrack) {
-        return { id: artistTrack.id, name: artistTrack.name, artist: artistTrack.artist };
+        decoys.push({ id: artistTrack.id, name: artistTrack.name, artist: artistTrack.artist });
+      } else {
+        // No track in pool - fetch one for this artist
+        const artistId = await provider.searchArtistId(artistName);
+        if (artistId) {
+          const artistTracks = await provider.getArtistTopTracks(artistId, 1);
+          if (artistTracks.length > 0) {
+            const t = artistTracks[0];
+            decoys.push({ id: t.id, name: t.name, artist: t.artist });
+            continue;
+          }
+        }
+        // Last resort: use artist name with their biggest hit phrase
+        decoys.push({
+          id: `decoy-${artistName.replace(/\s+/g, '-').toLowerCase()}-${index}`,
+          name: `${artistName} Hit`,
+          artist: artistName
+        });
       }
-
-      // No track found - create a decoy with just the artist name and a generic song
-      return {
-        id: `decoy-${artistName.replace(/\s+/g, '-').toLowerCase()}-${index}`,
-        name: 'Popular Hit',
-        artist: artistName
-      };
-    });
+    }
 
     const options = [
       { id: correctTrack.id, name: correctTrack.name, artist: correctTrack.artist },
       ...decoys
     ].sort(() => Math.random() - 0.5);
 
-    return {
+    rounds.push({
       roundNumber: index + 1,
       previewUrl: correctTrack.previewUrl,
       albumArt: correctTrack.albumArt,
@@ -218,6 +231,8 @@ export async function getQuizTracks(categoryIds, count = 10, difficulty = 1, mus
       correctName: correctTrack.name,
       correctArtist: correctTrack.artist,
       options
-    };
-  });
+    });
+  }
+
+  return rounds;
 }
