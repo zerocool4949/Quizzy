@@ -1,7 +1,7 @@
 // Quiz generation logic - track selection, difficulty, decoys
 
 import { searchTracks, searchArtistId, getArtistTopTracks } from './deezer.js';
-import { getArtistsForGenre } from './genres.js';
+import { getArtistsForCategory } from './categories.js';
 
 // Simple concurrency limiter (prevents rate-limit spikes)
 async function runWithLimit(tasks, limit = 5) {
@@ -42,27 +42,27 @@ function getTrackLimitForDifficulty(difficulty) {
   }
 }
 
-// Fetch tracks for multiple genres based on difficulty
-async function getMultiGenreTracks(genreIds, difficulty = 1) {
-  // Collect all artists from selected genres
+// Fetch tracks for multiple categories based on difficulty
+async function getMultiCategoryTracks(categoryIds, difficulty = 1) {
+  // Collect all artists from selected categories
   let allArtists = [];
-  for (const genreId of genreIds) {
-    const artists = getArtistsForGenre(genreId);
+  for (const categoryId of categoryIds) {
+    const artists = getArtistsForCategory(categoryId);
     if (artists && artists.length > 0) {
       allArtists.push(...artists);
     }
   }
 
   if (allArtists.length === 0) {
-    console.warn(`No artists found for genres: [${genreIds.join(', ')}]`);
+    console.warn(`No artists found for categories: [${categoryIds.join(', ')}]`);
     return [];
   }
 
-  // Dedupe artists across all genres
+  // Dedupe artists across all categories
   allArtists = dedupeStrings(allArtists);
 
   const trackLimit = getTrackLimitForDifficulty(difficulty);
-  console.log(`Fetching tracks for ${allArtists.length} artists from genres: [${genreIds.join(', ')}] (difficulty: ${difficulty}, top ${trackLimit} per artist)`);
+  console.log(`Fetching tracks for ${allArtists.length} artists from categories: [${categoryIds.join(', ')}] (difficulty: ${difficulty}, top ${trackLimit} per artist)`);
 
   // Shuffle artists and pick 50 random ones for variety
   const shuffledArtists = [...allArtists].sort(() => Math.random() - 0.5);
@@ -90,21 +90,21 @@ async function getMultiGenreTracks(genreIds, difficulty = 1) {
   return tracks;
 }
 
-// Main quiz generation function - now accepts array of genre IDs
-export async function getQuizTracks(genreIds, count = 10, difficulty = 1) {
-  // Handle both single genreId (string) and array of genreIds for backward compatibility
-  const genres = Array.isArray(genreIds) ? genreIds : [genreIds];
+// Main quiz generation function - now accepts array of category IDs
+export async function getQuizTracks(categoryIds, count = 10, difficulty = 1) {
+  // Handle both single categoryId (string) and array of categoryIds for backward compatibility
+  const categories = Array.isArray(categoryIds) ? categoryIds : [categoryIds];
 
-  console.log(`Getting tracks for genres: [${genres.join(', ')}] with difficulty: ${difficulty}`);
+  console.log(`Getting tracks for categories: [${categories.join(', ')}] with difficulty: ${difficulty}`);
 
   // Get tracks from curated artist lists (reliable)
-  let tracks = await getMultiGenreTracks(genres, difficulty);
+  let tracks = await getMultiCategoryTracks(categories, difficulty);
 
   // Fallback to search if not enough tracks
   if (tracks.length < count * 2) {
-    console.log("Not enough tracks, trying direct genre search");
-    for (const genreId of genres) {
-      const searchTerm = genreId.replace(/-/g, " ");
+    console.log("Not enough tracks, trying direct category search");
+    for (const categoryId of categories) {
+      const searchTerm = categoryId.replace(/-/g, " ");
       const extraTracks = await searchTracks(`${searchTerm} hits`, 50);
 
       const existing = new Set(tracks.map(t => t.id));
@@ -120,7 +120,7 @@ export async function getQuizTracks(genreIds, count = 10, difficulty = 1) {
   // Last resort: top hits
   if (tracks.length < 4) {
     console.log("Still not enough, fetching top hits");
-    tracks = await getMultiGenreTracks(["top-hits"], difficulty);
+    tracks = await getMultiCategoryTracks(["top-hits"], difficulty);
   }
 
   if (tracks.length < 4) {

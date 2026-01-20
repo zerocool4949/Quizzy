@@ -28,10 +28,10 @@ quizzy/
 │   ├── index.js                # Express + Socket.io server
 │   ├── music.js                # Module re-exports
 │   ├── deezer.js               # Deezer API wrapper
-│   ├── genres.js               # Genre/artist loading
+│   ├── categories.js           # Category/artist loading
 │   ├── quiz.js                 # Quiz generation logic
 │   ├── gameManager.js          # Room & game logic + answer matching
-│   ├── genres.json             # Genre/playlist configuration (editable)
+│   ├── categories.json         # Category/playlist configuration (editable)
 │   └── package.json
 ├── Dockerfile                  # Multi-stage Docker build
 ├── compose.yml                 # Production deployment
@@ -69,9 +69,9 @@ ports:
   - "8080:7111"  # Change 8080 to your desired port
 ```
 
-The `genres.json` file is mounted as a volume, so you can edit it without rebuilding:
+The `categories.json` file is mounted as a volume, so you can edit it without rebuilding:
 ```bash
-nano server/genres.json
+nano server/categories.json
 docker compose restart
 ```
 
@@ -98,7 +98,7 @@ docker compose restart
   - Medium: Top 3 hits per artist
   - Hard: Top 10 hits per artist (includes deeper cuts)
 - **Answer Mode**: MCQ or Typed
-- **Music Genres**: Multi-select from `server/genres.json` (mix genres!)
+- **Music Categories**: Multi-select from `server/categories.json` (mix categories!)
 
 ### Scoring
 
@@ -115,12 +115,12 @@ docker compose restart
 
 ## Configuration
 
-### Adding/Editing Genres
+### Adding/Editing Categories
 
-Edit `server/genres.json`:
+Edit `server/categories.json`:
 ```json
 {
-  "genre-id": {
+  "category-id": {
     "name": "Display Name",
     "artists": [
       "Artist 1",
@@ -137,7 +137,7 @@ No code changes needed - just restart the server.
 ### Client → Server
 - `create-room` - Host creates room
 - `join-room` - Player joins with code
-- `update-settings` - Host changes game config (genreIds, answerMode, difficulty, totalRounds)
+- `update-settings` - Host changes game config (categoryIds, answerMode, difficulty, totalRounds)
 - `start-game` - Host starts quiz
 - `submit-answer` - Player submits guess
   - MCQ: `{ answerId: string }`
@@ -155,15 +155,15 @@ No code changes needed - just restart the server.
 
 ## API Endpoints
 
-- `GET /api/genres` - List available genres from genres.json
+- `GET /api/categories` - List available categories from categories.json
 
 ## Key Files
 
 | File | Purpose |
 |------|---------|
-| `server/genres.json` | Genre/artist configuration (edit this!) |
+| `server/categories.json` | Category/artist configuration (edit this!) |
 | `server/deezer.js` | Deezer API wrapper (search, artist lookup) |
-| `server/genres.js` | Genre/artist loading from JSON |
+| `server/categories.js` | Category/artist loading from JSON |
 | `server/quiz.js` | Quiz generation (track selection, difficulty, decoys) |
 | `server/gameManager.js` | Room state, scoring, fuzzy matching |
 | `client/src/context/GameContext.jsx` | React state + socket events |
@@ -178,7 +178,7 @@ No code changes needed - just restart the server.
 - Fuzzy matching uses Levenshtein distance with ~25% typo tolerance
 - Each artist appears max 2 times per quiz for variety
 - Track titles are cleaned (removes "Remastered", "Live", etc.)
-- Artists are randomly sampled (50 per game) from selected genres
+- Artists are randomly sampled (50 per game) from selected categories
 - In production, the built client is served from the Express server
 
 ---

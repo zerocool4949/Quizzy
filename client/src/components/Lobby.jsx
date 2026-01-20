@@ -17,8 +17,8 @@ const DIFFICULTY_LEVELS = [
 
 export default function Lobby() {
   const { roomCode, players, isHost, startGame, leaveGame, gameState, updateSettings } = useGame();
-  const [genres, setGenres] = useState([]);
-  const [selectedGenres, setSelectedGenres] = useState([]);
+  const [categories, setCategories] = useState([]);
+  const [selectedCategories, setSelectedCategories] = useState([]);
   const [answerMode, setAnswerMode] = useState(ANSWER_MODES[0].id);
   const [difficulty, setDifficulty] = useState(1);
   const [rounds, setRounds] = useState(10);
@@ -41,39 +41,39 @@ export default function Lobby() {
     }
   }, [gameState]);
 
-  // Fetch genres from server
+  // Fetch categories from server
   useEffect(() => {
-    fetch(`${API_URL}/api/genres`)
+    fetch(`${API_URL}/api/categories`)
       .then(res => res.json())
       .then(data => {
-        setGenres(data);
-        // Select first genre by default if none selected
-        if (data.length > 0 && selectedGenres.length === 0) {
-          setSelectedGenres([data[0].id]);
+        setCategories(data);
+        // Select first category by default if none selected
+        if (data.length > 0 && selectedCategories.length === 0) {
+          setSelectedCategories([data[0].id]);
         }
       })
-      .catch(err => console.error('Failed to fetch genres:', err));
+      .catch(err => console.error('Failed to fetch categories:', err));
   }, []);
 
   const copyCode = () => {
     navigator.clipboard.writeText(roomCode);
   };
 
-  const toggleGenre = (genreId) => {
-    setSelectedGenres(prev => {
-      if (prev.includes(genreId)) {
+  const toggleCategory = (categoryId) => {
+    setSelectedCategories(prev => {
+      if (prev.includes(categoryId)) {
         // Don't allow deselecting if it's the only one
         if (prev.length === 1) return prev;
-        return prev.filter(id => id !== genreId);
+        return prev.filter(id => id !== categoryId);
       }
-      return [...prev, genreId];
+      return [...prev, categoryId];
     });
   };
 
   const handleStartGame = () => {
-    if (selectedGenres.length === 0) return;
+    if (selectedCategories.length === 0) return;
     updateSettings({
-      genreIds: selectedGenres,
+      categoryIds: selectedCategories,
       answerMode,
       difficulty,
       totalRounds: rounds
@@ -196,28 +196,28 @@ export default function Lobby() {
                 </div>
               </div>
 
-            {/* Genre Selector - Multi-select checkboxes */}
+            {/* Category Selector - Multi-select checkboxes */}
             <div>
               <label className="block text-sm text-gray-400 mb-2">
-                Music Genres <span className="text-purple-400">({selectedGenres.length} selected)</span>
+                Music Categories <span className="text-purple-400">({selectedCategories.length} selected)</span>
               </label>
               <div className="max-h-48 overflow-y-auto bg-gray-800 rounded-xl border border-gray-600 p-2 grid grid-cols-2 gap-2">
-                {genres.map((genre) => (
+                {categories.map((category) => (
                   <label
-                    key={genre.id}
+                    key={category.id}
                     className={`flex items-center gap-2 px-3 py-2 rounded-lg cursor-pointer transition-colors ${
-                      selectedGenres.includes(genre.id)
+                      selectedCategories.includes(category.id)
                         ? 'bg-purple-600/30 text-purple-200'
                         : 'hover:bg-gray-700 text-gray-300'
                     }`}
                   >
                     <input
                       type="checkbox"
-                      checked={selectedGenres.includes(genre.id)}
-                      onChange={() => toggleGenre(genre.id)}
+                      checked={selectedCategories.includes(category.id)}
+                      onChange={() => toggleCategory(category.id)}
                       className="w-4 h-4 rounded border-gray-500 text-purple-500 focus:ring-purple-500 focus:ring-offset-gray-800"
                     />
-                    <span className="text-sm truncate">{genre.name}</span>
+                    <span className="text-sm truncate">{category.name}</span>
                   </label>
                 ))}
               </div>

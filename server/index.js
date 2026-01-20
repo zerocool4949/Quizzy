@@ -23,7 +23,7 @@ import {
   getGameResults,
   resetRoom
 } from './gameManager.js';
-import { getGenreList } from './music.js';
+import { getCategoryList } from './music.js';
 
 dotenv.config();
 
@@ -39,9 +39,9 @@ const io = new Server(server, {
 app.use(cors());
 app.use(express.json());
 
-// Get available genres from genres.json
-app.get('/api/genres', (_req, res) => {
-  res.json(getGenreList());
+// Get available categories from categories.json
+app.get('/api/categories', (_req, res) => {
+  res.json(getCategoryList());
 });
 
 // Serve static files in production
@@ -102,14 +102,14 @@ io.on('connection', (socket) => {
     console.log(`${playerName} joined room ${code}`);
   });
 
-  // Update game settings (genres, answer mode, difficulty, rounds)
-  socket.on('update-settings', ({ genreIds, answerMode, difficulty, totalRounds }) => {
+  // Update game settings (categories, answer mode, difficulty, rounds)
+  socket.on('update-settings', ({ categoryIds, answerMode, difficulty, totalRounds }) => {
     if (!currentRoom) return;
 
     const room = getRoom(currentRoom);
     if (room && room.hostId === socket.id) {
-      updateRoomSettings(currentRoom, { genreIds, answerMode, difficulty, totalRounds });
-      console.log(`Settings updated: genres: [${genreIds?.join(', ')}], mode: "${answerMode}", difficulty: ${difficulty}, rounds: ${totalRounds}`);
+      updateRoomSettings(currentRoom, { categoryIds, answerMode, difficulty, totalRounds });
+      console.log(`Settings updated: categories: [${categoryIds?.join(', ')}], mode: "${answerMode}", difficulty: ${difficulty}, rounds: ${totalRounds}`);
     }
   });
 
