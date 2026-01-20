@@ -9,9 +9,13 @@ services:
       - NODE_ENV=production
       - PORT=7111
       - CLIENT_URL=${CLIENT_URL:-http://localhost:7111}
+      - SPOTIFY_CLIENT_ID=${SPOTIFY_CLIENT_ID}
+      - SPOTIFY_CLIENT_SECRET=${SPOTIFY_CLIENT_SECRET}
     volumes:
       # Mount categories.json so you can edit it without rebuilding
       - ./server/categories.json:/app/server/categories.json:ro
+      # Mount imported playlists so they persist across rebuilds
+      - ./server/imported-playlists.json:/app/server/imported-playlists.json
     healthcheck:
       test: ["CMD", "wget", "-q", "--spider", "http://localhost:7111/api/categories"]
       interval: 30s
