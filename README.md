@@ -26,7 +26,10 @@ quizzy/
 │   └── package.json
 ├── server/
 │   ├── index.js                # Express + Socket.io server
-│   ├── music.js                # Deezer API integration
+│   ├── music.js                # Module re-exports
+│   ├── deezer.js               # Deezer API wrapper
+│   ├── genres.js               # Genre/artist loading
+│   ├── quiz.js                 # Quiz generation logic
 │   ├── gameManager.js          # Room & game logic + answer matching
 │   ├── genres.json             # Genre/playlist configuration (editable)
 │   └── package.json
@@ -88,9 +91,13 @@ docker compose restart
   - Partial matches accepted (e.g., "Weeknd" matches "The Weeknd")
 
 ### Game Settings (Host)
-- **Clip Duration**: 5-15 seconds slider
+- **Rounds**: 10, 15, or 20 rounds per game
+- **Difficulty**:
+  - Easy: Top 1 hit per artist (most recognizable songs)
+  - Medium: Top 3 hits per artist
+  - Hard: Top 10 hits per artist (includes deeper cuts)
 - **Answer Mode**: MCQ or Typed
-- **Music Genres**: Loaded from `server/genres.json`
+- **Music Genres**: Multi-select from `server/genres.json` (mix genres!)
 
 ### Scoring
 
@@ -129,7 +136,7 @@ No code changes needed - just restart the server.
 ### Client → Server
 - `create-room` - Host creates room
 - `join-room` - Player joins with code
-- `update-settings` - Host changes game config (clipDuration, genreId, answerMode)
+- `update-settings` - Host changes game config (genreIds, answerMode, difficulty, totalRounds)
 - `start-game` - Host starts quiz
 - `submit-answer` - Player submits guess
   - MCQ: `{ answerId: string }`
@@ -154,7 +161,9 @@ No code changes needed - just restart the server.
 | File | Purpose |
 |------|---------|
 | `server/genres.json` | Genre/artist configuration (edit this!) |
-| `server/music.js` | Deezer API + genre loading |
+| `server/deezer.js` | Deezer API wrapper (search, artist lookup) |
+| `server/genres.js` | Genre/artist loading from JSON |
+| `server/quiz.js` | Quiz generation (track selection, difficulty, decoys) |
 | `server/gameManager.js` | Room state, scoring, fuzzy matching |
 | `client/src/context/GameContext.jsx` | React state + socket events |
 | `client/src/components/Lobby.jsx` | Game settings UI |
@@ -163,11 +172,12 @@ No code changes needed - just restart the server.
 ## Notes
 
 - No API keys needed - Deezer API is free and public
-- Audio auto-stops after configured clip duration
+- Clip duration is fixed at 15 seconds
 - Round auto-ends after clip + answer time (5s MCQ, 20s Typed)
 - Fuzzy matching uses Levenshtein distance with ~25% typo tolerance
 - Each artist appears max 2 times per quiz for variety
 - Track titles are cleaned (removes "Remastered", "Live", etc.)
+- Artists are randomly sampled (50 per game) from selected genres
 - In production, the built client is served from the Express server
 
 ---

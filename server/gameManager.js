@@ -87,9 +87,10 @@ export function createRoom(hostId, hostName) {
       }
     ],
     state: 'lobby', // lobby, playing, finished
-    genreId: 'top-hits',
-    clipDuration: 10,
+    genreIds: ['top-hits'], // Array of genre IDs for multi-select
+    clipDuration: 15, // Hardcoded to 15 seconds
     answerMode: 'mcq', // 'mcq' | 'typed'
+    difficulty: 1, // 1=easy (top 1), 2=medium (top 3), 3=hard (top 10)
     rounds: [],
     currentRound: 0,
     totalRounds: 10,
@@ -144,22 +145,13 @@ export function getRoom(code) {
   return rooms.get(code?.toUpperCase());
 }
 
-// Legacy (looks unused in your current flow)
-export function setPlaylist(code, playlistId) {
+export function updateRoomSettings(code, { genreIds, answerMode, difficulty, totalRounds }) {
   const room = rooms.get(code);
   if (room && room.state === 'lobby') {
-    room.playlistId = playlistId;
-    return true;
-  }
-  return false;
-}
-
-export function updateRoomSettings(code, { clipDuration, genreId, answerMode }) {
-  const room = rooms.get(code);
-  if (room && room.state === 'lobby') {
-    if (clipDuration) room.clipDuration = clipDuration;
-    if (genreId) room.genreId = genreId;
+    if (genreIds && genreIds.length > 0) room.genreIds = genreIds;
     if (answerMode) room.answerMode = answerMode; // 'mcq' | 'typed'
+    if (difficulty) room.difficulty = difficulty; // 1=easy, 2=medium, 3=hard
+    if (totalRounds) room.totalRounds = totalRounds; // 10, 15, or 20
     return true;
   }
   return false;
@@ -171,7 +163,7 @@ export async function startGame(code) {
   if (room.players.length < 1) return { error: 'Need at least 1 player' };
 
   try {
-    room.rounds = await getQuizTracks(room.genreId, room.totalRounds);
+    room.rounds = await getQuizTracks(room.genreIds, room.totalRounds, room.difficulty);
     room.state = 'playing';
     room.currentRound = 0;
 

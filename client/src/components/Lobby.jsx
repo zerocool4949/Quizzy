@@ -9,13 +9,19 @@ const ANSWER_MODES = [
   { id: 'typed', name: 'Type it (Artist then Title)' },
 ];
 
+const DIFFICULTY_LEVELS = [
+  { id: 1, name: 'Easy', description: 'Top 1 hit per artist' },
+  { id: 2, name: 'Medium', description: 'Top 3 hits per artist' },
+  { id: 3, name: 'Hard', description: 'Top 10 hits per artist' },
+];
+
 export default function Lobby() {
   const { roomCode, players, isHost, startGame, leaveGame, gameState, updateSettings } = useGame();
-  const [clipDuration, setClipDuration] = useState(10);
   const [genres, setGenres] = useState([]);
-  const [selectedGenre, setSelectedGenre] = useState(null);
+  const [selectedGenres, setSelectedGenres] = useState([]);
   const [answerMode, setAnswerMode] = useState(ANSWER_MODES[0].id);
-  const [showGenreList, setShowGenreList] = useState(false);
+  const [difficulty, setDifficulty] = useState(1);
+  const [rounds, setRounds] = useState(10);
   const [countdown, setCountdown] = useState(3);
 
   // Countdown timer effect
@@ -41,8 +47,9 @@ export default function Lobby() {
       .then(res => res.json())
       .then(data => {
         setGenres(data);
-        if (data.length > 0 && !selectedGenre) {
-          setSelectedGenre(data[0]);
+        // Select first genre by default if none selected
+        if (data.length > 0 && selectedGenres.length === 0) {
+          setSelectedGenres([data[0].id]);
         }
       })
       .catch(err => console.error('Failed to fetch genres:', err));
@@ -52,12 +59,24 @@ export default function Lobby() {
     navigator.clipboard.writeText(roomCode);
   };
 
+  const toggleGenre = (genreId) => {
+    setSelectedGenres(prev => {
+      if (prev.includes(genreId)) {
+        // Don't allow deselecting if it's the only one
+        if (prev.length === 1) return prev;
+        return prev.filter(id => id !== genreId);
+      }
+      return [...prev, genreId];
+    });
+  };
+
   const handleStartGame = () => {
-    if (!selectedGenre) return;
+    if (selectedGenres.length === 0) return;
     updateSettings({
-      clipDuration,
-      genreId: selectedGenre.id,
-      answerMode
+      genreIds: selectedGenres,
+      answerMode,
+      difficulty,
+      totalRounds: rounds
     });
     startGame();
   };
@@ -114,25 +133,49 @@ export default function Lobby() {
           <div className="mb-6 p-4 bg-gray-700/30 rounded-xl space-y-5">
             <h3 className="text-lg font-semibold text-gray-300">Game Settings</h3>
 
-            {/* Clip Duration Slider */}
+            {/* Rounds Selector */}
             <div>
               <label className="block text-sm text-gray-400 mb-2">
-                Clip Duration: <span className="text-purple-400 font-bold">{clipDuration}s</span>
+                Rounds: <span className="text-purple-400 font-bold">{rounds}</span>
               </label>
-              <input
-                type="range"
-                min="5"
-                max="15"
-                value={clipDuration}
-                onChange={(e) => setClipDuration(Number(e.target.value))}
-                className="w-full h-2 bg-gray-600 rounded-lg appearance-none cursor-pointer accent-purple-500"
-              />
-              <div className="flex justify-between text-xs text-gray-500 mt-1">
-                <span>5s</span>
-                <span>10s</span>
-                <span>15s</span>
+              <div className="grid grid-cols-3 gap-2">
+                {[10, 15, 20].map((num) => (
+                  <button
+                    key={num}
+                    onClick={() => setRounds(num)}
+                    className={`px-3 py-2 rounded-xl text-center border transition-colors ${
+                      rounds === num
+                        ? 'bg-purple-600/30 border-purple-500 text-purple-200'
+                        : 'bg-gray-700/50 border-gray-600 hover:bg-gray-600/50 text-gray-200'
+                    }`}
+                  >
+                    {num}
+                  </button>
+                ))}
               </div>
             </div>
+
+            {/* Difficulty Level Selector */}
+            <div>
+              <label className="block text-sm text-gray-400 mb-2">Difficulty</label>
+              <div className="grid grid-cols-3 gap-2">
+                {DIFFICULTY_LEVELS.map((level) => (
+                  <button
+                    key={level.id}
+                    onClick={() => setDifficulty(level.id)}
+                    className={`px-3 py-2 rounded-xl text-center border transition-colors ${
+                      difficulty === level.id
+                        ? 'bg-purple-600/30 border-purple-500 text-purple-200'
+                        : 'bg-gray-700/50 border-gray-600 hover:bg-gray-600/50 text-gray-200'
+                    }`}
+                  >
+                    <div className="font-medium">{level.name}</div>
+                    <div className="text-xs text-gray-400 mt-1">{level.description}</div>
+                  </button>
+                ))}
+              </div>
+            </div>
+
               {/* Answer Mode Selector */}
               <div>
                 <label className="block text-sm text-gray-400 mb-2">Answer Mode</label>
@@ -153,42 +196,31 @@ export default function Lobby() {
                 </div>
               </div>
 
-            {/* Genre Selector */}
+            {/* Genre Selector - Multi-select checkboxes */}
             <div>
-              <label className="block text-sm text-gray-400 mb-2">Music Genre</label>
-              <button
-                onClick={() => setShowGenreList(!showGenreList)}
-                className="w-full bg-gray-700/50 border border-gray-600 rounded-xl px-4 py-3 text-left flex justify-between items-center hover:bg-gray-600/50 transition-colors"
-              >
-                <span>{selectedGenre?.name || 'Loading...'}</span>
-                <svg
-                  className={`w-5 h-5 transition-transform ${showGenreList ? 'rotate-180' : ''}`}
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                </svg>
-              </button>
-
-              {showGenreList && (
-                <div className="mt-2 max-h-48 overflow-y-auto bg-gray-800 rounded-xl border border-gray-600">
-                  {genres.map((genre) => (
-                    <button
-                      key={genre.id}
-                      onClick={() => {
-                        setSelectedGenre(genre);
-                        setShowGenreList(false);
-                      }}
-                      className={`w-full px-4 py-2 text-left hover:bg-gray-700 transition-colors ${
-                        selectedGenre?.id === genre.id ? 'bg-purple-600/30 text-purple-300' : ''
-                      }`}
-                    >
-                      {genre.name}
-                    </button>
-                  ))}
-                </div>
-              )}
+              <label className="block text-sm text-gray-400 mb-2">
+                Music Genres <span className="text-purple-400">({selectedGenres.length} selected)</span>
+              </label>
+              <div className="max-h-48 overflow-y-auto bg-gray-800 rounded-xl border border-gray-600 p-2 grid grid-cols-2 gap-2">
+                {genres.map((genre) => (
+                  <label
+                    key={genre.id}
+                    className={`flex items-center gap-2 px-3 py-2 rounded-lg cursor-pointer transition-colors ${
+                      selectedGenres.includes(genre.id)
+                        ? 'bg-purple-600/30 text-purple-200'
+                        : 'hover:bg-gray-700 text-gray-300'
+                    }`}
+                  >
+                    <input
+                      type="checkbox"
+                      checked={selectedGenres.includes(genre.id)}
+                      onChange={() => toggleGenre(genre.id)}
+                      className="w-4 h-4 rounded border-gray-500 text-purple-500 focus:ring-purple-500 focus:ring-offset-gray-800"
+                    />
+                    <span className="text-sm truncate">{genre.name}</span>
+                  </label>
+                ))}
+              </div>
             </div>
           </div>
         )}

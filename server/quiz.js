@@ -1,0 +1,182 @@
+// Quiz generation logic - track selection, difficulty, decoys
+
+import { searchTracks, searchArtistId, getArtistTopTracks } from './deezer.js';
+import { getArtistsForGenre } from './genres.js';
+
+// Simple concurrency limiter (prevents rate-limit spikes)
+async function runWithLimit(tasks, limit = 5) {
+  const results = [];
+  let i = 0;
+
+  const workers = Array.from({ length: Math.min(limit, tasks.length) }, async () => {
+    while (i < tasks.length) {
+      const idx = i++;
+      results[idx] = await tasks[idx]();
+    }
+  });
+
+  await Promise.all(workers);
+  return results;
+}
+
+// Remove duplicate strings (case-insensitive)
+function dedupeStrings(arr) {
+  const seen = new Set();
+  return arr.filter(s => {
+    const key = String(s).trim().toLowerCase();
+    if (!key) return false;
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
+}
+
+// Difficulty determines how many top tracks per artist:
+// 1 (easy) = top 1, 2 (medium) = top 3, 3 (hard) = top 10
+function getTrackLimitForDifficulty(difficulty) {
+  switch (difficulty) {
+    case 1: return 1;  // Easy: only #1 hit
+    case 2: return 3;  // Medium: top 3 hits
+    case 3: return 10; // Hard: top 10 hits
+    default: return 1;
+  }
+}
+
+// Fetch tracks for multiple genres based on difficulty
+async function getMultiGenreTracks(genreIds, difficulty = 1) {
+  // Collect all artists from selected genres
+  let allArtists = [];
+  for (const genreId of genreIds) {
+    const artists = getArtistsForGenre(genreId);
+    if (artists && artists.length > 0) {
+      allArtists.push(...artists);
+    }
+  }
+
+  if (allArtists.length === 0) {
+    console.warn(`No artists found for genres: [${genreIds.join(', ')}]`);
+    return [];
+  }
+
+  // Dedupe artists across all genres
+  allArtists = dedupeStrings(allArtists);
+
+  const trackLimit = getTrackLimitForDifficulty(difficulty);
+  console.log(`Fetching tracks for ${allArtists.length} artists from genres: [${genreIds.join(', ')}] (difficulty: ${difficulty}, top ${trackLimit} per artist)`);
+
+  // Shuffle artists and pick 50 random ones for variety
+  const shuffledArtists = [...allArtists].sort(() => Math.random() - 0.5);
+  const sampleArtists = shuffledArtists.slice(0, 50);
+
+  const tasks = sampleArtists.map(name => async () => {
+    const id = await searchArtistId(name);
+    if (!id) return [];
+    return getArtistTopTracks(id, trackLimit);
+  });
+
+  const results = await runWithLimit(tasks, 5);
+
+  // Combine and dedupe by track id
+  const trackMap = new Map();
+  results.flat().forEach(track => {
+    if (track?.id && !trackMap.has(track.id)) {
+      trackMap.set(track.id, track);
+    }
+  });
+
+  const tracks = Array.from(trackMap.values());
+  console.log(`Found ${tracks.length} unique preview tracks from artist top tracks`);
+
+  return tracks;
+}
+
+// Main quiz generation function - now accepts array of genre IDs
+export async function getQuizTracks(genreIds, count = 10, difficulty = 1) {
+  // Handle both single genreId (string) and array of genreIds for backward compatibility
+  const genres = Array.isArray(genreIds) ? genreIds : [genreIds];
+
+  console.log(`Getting tracks for genres: [${genres.join(', ')}] with difficulty: ${difficulty}`);
+
+  // Get tracks from curated artist lists (reliable)
+  let tracks = await getMultiGenreTracks(genres, difficulty);
+
+  // Fallback to search if not enough tracks
+  if (tracks.length < count * 2) {
+    console.log("Not enough tracks, trying direct genre search");
+    for (const genreId of genres) {
+      const searchTerm = genreId.replace(/-/g, " ");
+      const extraTracks = await searchTracks(`${searchTerm} hits`, 50);
+
+      const existing = new Set(tracks.map(t => t.id));
+      extraTracks.forEach(track => {
+        if (track?.id && !existing.has(track.id)) {
+          existing.add(track.id);
+          tracks.push(track);
+        }
+      });
+    }
+  }
+
+  // Last resort: top hits
+  if (tracks.length < 4) {
+    console.log("Still not enough, fetching top hits");
+    tracks = await getMultiGenreTracks(["top-hits"], difficulty);
+  }
+
+  if (tracks.length < 4) {
+    throw new Error("Could not find enough tracks with previews");
+  }
+
+  console.log(`Total tracks available: ${tracks.length}`);
+
+  // Shuffle tracks
+  const shuffled = [...tracks].sort(() => Math.random() - 0.5);
+
+  // Pick tracks for rounds, limiting each artist to max 2 appearances
+  const maxPerArtist = 2;
+  const artistCount = new Map();
+  const roundTracks = [];
+
+  for (const track of shuffled) {
+    if (roundTracks.length >= count) break;
+
+    const artistLower = track.artist.toLowerCase();
+    const currentCount = artistCount.get(artistLower) || 0;
+
+    if (currentCount < maxPerArtist) {
+      roundTracks.push(track);
+      artistCount.set(artistLower, currentCount + 1);
+    }
+  }
+
+  console.log(`Selected ${roundTracks.length} tracks with artist diversity`);
+
+  // For each round, create question with decoys from DIFFERENT artists
+  return roundTracks.map((correctTrack, index) => {
+    // Filter out tracks from the same artist (case-insensitive comparison)
+    const correctArtistLower = correctTrack.artist.toLowerCase();
+    const otherArtistTracks = shuffled.filter(t =>
+      t.id !== correctTrack.id && t.artist.toLowerCase() !== correctArtistLower
+    );
+
+    // Pick 3 decoys from different artists
+    const decoys = otherArtistTracks
+      .sort(() => Math.random() - 0.5)
+      .slice(0, 3);
+
+    const options = [
+      { id: correctTrack.id, name: correctTrack.name, artist: correctTrack.artist },
+      ...decoys.map(t => ({ id: t.id, name: t.name, artist: t.artist }))
+    ].sort(() => Math.random() - 0.5);
+
+    return {
+      roundNumber: index + 1,
+      previewUrl: correctTrack.previewUrl,
+      albumArt: correctTrack.albumArt,
+      correctId: correctTrack.id,
+      correctName: correctTrack.name,
+      correctArtist: correctTrack.artist,
+      options
+    };
+  });
+}

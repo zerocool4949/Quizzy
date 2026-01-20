@@ -13,7 +13,6 @@ import {
   joinRoom,
   leaveRoom,
   getRoom,
-  setPlaylist,
   updateRoomSettings,
   startGame,
   getCurrentRound,
@@ -24,7 +23,6 @@ import {
   getGameResults,
   resetRoom
 } from './gameManager.js';
-import { searchPlaylists, getFeaturedPlaylists, DEFAULT_PLAYLISTS } from './spotify.js';
 import { getGenreList } from './music.js';
 
 dotenv.config();
@@ -41,36 +39,9 @@ const io = new Server(server, {
 app.use(cors());
 app.use(express.json());
 
-// REST endpoints for playlist search
-app.get('/api/playlists/featured', async (req, res) => {
-  try {
-    const playlists = await getFeaturedPlaylists();
-    res.json(playlists);
-  } catch (error) {
-    res.json(DEFAULT_PLAYLISTS);
-  }
-});
-
 // Get available genres from genres.json
-app.get('/api/genres', (req, res) => {
+app.get('/api/genres', (_req, res) => {
   res.json(getGenreList());
-});
-
-app.get('/api/playlists/search', async (req, res) => {
-  try {
-    const { q } = req.query;
-    if (!q) {
-      return res.json(DEFAULT_PLAYLISTS);
-    }
-    const playlists = await searchPlaylists(q);
-    res.json(playlists);
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
-});
-
-app.get('/api/playlists/default', (req, res) => {
-  res.json(DEFAULT_PLAYLISTS);
 });
 
 // Serve static files in production
@@ -131,25 +102,14 @@ io.on('connection', (socket) => {
     console.log(`${playerName} joined room ${code}`);
   });
 
-  // Set playlist for the game
-  socket.on('set-playlist', ({ playlistId }) => {
+  // Update game settings (genres, answer mode, difficulty, rounds)
+  socket.on('update-settings', ({ genreIds, answerMode, difficulty, totalRounds }) => {
     if (!currentRoom) return;
 
     const room = getRoom(currentRoom);
     if (room && room.hostId === socket.id) {
-      setPlaylist(currentRoom, playlistId);
-      io.to(currentRoom).emit('playlist-changed', { playlistId });
-    }
-  });
-
-  // Update game settings (clip duration, genre)
-  socket.on('update-settings', ({ clipDuration, genreId, answerMode }) => {
-    if (!currentRoom) return;
-
-    const room = getRoom(currentRoom);
-    if (room && room.hostId === socket.id) {
-      updateRoomSettings(currentRoom, { clipDuration, genreId, answerMode });
-      console.log(`Settings updated: ${clipDuration}s, genre: "${genreId}", mode: "${answerMode}"`);
+      updateRoomSettings(currentRoom, { genreIds, answerMode, difficulty, totalRounds });
+      console.log(`Settings updated: genres: [${genreIds?.join(', ')}], mode: "${answerMode}", difficulty: ${difficulty}, rounds: ${totalRounds}`);
     }
   });
 
