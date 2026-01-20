@@ -185,12 +185,17 @@ export async function getQuizTracks(categoryIds, count = 10, difficulty = 1, mus
       artist => artist.toLowerCase() !== correctArtistLower
     );
 
-    // Pick 3 random artists for decoys
-    const shuffledDecoyArtists = [...decoyArtists].sort(() => Math.random() - 0.5).slice(0, 3);
+    // Shuffle all decoy candidates - we'll try more than 3 to handle failures
+    const shuffledDecoyArtists = [...decoyArtists].sort(() => Math.random() - 0.5);
 
     // Create decoy entries - try pool first, then fetch if needed
     const decoys = [];
+    const usedArtists = new Set();
+
     for (const artistName of shuffledDecoyArtists) {
+      if (decoys.length >= 3) break;
+      if (usedArtists.has(artistName.toLowerCase())) continue;
+
       // Try to find a real track from this artist in our pool
       const artistTrack = shuffled.find(
         t => t.artist.toLowerCase() === artistName.toLowerCase() && t.id !== correctTrack.id
@@ -198,24 +203,36 @@ export async function getQuizTracks(categoryIds, count = 10, difficulty = 1, mus
 
       if (artistTrack) {
         decoys.push({ id: artistTrack.id, name: artistTrack.name, artist: artistTrack.artist });
+        usedArtists.add(artistName.toLowerCase());
       } else {
         // No track in pool - fetch one for this artist
-        const artistId = await provider.searchArtistId(artistName);
-        if (artistId) {
-          const artistTracks = await provider.getArtistTopTracks(artistId, 1);
-          if (artistTracks.length > 0) {
-            const t = artistTracks[0];
-            decoys.push({ id: t.id, name: t.name, artist: t.artist });
-            continue;
+        try {
+          const artistId = await provider.searchArtistId(artistName);
+          if (artistId) {
+            const artistTracks = await provider.getArtistTopTracks(artistId, 1);
+            if (artistTracks.length > 0) {
+              const t = artistTracks[0];
+              decoys.push({ id: t.id, name: t.name, artist: t.artist });
+              usedArtists.add(artistName.toLowerCase());
+            }
           }
+        } catch {
+          // Fetch failed, try next artist
         }
-        // Last resort: use artist name with their biggest hit phrase
-        decoys.push({
-          id: `decoy-${artistName.replace(/\s+/g, '-').toLowerCase()}-${index}`,
-          name: `${artistName} Hit`,
-          artist: artistName
-        });
       }
+    }
+
+    // If we still don't have 3 decoys, fill with placeholder (should be rare)
+    while (decoys.length < 3 && shuffledDecoyArtists.length > usedArtists.size) {
+      const remaining = shuffledDecoyArtists.filter(a => !usedArtists.has(a.toLowerCase()));
+      if (remaining.length === 0) break;
+      const artistName = remaining[0];
+      decoys.push({
+        id: `decoy-${artistName.replace(/\s+/g, '-').toLowerCase()}-${index}`,
+        name: `${artistName} Hit`,
+        artist: artistName
+      });
+      usedArtists.add(artistName.toLowerCase());
     }
 
     const options = [
