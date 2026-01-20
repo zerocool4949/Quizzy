@@ -52,18 +52,44 @@ Open http://localhost:5173 in your browser.
 
 ### Production (Docker)
 
+The app is automatically built and published to GitHub Container Registry on every push to main.
+
+#### First-time setup
+
 1. Clone the repo on your server:
 ```bash
 git clone https://github.com/zerocool4949/Quizzy.git
 cd Quizzy
 ```
 
-2. Build and run:
+2. Authenticate with GitHub Container Registry (one-time):
 ```bash
-docker compose up -d --build
+# Create a Personal Access Token at https://github.com/settings/tokens
+# with "read:packages" permission
+echo 'YOUR_PAT_HERE' | docker login ghcr.io -u YOUR_GITHUB_USERNAME --password-stdin
 ```
 
-3. Access at `http://your-server:7111`
+3. Create environment file for Spotify (optional):
+```bash
+cp .env.example .env
+# Edit .env with your Spotify credentials
+```
+
+4. Start the app:
+```bash
+docker compose up -d
+```
+
+5. Access at `http://your-server:7111`
+
+#### Updating to latest version
+
+No rebuilding needed - just pull the latest image:
+```bash
+docker compose pull && docker compose up -d
+```
+
+#### Configuration
 
 To change the external port, edit `compose.yml`:
 ```yaml
@@ -71,10 +97,25 @@ ports:
   - "8080:7111"  # Change 8080 to your desired port
 ```
 
-The `categories.json` file is mounted as a volume, so you can edit it without rebuilding:
+The `categories.json` and `imported-playlists.json` files are mounted as volumes, so you can edit them without rebuilding:
 ```bash
 nano server/categories.json
 docker compose restart
+```
+
+#### Building locally (optional)
+
+If you want to build locally instead of using the pre-built image, edit `compose.yml`:
+```yaml
+services:
+  quizzy:
+    # image: ghcr.io/zerocool4949/quizzy:latest
+    build: .  # Uncomment this line
+```
+
+Then run:
+```bash
+docker compose up -d --build
 ```
 
 ## Game Features
