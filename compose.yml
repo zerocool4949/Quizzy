@@ -1,6 +1,7 @@
 services:
   quizzy:
-    build: .
+    image: ghcr.io/zerocool4949/quizzy:latest
+    # build: .  # Uncomment to build locally instead
     container_name: quizzy
     restart: unless-stopped
     ports:
