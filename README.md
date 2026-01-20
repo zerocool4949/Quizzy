@@ -6,7 +6,7 @@ A real-time multiplayer music quiz where players listen to song clips and compet
 
 - **Frontend**: React + Vite + Tailwind CSS
 - **Backend**: Node.js + Express + Socket.io
-- **Music API**: Deezer (free 30-second previews, no auth required)
+- **Music API**: Deezer (free) or Spotify hybrid (Spotify rankings + Deezer audio)
 - **Deployment**: Docker + Docker Compose
 
 ## Project Structure
@@ -26,8 +26,10 @@ quizzy/
 │   └── package.json
 ├── server/
 │   ├── index.js                # Express + Socket.io server
-│   ├── music.js                # Module re-exports
+│   ├── music.js                # Music provider abstraction
 │   ├── deezer.js               # Deezer API wrapper
+│   ├── spotify.js              # Spotify API wrapper (auth + metadata)
+│   ├── spotify-hybrid.js       # Hybrid provider (Spotify rankings + Deezer audio)
 │   ├── categories.js           # Category/artist loading
 │   ├── quiz.js                 # Quiz generation logic
 │   ├── gameManager.js          # Room & game logic + answer matching
@@ -97,6 +99,7 @@ docker compose restart
   - Easy: Top 1 hit per artist (most recognizable songs)
   - Medium: Top 3 hits per artist
   - Hard: Top 10 hits per artist (includes deeper cuts)
+- **Music Source**: Deezer (free) or Spotify hybrid (uses Spotify rankings with Deezer audio)
 - **Answer Mode**: MCQ or Typed
 - **Music Categories**: Multi-select from `server/categories.json` (mix categories!)
 
@@ -132,12 +135,25 @@ Edit `server/categories.json`:
 
 No code changes needed - just restart the server.
 
+### Spotify Hybrid Mode (Optional)
+
+The Spotify option uses a hybrid approach: Spotify API for track discovery/rankings, Deezer for playable audio previews. This gives you Spotify's chart data while avoiding their preview URL restrictions.
+
+To enable, add credentials to `server/.env`:
+
+```env
+SPOTIFY_CLIENT_ID=your_client_id
+SPOTIFY_CLIENT_SECRET=your_client_secret
+```
+
+Get credentials from [Spotify Developer Dashboard](https://developer.spotify.com/dashboard).
+
 ## Socket.io Events
 
 ### Client → Server
 - `create-room` - Host creates room
 - `join-room` - Player joins with code
-- `update-settings` - Host changes game config (categoryIds, answerMode, difficulty, totalRounds)
+- `update-settings` - Host changes game config (categoryIds, answerMode, difficulty, totalRounds, musicProvider)
 - `start-game` - Host starts quiz
 - `submit-answer` - Player submits guess
   - MCQ: `{ answerId: string }`
@@ -156,6 +172,7 @@ No code changes needed - just restart the server.
 ## API Endpoints
 
 - `GET /api/categories` - List available categories from categories.json
+- `GET /api/providers` - List available music providers (Deezer, Spotify)
 
 ## Key Files
 

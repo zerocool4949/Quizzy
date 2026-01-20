@@ -1,6 +1,6 @@
 // Quiz generation logic - track selection, difficulty, decoys
 
-import { searchTracks, searchArtistId, getArtistTopTracks } from './deezer.js';
+import { getProvider } from './music.js';
 import { getArtistsForCategory } from './categories.js';
 
 // Simple concurrency limiter (prevents rate-limit spikes)
@@ -43,7 +43,7 @@ function getTrackLimitForDifficulty(difficulty) {
 }
 
 // Fetch tracks for multiple categories based on difficulty
-async function getMultiCategoryTracks(categoryIds, difficulty = 1) {
+async function getMultiCategoryTracks(categoryIds, difficulty = 1, provider) {
   // Collect all artists from selected categories
   let allArtists = [];
   for (const categoryId of categoryIds) {
@@ -62,16 +62,16 @@ async function getMultiCategoryTracks(categoryIds, difficulty = 1) {
   allArtists = dedupeStrings(allArtists);
 
   const trackLimit = getTrackLimitForDifficulty(difficulty);
-  console.log(`Fetching tracks for ${allArtists.length} artists from categories: [${categoryIds.join(', ')}] (difficulty: ${difficulty}, top ${trackLimit} per artist)`);
+  console.log(`[${provider.name}] Fetching tracks for ${allArtists.length} artists from categories: [${categoryIds.join(', ')}] (difficulty: ${difficulty}, top ${trackLimit} per artist)`);
 
   // Shuffle artists and pick 50 random ones for variety
   const shuffledArtists = [...allArtists].sort(() => Math.random() - 0.5);
   const sampleArtists = shuffledArtists.slice(0, 50);
 
   const tasks = sampleArtists.map(name => async () => {
-    const id = await searchArtistId(name);
+    const id = await provider.searchArtistId(name);
     if (!id) return [];
-    return getArtistTopTracks(id, trackLimit);
+    return provider.getArtistTopTracks(id, trackLimit);
   });
 
   const results = await runWithLimit(tasks, 5);
@@ -85,7 +85,7 @@ async function getMultiCategoryTracks(categoryIds, difficulty = 1) {
   });
 
   const tracks = Array.from(trackMap.values());
-  console.log(`Found ${tracks.length} unique preview tracks from artist top tracks`);
+  console.log(`[${provider.name}] Found ${tracks.length} unique preview tracks from artist top tracks`);
 
   return tracks;
 }
@@ -102,22 +102,28 @@ function getAllArtistsFromCategories(categoryIds) {
   return dedupeStrings(allArtists);
 }
 
-// Main quiz generation function - now accepts array of category IDs
-export async function getQuizTracks(categoryIds, count = 10, difficulty = 1) {
+// Main quiz generation function
+// @param categoryIds - array of category IDs
+// @param count - number of rounds
+// @param difficulty - 1 (easy), 2 (medium), 3 (hard)
+// @param musicProvider - 'deezer' or 'spotify'
+export async function getQuizTracks(categoryIds, count = 10, difficulty = 1, musicProvider = 'deezer') {
   // Handle both single categoryId (string) and array of categoryIds for backward compatibility
   const categories = Array.isArray(categoryIds) ? categoryIds : [categoryIds];
 
-  console.log(`Getting tracks for categories: [${categories.join(', ')}] with difficulty: ${difficulty}`);
+  // Get the music provider module
+  const provider = getProvider(musicProvider);
+  console.log(`Getting tracks using ${provider.name} for categories: [${categories.join(', ')}] with difficulty: ${difficulty}`);
 
   // Get tracks from curated artist lists (reliable)
-  let tracks = await getMultiCategoryTracks(categories, difficulty);
+  let tracks = await getMultiCategoryTracks(categories, difficulty, provider);
 
   // Fallback to search if not enough tracks
   if (tracks.length < count * 2) {
     console.log("Not enough tracks, trying direct category search");
     for (const categoryId of categories) {
       const searchTerm = categoryId.replace(/-/g, " ");
-      const extraTracks = await searchTracks(`${searchTerm} hits`, 50);
+      const extraTracks = await provider.searchTracks(`${searchTerm} hits`, 50);
 
       const existing = new Set(tracks.map(t => t.id));
       extraTracks.forEach(track => {
@@ -132,7 +138,7 @@ export async function getQuizTracks(categoryIds, count = 10, difficulty = 1) {
   // Last resort: top hits
   if (tracks.length < 4) {
     console.log("Still not enough, fetching top hits");
-    tracks = await getMultiCategoryTracks(["top-hits"], difficulty);
+    tracks = await getMultiCategoryTracks(["top-hits"], difficulty, provider);
   }
 
   if (tracks.length < 4) {

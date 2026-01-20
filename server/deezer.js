@@ -105,3 +105,15 @@ export async function getArtistTopTracks(artistId, limit = 10) {
     return [];
   }
 }
+
+// Check if Deezer is available
+export async function isAvailable() {
+  try {
+    const res = await fetch('https://api.deezer.com/search?q=test&limit=1');
+    return res.ok;
+  } catch {
+    return false;
+  }
+}
+
+export const name = 'Deezer';

@@ -1,4 +1,4 @@
-import { getQuizTracks } from './music.js';
+import { getQuizTracks } from './quiz.js';
 
 const rooms = new Map();
 
@@ -91,6 +91,7 @@ export function createRoom(hostId, hostName) {
     clipDuration: 15, // Hardcoded to 15 seconds
     answerMode: 'mcq', // 'mcq' | 'typed'
     difficulty: 1, // 1=easy (top 1), 2=medium (top 3), 3=hard (top 10)
+    musicProvider: 'deezer', // 'deezer' | 'spotify'
     rounds: [],
     currentRound: 0,
     totalRounds: 10,
@@ -145,13 +146,14 @@ export function getRoom(code) {
   return rooms.get(code?.toUpperCase());
 }
 
-export function updateRoomSettings(code, { categoryIds, answerMode, difficulty, totalRounds }) {
+export function updateRoomSettings(code, { categoryIds, answerMode, difficulty, totalRounds, musicProvider }) {
   const room = rooms.get(code);
   if (room && room.state === 'lobby') {
     if (categoryIds && categoryIds.length > 0) room.categoryIds = categoryIds;
     if (answerMode) room.answerMode = answerMode; // 'mcq' | 'typed'
     if (difficulty) room.difficulty = difficulty; // 1=easy, 2=medium, 3=hard
     if (totalRounds) room.totalRounds = totalRounds; // 10, 15, or 20
+    if (musicProvider) room.musicProvider = musicProvider; // 'deezer' | 'spotify'
     return true;
   }
   return false;
@@ -163,7 +165,7 @@ export async function startGame(code) {
   if (room.players.length < 1) return { error: 'Need at least 1 player' };
 
   try {
-    room.rounds = await getQuizTracks(room.categoryIds, room.totalRounds, room.difficulty);
+    room.rounds = await getQuizTracks(room.categoryIds, room.totalRounds, room.difficulty, room.musicProvider);
     room.state = 'playing';
     room.currentRound = 0;
 

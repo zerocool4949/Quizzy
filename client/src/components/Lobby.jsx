@@ -19,6 +19,8 @@ export default function Lobby() {
   const { roomCode, players, isHost, startGame, leaveGame, gameState, updateSettings } = useGame();
   const [categories, setCategories] = useState([]);
   const [selectedCategories, setSelectedCategories] = useState([]);
+  const [providers, setProviders] = useState([]);
+  const [musicProvider, setMusicProvider] = useState('deezer');
   const [answerMode, setAnswerMode] = useState(ANSWER_MODES[0].id);
   const [difficulty, setDifficulty] = useState(1);
   const [rounds, setRounds] = useState(10);
@@ -41,7 +43,7 @@ export default function Lobby() {
     }
   }, [gameState]);
 
-  // Fetch categories from server
+  // Fetch categories and providers from server
   useEffect(() => {
     fetch(`${API_URL}/api/categories`)
       .then(res => res.json())
@@ -53,6 +55,11 @@ export default function Lobby() {
         }
       })
       .catch(err => console.error('Failed to fetch categories:', err));
+
+    fetch(`${API_URL}/api/providers`)
+      .then(res => res.json())
+      .then(data => setProviders(data))
+      .catch(err => console.error('Failed to fetch providers:', err));
   }, []);
 
   const copyCode = () => {
@@ -76,7 +83,8 @@ export default function Lobby() {
       categoryIds: selectedCategories,
       answerMode,
       difficulty,
-      totalRounds: rounds
+      totalRounds: rounds,
+      musicProvider
     });
     startGame();
   };
@@ -171,6 +179,27 @@ export default function Lobby() {
                   >
                     <div className="font-medium">{level.name}</div>
                     <div className="text-xs text-gray-400 mt-1">{level.description}</div>
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Music Provider Selector */}
+            <div>
+              <label className="block text-sm text-gray-400 mb-2">Music Source</label>
+              <div className="grid grid-cols-2 gap-2">
+                {providers.map((provider) => (
+                  <button
+                    key={provider.id}
+                    onClick={() => setMusicProvider(provider.id)}
+                    className={`px-3 py-2 rounded-xl text-center border transition-colors ${
+                      musicProvider === provider.id
+                        ? 'bg-purple-600/30 border-purple-500 text-purple-200'
+                        : 'bg-gray-700/50 border-gray-600 hover:bg-gray-600/50 text-gray-200'
+                    }`}
+                  >
+                    <div className="font-medium">{provider.name}</div>
+                    <div className="text-xs text-gray-400 mt-1">{provider.description}</div>
                   </button>
                 ))}
               </div>
