@@ -5,8 +5,8 @@ import { useGame } from '../context/GameContext';
 const API_URL = import.meta.env.VITE_SOCKET_URL || (import.meta.env.PROD ? '' : 'http://localhost:3001');
 
 const ANSWER_MODES = [
-  { id: 'mcq', name: '4 answers (multiple choice)' },
   { id: 'typed', name: 'Type it (Artist then Title)' },
+  { id: 'mcq', name: '4 answers (multiple choice)' },
 ];
 
 const DIFFICULTY_LEVELS = [

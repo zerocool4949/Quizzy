@@ -189,8 +189,8 @@ export function getCurrentRound(code) {
   room.roundStartTime = Date.now();
   room.answers.clear();
 
-  // Typed mode gets more time (20s after clip ends vs 5s for MCQ)
-  const answerTime = room.answerMode === 'typed' ? 20 : 5;
+  // Typed mode gets more time (10s after clip ends vs 5s for MCQ)
+  const answerTime = room.answerMode === 'typed' ? 10 : 5;
 
   // Return round data without the correct answer
   return {
@@ -270,6 +270,7 @@ export function submitAnswer(code, playerId, payload) {
 
   // -----------------------
   // TYPED MODE (two-step: artist then title)
+  // 3 lives total - wrong guesses lose a life
   // Scoring: Artist = 10 base + speed bonus, Title = 15 base + speed bonus
   // Speed bonus: 3 if <5s, 2 if <10s, 1 if <15s
   // payload: { phase: 'artist'|'title', text: '...' }
@@ -279,13 +280,26 @@ export function submitAnswer(code, playerId, payload) {
 
   if (phase !== 'artist' && phase !== 'title') return null;
 
-  const existing = room.answers.get(playerId);
+  let existing = room.answers.get(playerId);
 
-  // If no entry yet, only artist phase is allowed
-  if (!existing && phase !== 'artist') return null;
+  // Initialize entry if doesn't exist
+  if (!existing) {
+    existing = {
+      mode: 'typed',
+      finished: false,
+      lives: 3,
+      artistCorrect: false,
+      titleCorrect: false,
+      points: 0
+    };
+    room.answers.set(playerId, existing);
+  }
 
   // If already finished, block further submissions
-  if (existing?.finished) return null;
+  if (existing.finished) return null;
+
+  // If trying title but artist not yet correct, reject
+  if (phase === 'title' && !existing.artistCorrect) return null;
 
   const correctArtist = round.correctArtist;
   const correctTitle = round.correctName;
@@ -300,26 +314,23 @@ export function submitAnswer(code, playerId, payload) {
 
   // --- Phase 1: ARTIST ---
   if (phase === 'artist') {
-    // Prevent starting twice
-    if (existing) return null;
+    // Already got artist correct, can't retry
+    if (existing.artistCorrect) return null;
 
     const artistCorrect = looselyMatches(text, correctArtist);
 
     if (!artistCorrect) {
-      // Artist wrong => this player is done for the round
-      player.streak = 0;
+      // Wrong - lose a life
+      existing.lives--;
 
-      room.answers.set(playerId, {
-        mode: 'typed',
-        finished: true,
-        artistText: text,
-        titleText: null,
-        artistCorrect: false,
-        titleCorrect: false,
-        points: 0,
-        speedBonus: 0,
-        timeTaken
-      });
+      if (existing.lives <= 0) {
+        // Out of lives - round over for this player
+        player.streak = 0;
+        existing.finished = true;
+        existing.artistText = text;
+      }
+
+      room.answers.set(playerId, existing);
 
       return {
         mode: 'typed',
@@ -330,7 +341,7 @@ export function submitAnswer(code, playerId, payload) {
         speedBonus: 0,
         totalScore: player.score,
         streak: player.streak,
-        allowTitle: false
+        livesLeft: existing.lives
       };
     }
 
@@ -339,17 +350,13 @@ export function submitAnswer(code, playerId, payload) {
     const pointsAwarded = 10 + speedBonus;
     player.score += pointsAwarded;
 
-    room.answers.set(playerId, {
-      mode: 'typed',
-      finished: false, // title still possible
-      artistText: text,
-      titleText: null,
-      artistCorrect: true,
-      titleCorrect: false,
-      points: pointsAwarded,
-      speedBonus,
-      artistTime: timeTaken
-    });
+    existing.artistText = text;
+    existing.artistCorrect = true;
+    existing.points = pointsAwarded;
+    existing.speedBonus = speedBonus;
+    existing.artistTime = timeTaken;
+
+    room.answers.set(playerId, existing);
 
     return {
       mode: 'typed',
@@ -360,54 +367,66 @@ export function submitAnswer(code, playerId, payload) {
       speedBonus,
       totalScore: player.score,
       streak: player.streak,
-      allowTitle: true
+      livesLeft: existing.lives
     };
   }
 
   // --- Phase 2: TITLE ---
-  // Must have a previous artist-correct entry
-  if (!existing || !existing.artistCorrect) return null;
-
-  // Only allow title once
-  if (existing.titleText) return null;
-
   const titleCorrect = looselyMatches(text, correctTitle);
 
-  let pointsAwarded = 0;
-  let speedBonus = 0;
+  if (!titleCorrect) {
+    // Wrong - lose a life
+    existing.lives--;
 
-  if (titleCorrect) {
-    // Title correct: 15 base + speed bonus
-    speedBonus = getSpeedBonus(timeTaken);
-    pointsAwarded = 15 + speedBonus;
-    player.streak++;
-  } else {
-    player.streak = 0;
+    if (existing.lives <= 0) {
+      // Out of lives - round over
+      player.streak = 0;
+      existing.finished = true;
+      existing.titleText = text;
+      existing.titleCorrect = false;
+    }
+
+    room.answers.set(playerId, existing);
+
+    return {
+      mode: 'typed',
+      phase: 'title',
+      isCorrect: false,
+      fullCorrect: false,
+      points: 0,
+      pointsAwarded: 0,
+      speedBonus: 0,
+      totalScore: player.score,
+      streak: player.streak,
+      livesLeft: existing.lives
+    };
   }
 
+  // Title correct: 15 base + speed bonus
+  const speedBonus = getSpeedBonus(timeTaken);
+  const pointsAwarded = 15 + speedBonus;
+  player.streak++;
   player.score += pointsAwarded;
 
-  const totalRoundPoints = (existing.points || 0) + pointsAwarded;
+  existing.finished = true;
+  existing.titleText = text;
+  existing.titleCorrect = true;
+  existing.points = (existing.points || 0) + pointsAwarded;
+  existing.titleSpeedBonus = speedBonus;
 
-  room.answers.set(playerId, {
-    ...existing,
-    finished: true,
-    titleText: text,
-    titleCorrect,
-    points: totalRoundPoints,
-    titleSpeedBonus: speedBonus
-  });
+  room.answers.set(playerId, existing);
 
   return {
     mode: 'typed',
     phase: 'title',
-    isCorrect: titleCorrect,
-    fullCorrect: !!(existing.artistCorrect && titleCorrect),
+    isCorrect: true,
+    fullCorrect: true,
     points: pointsAwarded,
     pointsAwarded,
     speedBonus,
     totalScore: player.score,
-    streak: player.streak
+    streak: player.streak,
+    livesLeft: existing.lives
   };
 }
 

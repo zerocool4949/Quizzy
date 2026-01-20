@@ -27,6 +27,7 @@ export default function Game() {
   const [typedPhase, setTypedPhase] = useState('artist'); // 'artist' | 'title' | 'done'
   const [typedInput, setTypedInput] = useState('');
   const [artistResult, setArtistResult] = useState(null); // { correct: bool, text: string }
+  const [lives, setLives] = useState(3); // 3 lives for typed mode
   const [volume, setVolume] = useState(() => {
     const saved = localStorage.getItem('quizzy-volume');
     const vol = saved ? parseFloat(saved) : 0.7;
@@ -51,26 +52,48 @@ export default function Game() {
       setTypedPhase('artist');
       setTypedInput('');
       setArtistResult(null);
+      setLives(3); // Reset lives each round
     }
   }, [gameState, currentRound?.roundNumber]);
 
   // Handle typed answer results to transition phases
   useEffect(() => {
     if (answerResult?.mode === 'typed') {
+      // Update lives from server response
+      if (typeof answerResult.livesLeft === 'number') {
+        setLives(answerResult.livesLeft);
+      }
+
       if (answerResult.phase === 'artist') {
-        setArtistResult({
-          correct: answerResult.isCorrect,
-          text: typedInput,
-          points: answerResult.pointsAwarded || 0,
-        });
-        setTypedInput('');
-        if (answerResult.allowTitle) {
+        if (answerResult.isCorrect) {
+          setArtistResult({
+            correct: true,
+            text: typedInput,
+            points: answerResult.pointsAwarded || 0,
+          });
+          setTypedInput('');
           setTypedPhase('title');
         } else {
-          setTypedPhase('done');
+          // Wrong artist - check if out of lives
+          if (answerResult.livesLeft === 0) {
+            setArtistResult({
+              correct: false,
+              text: typedInput,
+              points: 0,
+            });
+            setTypedPhase('done');
+          } else {
+            // Still have lives - clear input for retry
+            setTypedInput('');
+          }
         }
       } else if (answerResult.phase === 'title') {
-        setTypedPhase('done');
+        if (answerResult.isCorrect || answerResult.livesLeft === 0) {
+          setTypedPhase('done');
+        } else {
+          // Wrong title but still have lives - clear input for retry
+          setTypedInput('');
+        }
       }
     }
   }, [answerResult]);
@@ -420,6 +443,28 @@ export default function Game() {
         {/* Typed Mode */}
         {currentRound?.answerMode === 'typed' && (
           <div className="space-y-4">
+            {/* Lives display */}
+            {typedPhase !== 'done' && (
+              <div className="flex justify-center gap-2 mb-2">
+                {[0, 1, 2].map((i) => (
+                  <svg
+                    key={i}
+                    className={`w-6 h-6 transition-all ${
+                      i < lives ? 'text-red-500' : 'text-gray-600'
+                    }`}
+                    fill="currentColor"
+                    viewBox="0 0 20 20"
+                  >
+                    <path
+                      fillRule="evenodd"
+                      d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z"
+                      clipRule="evenodd"
+                    />
+                  </svg>
+                ))}
+              </div>
+            )}
+
             {/* Artist phase */}
             {typedPhase === 'artist' && (
               <div>

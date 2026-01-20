@@ -84,8 +84,9 @@ docker compose restart
 
 ### Answer Modes
 - **MCQ Mode**: 4 multiple choice options, 5 seconds to answer after clip
-- **Typed Mode**: Type artist name, then song title
-  - 20 seconds to answer after clip
+- **Typed Mode** (default): Type artist name, then song title
+  - 10 seconds to answer after clip
+  - 3 lives per round (hearts) - wrong guesses cost a life
   - Fuzzy matching with typo tolerance (Levenshtein distance)
   - Case insensitive, accent insensitive
   - Partial matches accepted (e.g., "Weeknd" matches "The Weeknd")
@@ -173,7 +174,7 @@ No code changes needed - just restart the server.
 
 - No API keys needed - Deezer API is free and public
 - Clip duration is fixed at 15 seconds
-- Round auto-ends after clip + answer time (5s MCQ, 20s Typed)
+- Round auto-ends after clip + answer time (5s MCQ, 10s Typed)
 - Fuzzy matching uses Levenshtein distance with ~25% typo tolerance
 - Each artist appears max 2 times per quiz for variety
 - Track titles are cleaned (removes "Remastered", "Live", etc.)

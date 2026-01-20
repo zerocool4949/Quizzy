@@ -169,6 +169,8 @@ export function GameProvider({ children }) {
   useEffect(() => {
     if (state.gameState === 'playing' && state.roomCode) {
       navigate(`/game/${state.roomCode}`);
+    } else if (state.gameState === 'lobby' && state.roomCode) {
+      navigate(`/lobby/${state.roomCode}`);
     }
   }, [state.gameState, state.roomCode]);
 

@@ -200,14 +200,18 @@ function sendNextRound(roomCode) {
     // Include clip duration in round data
     io.to(roomCode).emit('new-round', {
       ...round,
-      clipDuration: room.clipDuration || 10
+      clipDuration: room.clipDuration || 15
     });
 
-    // Auto-end round after clip duration + 5 seconds buffer
-    const timeout = ((room.clipDuration || 10) + 10) * 1000;
+    // Auto-end round after clip duration + answer time + buffer
+    // answerTime is 10s for typed mode, 5s for MCQ
+    const answerTime = room.answerMode === 'typed' ? 10 : 5;
+    const timeout = ((room.clipDuration || 15) + answerTime + 5) * 1000;
+    const expectedRound = round.roundNumber - 1;
+
     setTimeout(() => {
       const currentRoom = getRoom(roomCode);
-      if (currentRoom && currentRoom.state === 'playing' && currentRoom.currentRound === round.roundNumber - 1) {
+      if (currentRoom && currentRoom.state === 'playing' && currentRoom.currentRound === expectedRound) {
         endRound(roomCode);
       }
     }, timeout);
