@@ -121,8 +121,13 @@ export default function Lobby() {
     }
   };
 
-  const copyCode = () => {
-    navigator.clipboard.writeText(roomCode);
+  const [copied, setCopied] = useState(false);
+
+  const copyLink = () => {
+    const joinUrl = `${window.location.origin}/join/${roomCode}`;
+    navigator.clipboard.writeText(joinUrl);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
   };
 
   const toggleCategory = (categoryId) => {
@@ -168,13 +173,15 @@ export default function Lobby() {
         <div className="text-center mb-6">
           <p className="text-gray-400 mb-2">Room Code</p>
           <button
-            onClick={copyCode}
+            onClick={copyLink}
             className="text-4xl font-bold tracking-widest text-sky-400 hover:text-sky-300 transition-colors"
-            title="Click to copy"
+            title="Click to copy invite link"
           >
             {roomCode}
           </button>
-          <p className="text-gray-500 text-sm mt-2">Click to copy</p>
+          <p className="text-gray-500 text-sm mt-2">
+            {copied ? 'Link copied!' : 'Click to copy invite link'}
+          </p>
         </div>
 
         <div className="mb-6">

@@ -1,11 +1,21 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useParams } from 'react-router-dom';
 import { useGame } from '../context/GameContext';
 
 export default function Home() {
-  const [mode, setMode] = useState(null); // null, 'create', 'join'
+  const { code: urlCode } = useParams();
+  const [mode, setMode] = useState(urlCode ? 'join' : null); // null, 'create', 'join'
   const [playerName, setPlayerName] = useState('');
-  const [roomCode, setRoomCode] = useState('');
+  const [roomCode, setRoomCode] = useState(urlCode?.toUpperCase() || '');
   const { createRoom, joinRoom, error, clearError } = useGame();
+
+  // If URL has a code, go straight to join mode
+  useEffect(() => {
+    if (urlCode) {
+      setMode('join');
+      setRoomCode(urlCode.toUpperCase());
+    }
+  }, [urlCode]);
 
   const handleCreate = (e) => {
     e.preventDefault();

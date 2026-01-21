@@ -8,6 +8,7 @@ export default function App() {
     <div className="min-h-screen text-white">
       <Routes>
         <Route path="/" element={<Home />} />
+        <Route path="/join/:code" element={<Home />} />
         <Route path="/lobby/:code" element={<Lobby />} />
         <Route path="/game/:code" element={<Game />} />
       </Routes>
