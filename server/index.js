@@ -18,6 +18,7 @@ import {
   getCurrentRound,
   submitAnswer,
   allPlayersAnswered,
+  canEndRound,
   getRoundResults,
   nextRound,
   getGameResults,
@@ -288,6 +289,9 @@ function sendNextRound(roomCode) {
 }
 
 function endRound(roomCode) {
+  // Prevent double-ending a round
+  if (!canEndRound(roomCode)) return;
+
   const results = getRoundResults(roomCode);
 
   if (results) {

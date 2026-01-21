@@ -189,6 +189,7 @@ export function getCurrentRound(code) {
   if (!round) return null;
 
   room.roundStartTime = Date.now();
+  room.roundEnded = false;
   room.answers.clear();
 
   // Typed mode gets more time (10s after clip ends vs 5s for MCQ)
@@ -419,6 +420,16 @@ export function allPlayersAnswered(code) {
 
   // In typed mode a player is only "done" when finished=true
   return room.players.every(p => room.answers.get(p.id)?.finished);
+}
+
+// Check if round can be ended (prevents double-ending)
+export function canEndRound(code) {
+  const room = rooms.get(code);
+  if (!room || room.state !== 'playing') return false;
+  if (room.roundEnded) return false;
+
+  room.roundEnded = true;
+  return true;
 }
 
 export function getRoundResults(code) {
