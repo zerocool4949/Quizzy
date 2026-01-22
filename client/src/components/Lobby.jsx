@@ -141,15 +141,21 @@ export default function Lobby() {
     });
   };
 
+  // Broadcast settings to other players whenever host changes them
+  useEffect(() => {
+    if (isHost && selectedCategories.length > 0) {
+      updateSettings({
+        categoryIds: selectedCategories,
+        answerMode,
+        difficulty,
+        totalRounds: rounds,
+        musicProvider
+      });
+    }
+  }, [isHost, selectedCategories, answerMode, difficulty, rounds, musicProvider, updateSettings]);
+
   const handleStartGame = () => {
     if (selectedCategories.length === 0) return;
-    updateSettings({
-      categoryIds: selectedCategories,
-      answerMode,
-      difficulty,
-      totalRounds: rounds,
-      musicProvider
-    });
     startGame();
   };
 

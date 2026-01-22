@@ -146,6 +146,15 @@ io.on('connection', (socket) => {
       isHost: false
     });
 
+    // Send current settings to the joining player
+    socket.emit('settings-updated', {
+      categoryIds: result.room.categoryIds,
+      answerMode: result.room.answerMode,
+      difficulty: result.room.difficulty,
+      totalRounds: result.room.totalRounds,
+      musicProvider: result.room.musicProvider
+    });
+
     // Notify others
     socket.to(result.room.code).emit('player-joined', {
       players: result.room.players
