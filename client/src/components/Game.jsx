@@ -313,12 +313,18 @@ export default function Game() {
           {answerResult && (
             <div
               className={`text-center p-4 rounded-xl mb-6 ${
-                answerResult.isCorrect ? 'bg-green-600/20' : 'bg-red-600/20'
+                answerResult.points > 0 ? 'bg-green-600/20' : 'bg-red-600/20'
               }`}
             >
               <p className="text-2xl font-bold">
-                {answerResult.isCorrect ? '+' + answerResult.points : 'Wrong!'}
+                {answerResult.points > 0 ? '+' + answerResult.points : 'No points'}
               </p>
+              {answerResult.mode === 'typed' && !answerResult.fullCorrect && answerResult.points > 0 && (
+                <p className="text-gray-400 text-sm">
+                  {answerResult.artistCorrect && !answerResult.titleCorrect && 'Artist only'}
+                  {answerResult.titleCorrect && !answerResult.artistCorrect && 'Title only'}
+                </p>
+              )}
               {answerResult.streak > 1 && (
                 <p className="text-yellow-400 text-sm">{answerResult.streak} streak!</p>
               )}
@@ -336,7 +342,7 @@ export default function Game() {
                   <div className="flex items-center gap-3">
                     <span className="text-gray-500 font-bold">#{index + 1}</span>
                     <span>{player.name}</span>
-                    {player.isCorrect && (
+                    {player.roundPoints > 0 && (
                       <span className="text-green-400 text-sm">+{player.roundPoints}</span>
                     )}
                   </div>
