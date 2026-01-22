@@ -48,13 +48,18 @@ function looselyMatches(userText, targetText) {
   // Require minimum length
   if (u.length < 3) return false;
 
-  // For short targets (single word like "Drake"), require near-exact match
-  // User must type at least 70% of the target
-  if (u.length < t.length * 0.7) return false;
+  // Compare without spaces (handles "bonjovi" vs "bon jovi")
+  const uNoSpaces = u.replace(/\s/g, '');
+  const tNoSpaces = t.replace(/\s/g, '');
+  if (uNoSpaces === tNoSpaces) return true;
 
-  // Levenshtein distance - allow ~15% typos (max 2 chars for short words)
-  const maxDistance = Math.min(2, Math.max(1, Math.floor(t.length * 0.15)));
-  const distance = levenshtein(u, t);
+  // For short targets (single word like "Drake"), require near-exact match
+  // User must type at least 70% of the target (ignoring spaces)
+  if (uNoSpaces.length < tNoSpaces.length * 0.7) return false;
+
+  // Levenshtein distance on spaceless versions - allow ~15% typos (max 2 chars)
+  const maxDistance = Math.min(2, Math.max(1, Math.floor(tNoSpaces.length * 0.15)));
+  const distance = levenshtein(uNoSpaces, tNoSpaces);
   if (distance <= maxDistance) return true;
 
   // For multi-word targets, check if user typed most words correctly
