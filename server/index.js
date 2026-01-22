@@ -162,6 +162,15 @@ io.on('connection', (socket) => {
     if (room && room.hostId === socket.id) {
       updateRoomSettings(currentRoom, { categoryIds, answerMode, difficulty, totalRounds, musicProvider });
       console.log(`Settings updated: categories: [${categoryIds?.join(', ')}], mode: "${answerMode}", difficulty: ${difficulty}, rounds: ${totalRounds}, provider: ${musicProvider}`);
+
+      // Broadcast settings to all players in the room
+      io.to(currentRoom).emit('settings-updated', {
+        categoryIds: room.categoryIds,
+        answerMode: room.answerMode,
+        difficulty: room.difficulty,
+        totalRounds: room.totalRounds,
+        musicProvider: room.musicProvider
+      });
     }
   });
 

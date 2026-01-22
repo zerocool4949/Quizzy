@@ -20,6 +20,7 @@ const initialState = {
   answerResult: null,
   loadingProgress: null,
   error: null,
+  roomSettings: null, // Settings shared by host
 };
 
 function gameReducer(state, action) {
@@ -87,7 +88,10 @@ function gameReducer(state, action) {
         gameResults: null,
         myAnswer: null,
         answerResult: null,
+        roomSettings: null,
       };
+    case 'SETTINGS_UPDATED':
+      return { ...state, roomSettings: action.payload };
     case 'ERROR':
       return { ...state, error: action.payload };
     case 'CLEAR_ERROR':
@@ -165,6 +169,10 @@ export function GameProvider({ children }) {
 
     socket.on('game-error', (data) => {
       dispatch({ type: 'ERROR', payload: data.message });
+    });
+
+    socket.on('settings-updated', (data) => {
+      dispatch({ type: 'SETTINGS_UPDATED', payload: data });
     });
 
     return () => {

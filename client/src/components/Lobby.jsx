@@ -5,7 +5,7 @@ import { useGame } from '../context/GameContext';
 const API_URL = import.meta.env.VITE_SOCKET_URL || (import.meta.env.PROD ? '' : 'http://localhost:3001');
 
 export default function Lobby() {
-  const { roomCode, players, isHost, startGame, leaveGame, gameState, updateSettings } = useGame();
+  const { roomCode, players, isHost, startGame, leaveGame, gameState, updateSettings, roomSettings } = useGame();
   const [categories, setCategories] = useState([]);
   const [selectedCategories, setSelectedCategories] = useState([]);
   const [musicProvider, setMusicProvider] = useState('spotify');
@@ -360,8 +360,36 @@ export default function Lobby() {
         )}
 
         {!isHost && (
-          <div className="mb-6 p-4 bg-gray-700/30 rounded-xl text-center text-gray-400">
-            Waiting for host to configure and start...
+          <div className="mb-6 p-4 bg-gray-700/30 rounded-xl space-y-3">
+            <p className="text-center text-gray-400 text-sm">Waiting for host to start...</p>
+            {roomSettings && (
+              <div className="space-y-2 text-sm">
+                <div className="flex justify-between">
+                  <span className="text-gray-500">Rounds</span>
+                  <span className="text-gray-300">{roomSettings.totalRounds}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-500">Difficulty</span>
+                  <span className="text-gray-300">
+                    {roomSettings.difficulty === 1 ? 'Easy' : roomSettings.difficulty === 2 ? 'Medium' : 'Hard'}
+                  </span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-500">Mode</span>
+                  <span className="text-gray-300">
+                    {roomSettings.answerMode === 'typed' ? 'Type Answer' : 'Multiple Choice'}
+                  </span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-500">Categories</span>
+                  <span className="text-gray-300 text-right max-w-[60%]">
+                    {roomSettings.categoryIds?.map(id =>
+                      categories.find(c => c.id === id)?.name || id
+                    ).join(', ') || '-'}
+                  </span>
+                </div>
+              </div>
+            )}
           </div>
         )}
 
