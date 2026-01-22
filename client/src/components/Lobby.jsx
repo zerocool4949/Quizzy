@@ -141,9 +141,11 @@ export default function Lobby() {
     });
   };
 
-  // Broadcast settings to other players whenever host changes them
+  // Broadcast settings to other players whenever host changes them (debounced)
   useEffect(() => {
-    if (isHost && selectedCategories.length > 0) {
+    if (!isHost || selectedCategories.length === 0) return;
+
+    const timeout = setTimeout(() => {
       updateSettings({
         categoryIds: selectedCategories,
         answerMode,
@@ -151,7 +153,9 @@ export default function Lobby() {
         totalRounds: rounds,
         musicProvider
       });
-    }
+    }, 300);
+
+    return () => clearTimeout(timeout);
   }, [isHost, selectedCategories, answerMode, difficulty, rounds, musicProvider, updateSettings]);
 
   const handleStartGame = () => {
