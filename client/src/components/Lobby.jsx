@@ -123,10 +123,26 @@ export default function Lobby() {
 
   const [copied, setCopied] = useState(false);
 
-  const copyLink = () => {
+  const copyLink = async () => {
     const joinUrl = `${window.location.origin}/join/${roomCode}`;
-    navigator.clipboard.writeText(joinUrl);
-    setCopied(true);
+
+    try {
+      // Try modern clipboard API first
+      await navigator.clipboard.writeText(joinUrl);
+      setCopied(true);
+    } catch {
+      // Fallback for HTTP or older browsers
+      const textArea = document.createElement('textarea');
+      textArea.value = joinUrl;
+      textArea.style.position = 'fixed';
+      textArea.style.opacity = '0';
+      document.body.appendChild(textArea);
+      textArea.select();
+      document.execCommand('copy');
+      document.body.removeChild(textArea);
+      setCopied(true);
+    }
+
     setTimeout(() => setCopied(false), 2000);
   };
 
