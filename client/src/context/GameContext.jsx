@@ -12,12 +12,13 @@ const initialState = {
   players: [],
   isHost: false,
   playerName: '',
-  gameState: 'idle', // idle, lobby, countdown, playing, roundEnd, finished
+  gameState: 'idle', // idle, lobby, loading, countdown, playing, roundEnd, finished
   currentRound: null,
   roundResults: null,
   gameResults: null,
   myAnswer: null,
   answerResult: null,
+  loadingProgress: null,
   error: null,
 };
 
@@ -42,6 +43,8 @@ function gameReducer(state, action) {
         players: action.payload.players,
         isHost: action.payload.newHostId ? state.players.find(p => p.id === action.payload.newHostId)?.id === state.playerId : state.isHost,
       };
+    case 'GAME_LOADING':
+      return { ...state, gameState: 'loading', loadingProgress: action.payload };
     case 'GAME_STARTING':
       return { ...state, gameState: 'countdown' };
     case 'NEW_ROUND':
@@ -131,6 +134,10 @@ export function GameProvider({ children }) {
       dispatch({ type: 'PLAYER_LEFT', payload: data });
     });
 
+    socket.on('game-loading', (data) => {
+      dispatch({ type: 'GAME_LOADING', payload: data });
+    });
+
     socket.on('game-starting', () => {
       dispatch({ type: 'GAME_STARTING' });
     });
@@ -167,7 +174,7 @@ export function GameProvider({ children }) {
 
   // Navigate on state changes
   useEffect(() => {
-    if (state.gameState === 'playing' && state.roomCode) {
+    if ((state.gameState === 'loading' || state.gameState === 'countdown' || state.gameState === 'playing') && state.roomCode) {
       navigate(`/game/${state.roomCode}`);
     } else if (state.gameState === 'lobby' && state.roomCode) {
       navigate(`/lobby/${state.roomCode}`);

@@ -43,7 +43,7 @@ function getTrackLimitForDifficulty(difficulty) {
 }
 
 // Fetch tracks for multiple categories based on difficulty
-async function getMultiCategoryTracks(categoryIds, difficulty = 1, provider) {
+async function getMultiCategoryTracks(categoryIds, difficulty = 1, provider, onProgress = null) {
   // Collect all artists from selected categories
   let allArtists = [];
   for (const categoryId of categoryIds) {
@@ -68,10 +68,20 @@ async function getMultiCategoryTracks(categoryIds, difficulty = 1, provider) {
   const shuffledArtists = [...allArtists].sort(() => Math.random() - 0.5);
   const sampleArtists = shuffledArtists.slice(0, 50);
 
+  let completed = 0;
+  const total = sampleArtists.length;
+
   const tasks = sampleArtists.map(name => async () => {
     const id = await provider.searchArtistId(name);
-    if (!id) return [];
-    return provider.getArtistTopTracks(id, trackLimit);
+    let tracks = [];
+    if (id) {
+      tracks = await provider.getArtistTopTracks(id, trackLimit);
+    }
+    completed++;
+    if (onProgress) {
+      onProgress({ phase: 'artists', completed, total, artistName: name, tracksFound: tracks.length });
+    }
+    return tracks;
   });
 
   const results = await runWithLimit(tasks, 5);
@@ -107,7 +117,7 @@ function getAllArtistsFromCategories(categoryIds) {
 // @param count - number of rounds
 // @param difficulty - 1 (easy), 2 (medium), 3 (hard)
 // @param musicProvider - 'deezer' or 'spotify'
-export async function getQuizTracks(categoryIds, count = 10, difficulty = 1, musicProvider = 'deezer') {
+export async function getQuizTracks(categoryIds, count = 10, difficulty = 1, musicProvider = 'deezer', onProgress = null) {
   // Handle both single categoryId (string) and array of categoryIds for backward compatibility
   const categories = Array.isArray(categoryIds) ? categoryIds : [categoryIds];
 
@@ -115,8 +125,12 @@ export async function getQuizTracks(categoryIds, count = 10, difficulty = 1, mus
   const provider = getProvider(musicProvider);
   console.log(`Getting tracks using ${provider.name} for categories: [${categories.join(', ')}] with difficulty: ${difficulty}`);
 
+  if (onProgress) {
+    onProgress({ phase: 'starting', message: 'Fetching artists...' });
+  }
+
   // Get tracks from curated artist lists (reliable)
-  let tracks = await getMultiCategoryTracks(categories, difficulty, provider);
+  let tracks = await getMultiCategoryTracks(categories, difficulty, provider, onProgress);
 
   // Fallback to search if not enough tracks
   if (tracks.length < count * 2) {
@@ -146,6 +160,10 @@ export async function getQuizTracks(categoryIds, count = 10, difficulty = 1, mus
   }
 
   console.log(`Total tracks available: ${tracks.length}`);
+
+  if (onProgress) {
+    onProgress({ phase: 'building', message: 'Building quiz rounds...', totalTracks: tracks.length });
+  }
 
   // Shuffle tracks
   const shuffled = [...tracks].sort(() => Math.random() - 0.5);

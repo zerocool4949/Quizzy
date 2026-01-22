@@ -173,10 +173,17 @@ io.on('connection', (socket) => {
     if (!room || room.hostId !== socket.id) return;
 
     console.log(`Starting game in room ${currentRoom}`);
-    io.to(currentRoom).emit('game-starting', { countdown: 3 });
+
+    // Show loading state while fetching tracks
+    io.to(currentRoom).emit('game-loading', { phase: 'starting', message: 'Preparing quiz...' });
 
     try {
-      const result = await startGame(currentRoom);
+      // Progress callback to send updates to clients
+      const onProgress = (progress) => {
+        io.to(currentRoom).emit('game-loading', progress);
+      };
+
+      const result = await startGame(currentRoom, onProgress);
 
       if (result.error) {
         console.error(`Game start error: ${result.error}`);
@@ -184,9 +191,12 @@ io.on('connection', (socket) => {
         return;
       }
 
-      console.log(`Game started successfully, sending first round in 3s`);
+      console.log(`Tracks loaded, starting countdown`);
 
-      // Wait for countdown
+      // NOW start the countdown (tracks are ready)
+      io.to(currentRoom).emit('game-starting', { countdown: 3 });
+
+      // Wait for countdown then send first round
       setTimeout(() => {
         sendNextRound(currentRoom);
       }, 3000);
@@ -218,14 +228,20 @@ io.on('connection', (socket) => {
     if (!currentRoom) return;
 
     console.log(`Player ${socket.id} leaving room ${currentRoom}`);
-    const room = leaveRoom(currentRoom, socket.id);
-    socket.leave(currentRoom);
+    const roomCode = currentRoom;
+    const room = leaveRoom(roomCode, socket.id);
+    socket.leave(roomCode);
 
     if (room) {
-      io.to(currentRoom).emit('player-left', {
+      io.to(roomCode).emit('player-left', {
         players: room.players,
         newHostId: room.hostId
       });
+
+      // Check if remaining players have all answered (end round early)
+      if (room.state === 'playing' && allPlayersAnswered(roomCode)) {
+        endRound(roomCode);
+      }
     }
 
     currentRoom = null;
@@ -236,13 +252,19 @@ io.on('connection', (socket) => {
     console.log(`Player disconnected: ${socket.id}`);
 
     if (currentRoom) {
-      const room = leaveRoom(currentRoom, socket.id);
+      const roomCode = currentRoom;
+      const room = leaveRoom(roomCode, socket.id);
 
       if (room) {
-        io.to(currentRoom).emit('player-left', {
+        io.to(roomCode).emit('player-left', {
           players: room.players,
           newHostId: room.hostId
         });
+
+        // Check if remaining players have all answered (end round early)
+        if (room.state === 'playing' && allPlayersAnswered(roomCode)) {
+          endRound(roomCode);
+        }
       }
     }
   });

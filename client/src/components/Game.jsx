@@ -9,6 +9,7 @@ export default function Game() {
     gameResults,
     myAnswer,
     answerResult,
+    loadingProgress,
     submitAnswer,
     submitTypedAnswer,
     playAgain,
@@ -22,6 +23,7 @@ export default function Game() {
   const audioTimeoutRef = useRef(null);
   const [timeLeft, setTimeLeft] = useState(10);
   const [songProgress, setSongProgress] = useState(0);
+  const [countdown, setCountdown] = useState(3);
 
   // Typed mode state
   const [typedInput, setTypedInput] = useState('');
@@ -46,6 +48,23 @@ export default function Game() {
       audioRef.current.volume = newVolume;
     }
   };
+
+  // Countdown timer for "Get Ready" screen
+  useEffect(() => {
+    if (gameState === 'countdown') {
+      setCountdown(3);
+      const timer = setInterval(() => {
+        setCountdown((prev) => {
+          if (prev <= 1) {
+            clearInterval(timer);
+            return 1;
+          }
+          return prev - 1;
+        });
+      }, 1000);
+      return () => clearInterval(timer);
+    }
+  }, [gameState]);
 
   // Reset typed mode state when new round starts
   useEffect(() => {
@@ -158,12 +177,55 @@ export default function Game() {
     }
   }, [gameState]);
 
+  if (gameState === 'loading') {
+    const progress = loadingProgress || {};
+    const percent = progress.phase === 'artists' && progress.total
+      ? Math.round((progress.completed / progress.total) * 100)
+      : 0;
+
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center p-4">
+        <div className="card text-center max-w-md w-full">
+          <h2 className="text-2xl font-bold mb-6">Setting up quiz...</h2>
+
+          {/* Progress bar */}
+          {progress.phase === 'artists' && (
+            <div className="mb-6">
+              <div className="flex justify-between text-sm text-gray-400 mb-2">
+                <span>Fetching tracks</span>
+                <span>{percent}%</span>
+              </div>
+              <div className="h-3 bg-gray-700 rounded-full overflow-hidden">
+                <div
+                  className="h-full bg-sky-500 transition-all duration-300"
+                  style={{ width: `${percent}%` }}
+                />
+              </div>
+            </div>
+          )}
+
+          {/* Building phase */}
+          {progress.phase === 'building' && (
+            <p className="text-gray-400 mb-6">
+              Building quiz...
+            </p>
+          )}
+
+          {/* Spinner */}
+          <div className="flex justify-center">
+            <div className="w-10 h-10 border-4 border-sky-500 border-t-transparent rounded-full animate-spin"></div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   if (gameState === 'countdown') {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center p-4">
         <div className="card text-center">
           <h2 className="text-4xl font-bold mb-4">Get Ready!</h2>
-          <div className="text-8xl font-bold text-sky-500 animate-pulse">3</div>
+          <div className="text-8xl font-bold text-sky-500 animate-pulse">{countdown}</div>
         </div>
       </div>
     );

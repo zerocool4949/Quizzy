@@ -37,7 +37,7 @@ function levenshtein(a, b) {
   return matrix[b.length][a.length];
 }
 
-// Fuzzy matching with typo tolerance
+// Fuzzy matching with typo tolerance (stricter version)
 function looselyMatches(userText, targetText) {
   const u = normalize(userText);
   const t = normalize(targetText);
@@ -45,25 +45,43 @@ function looselyMatches(userText, targetText) {
   if (!u || !t) return false;
   if (u === t) return true;
 
-  // require minimum length to avoid "a" matching everything
+  // Require minimum length
   if (u.length < 3) return false;
 
-  // Substring match
-  if (t.includes(u) || u.includes(t)) return true;
+  // For short targets (single word like "Drake"), require near-exact match
+  // User must type at least 70% of the target
+  if (u.length < t.length * 0.7) return false;
 
-  // Levenshtein distance - allow ~20% typos (min 2 chars)
-  const maxDistance = Math.max(2, Math.floor(t.length * 0.25));
+  // Levenshtein distance - allow ~15% typos (max 2 chars for short words)
+  const maxDistance = Math.min(2, Math.max(1, Math.floor(t.length * 0.15)));
   const distance = levenshtein(u, t);
   if (distance <= maxDistance) return true;
 
-  // Also check if user typed a significant word from the target
-  const targetWords = t.split(' ').filter(w => w.length >= 4);
-  const userWords = u.split(' ').filter(w => w.length >= 3);
+  // For multi-word targets, check if user typed most words correctly
+  const targetWords = t.split(' ').filter(w => w.length >= 2);
+  const userWords = u.split(' ').filter(w => w.length >= 2);
 
-  for (const uw of userWords) {
-    for (const tw of targetWords) {
-      if (tw.includes(uw) || uw.includes(tw)) return true;
-      if (levenshtein(uw, tw) <= Math.max(1, Math.floor(tw.length * 0.25))) return true;
+  if (targetWords.length > 1 && userWords.length > 0) {
+    let matchedWords = 0;
+    const usedTargetWords = new Set();
+
+    for (const uw of userWords) {
+      for (const tw of targetWords) {
+        if (usedTargetWords.has(tw)) continue;
+        // Word must be close match (1 typo allowed for words 5+ chars)
+        const wordMaxDist = tw.length >= 5 ? 1 : 0;
+        if (levenshtein(uw, tw) <= wordMaxDist) {
+          matchedWords++;
+          usedTargetWords.add(tw);
+          break;
+        }
+      }
+    }
+
+    // Must match at least 60% of target words (e.g., 2/3 for "Avril Lavigne")
+    // AND user must have typed at least half as many words
+    if (matchedWords >= targetWords.length * 0.6 && userWords.length >= targetWords.length * 0.5) {
+      return true;
     }
   }
 
@@ -128,6 +146,9 @@ export function leaveRoom(code, playerId) {
 
   room.players = room.players.filter(p => p.id !== playerId);
 
+  // Remove the player's answer entry if they had one
+  room.answers?.delete(playerId);
+
   // If host left, assign new host or delete room
   if (room.hostId === playerId) {
     if (room.players.length > 0) {
@@ -159,13 +180,13 @@ export function updateRoomSettings(code, { categoryIds, answerMode, difficulty, 
   return false;
 }
 
-export async function startGame(code) {
+export async function startGame(code, onProgress = null) {
   const room = rooms.get(code);
   if (!room || room.state !== 'lobby') return { error: 'Cannot start game' };
   if (room.players.length < 1) return { error: 'Need at least 1 player' };
 
   try {
-    room.rounds = await getQuizTracks(room.categoryIds, room.totalRounds, room.difficulty, room.musicProvider);
+    room.rounds = await getQuizTracks(room.categoryIds, room.totalRounds, room.difficulty, room.musicProvider, onProgress);
     room.state = 'playing';
     room.currentRound = 0;
 

@@ -112,8 +112,9 @@ quizzy/
 
 - Clip duration: 15 seconds
 - Each artist appears once per quiz
-- Fuzzy matching: ~25% typo tolerance (Levenshtein distance)
+- Fuzzy matching: ~15% typo tolerance, must type 70%+ of answer
 - Track titles cleaned (removes "Remastered", "Live", etc.)
+- Loading screen shows track fetching progress
 
 ---
 
