@@ -123,26 +123,29 @@ export default function Lobby() {
 
   const [copied, setCopied] = useState(false);
 
-  const copyLink = async () => {
+  const copyLink = () => {
     const joinUrl = `${window.location.origin}/join/${roomCode}`;
 
+    // Use fallback method that works on both HTTP and HTTPS
+    const textArea = document.createElement('textarea');
+    textArea.value = joinUrl;
+    textArea.style.position = 'fixed';
+    textArea.style.left = '-9999px';
+    textArea.style.top = '0';
+    document.body.appendChild(textArea);
+    textArea.focus();
+    textArea.select();
+
     try {
-      // Try modern clipboard API first
-      await navigator.clipboard.writeText(joinUrl);
-      setCopied(true);
-    } catch {
-      // Fallback for HTTP or older browsers
-      const textArea = document.createElement('textarea');
-      textArea.value = joinUrl;
-      textArea.style.position = 'fixed';
-      textArea.style.opacity = '0';
-      document.body.appendChild(textArea);
-      textArea.select();
       document.execCommand('copy');
-      document.body.removeChild(textArea);
       setCopied(true);
+    } catch (err) {
+      console.error('Copy failed:', err);
+      // Try clipboard API as last resort
+      navigator.clipboard?.writeText(joinUrl).then(() => setCopied(true));
     }
 
+    document.body.removeChild(textArea);
     setTimeout(() => setCopied(false), 2000);
   };
 
