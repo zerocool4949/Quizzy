@@ -510,12 +510,12 @@ export default function Game() {
                 <div className={`px-3 py-1 rounded-full text-sm ${
                   artistCorrect ? 'bg-emerald-600/30 text-emerald-300' : 'bg-slate-800 text-slate-400'
                 }`}>
-                  Artist {artistCorrect ? '?' : '?'}
+                  Artist {artistCorrect ? '✓' : '?'}
                 </div>
                 <div className={`px-3 py-1 rounded-full text-sm ${
                   titleCorrect ? 'bg-emerald-600/30 text-emerald-300' : 'bg-slate-800 text-slate-400'
                 }`}>
-                  Title {titleCorrect ? '?' : '?'}
+                  Title {titleCorrect ? '✓' : '?'}
                 </div>
               </div>
 

@@ -8,8 +8,7 @@ export default function Lobby() {
   const { roomCode, players, isHost, startGame, leaveGame, gameState, updateSettings, roomSettings } = useGame();
   const [categories, setCategories] = useState([]);
   const [selectedCategories, setSelectedCategories] = useState([]);
-  const [musicProvider, setMusicProvider] = useState('spotify');
-  const [answerMode, setAnswerMode] = useState('typed');
+  const [answerMode, setAnswerMode] = useState('mcq');
   const [difficulty, setDifficulty] = useState(2);
   const [rounds, setRounds] = useState(10);
   const [countdown, setCountdown] = useState(3);
@@ -51,19 +50,9 @@ export default function Lobby() {
       .catch(err => console.error('Failed to fetch categories:', err));
   };
 
-  // Fetch categories and providers from server
+  // Fetch categories from server
   useEffect(() => {
     fetchCategories();
-
-    // Auto-select best provider (spotify if available)
-    fetch(`${API_URL}/api/providers`)
-      .then(res => res.json())
-      .then(data => {
-        const spotify = data.find(p => p.id === 'spotify');
-        if (spotify) setMusicProvider('spotify');
-        else if (data.length > 0) setMusicProvider(data[0].id);
-      })
-      .catch(err => console.error('Failed to fetch providers:', err));
   }, []);
 
   // Import Spotify playlist

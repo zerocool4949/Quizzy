@@ -65,7 +65,7 @@ export function joinRoom(code, playerId, playerName) {
 }
 
 export function leaveRoom(code, playerId) {
-  const room = rooms.get(code);
+  const room = rooms.get(code?.toUpperCase());
   if (!room) return null;
 
   room.players = room.players.filter(p => p.id !== playerId);
@@ -90,7 +90,7 @@ export function getRoom(code) {
 }
 
 export function updateRoomSettings(code, { categoryIds, answerMode, difficulty, totalRounds }) {
-  const room = rooms.get(code);
+  const room = rooms.get(code?.toUpperCase());
   if (room && room.state === 'lobby') {
     if (categoryIds && categoryIds.length > 0) room.categoryIds = categoryIds;
     if (answerMode) room.answerMode = answerMode;
@@ -102,12 +102,14 @@ export function updateRoomSettings(code, { categoryIds, answerMode, difficulty, 
 }
 
 export function resetRoom(code) {
-  const room = rooms.get(code);
+  const room = rooms.get(code?.toUpperCase());
   if (!room) return null;
 
   room.state = 'lobby';
   room.rounds = [];
   room.currentRound = 0;
+  room.roundEnded = false;
+  room.roundStartTime = null;
   room.answers.clear();
   room.players.forEach(p => {
     p.score = 0;
