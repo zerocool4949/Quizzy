@@ -115,8 +115,7 @@ export default function Home() {
       )}
 
       <div className="mt-8 text-center text-gray-500 text-sm">
-        <p>Powered by Deezer</p>
-        <p className="mt-1">A Zerocool creation</p>
+        <p className="mt-1">Created by Raph</p>
       </div>
     </div>
   );
