@@ -42,7 +42,6 @@ Open http://localhost:5173
 |---------|---------|
 | Rounds | 10, 15, or 20 |
 | Difficulty | Easy (top hit), Medium (top 3), Hard (top 10) |
-| Music Source | Spotify metadata + Deezer audio |
 | Categories | Multi-select, mix genres |
 | Import | Add any public Spotify playlist |
 
@@ -121,6 +120,7 @@ quizzy/
 
 - Clip duration: 15 seconds
 - Each artist appears once per quiz
+- Release year shown on round reveal (from Spotify metadata)
 - Fuzzy matching: ~15% typo tolerance, must type 70%+ of answer, spaces optional
 - Track titles cleaned (removes all parenthetical content like "Remastered", "Live", etc.)
 - Loading screen shows track fetching progress
