@@ -12,7 +12,7 @@ vi.mock('../music.js', () => ({
 }));
 
 vi.mock('../categories.js', () => ({
-  getArtistsForCategory: () => ['Artist1', 'Artist2', 'Artist3']
+  getArtistsForCategory: () => ['Artist1', 'Artist2', 'Artist3', 'Artist4']
 }));
 
 let getQuizTracks;
@@ -41,6 +41,9 @@ describe('quiz', () => {
       ],
       Artist3: [
         { id: 't3', name: 'Song3', artist: 'Artist3', previewUrl: 'u3', albumArt: '' }
+      ],
+      Artist4: [
+        { id: 't4', name: 'Song4', artist: 'Artist4', previewUrl: 'u4', albumArt: '' }
       ]
     };
 
@@ -60,15 +63,21 @@ describe('quiz', () => {
       ],
       Artist2: [
         { id: 't2', name: 'Song2', artist: 'Artist2', previewUrl: 'u2', albumArt: '' }
+      ],
+      Artist3: [
+        { id: 't3', name: 'Song3', artist: 'Artist3', previewUrl: 'u3', albumArt: '' }
+      ],
+      Artist4: [
+        { id: 't4', name: 'Song4', artist: 'Artist4', previewUrl: 'u4', albumArt: '' }
       ]
     };
 
     mockProvider.getArtistTopTracks.mockImplementation((artistId) => trackPool[artistId] || []);
 
-    const rounds = await getQuizTracks(['top-hits'], 2, 1, 'spotify', null, ['t1']);
+    const rounds = await getQuizTracks(['top-hits'], 4, 1, 'spotify', null, ['t1', 't2', 't3']);
     const ids = rounds.map(r => r.correctId);
 
-    expect(rounds).toHaveLength(2);
+    expect(rounds).toHaveLength(4);
     expect(ids.includes('t1')).toBe(true);
   });
 });

@@ -131,10 +131,12 @@ describe('gameManager', () => {
 
     vi.setSystemTime(new Date(startTime.getTime() + 4000));
     submitAnswer(room.code, 'player-2', { text: 'The Weeknd' });
+    submitAnswer(room.code, 'host-1', { text: 'The Weeknd' });
     expect(allPlayersAnswered(room.code)).toBe(false);
 
     vi.setSystemTime(new Date(startTime.getTime() + 7000));
     submitAnswer(room.code, 'player-2', { text: 'Blinding Lights' });
+    submitAnswer(room.code, 'host-1', { text: 'Blinding Lights' });
     expect(allPlayersAnswered(room.code)).toBe(true);
 
     expect(canEndRound(room.code)).toBe(true);
