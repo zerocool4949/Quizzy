@@ -72,7 +72,7 @@ export default function Game() {
       setTypedInput('');
       setArtistCorrect(false);
       setTitleCorrect(false);
-      setLives(null);
+      setLives(currentRound?.startingLives ?? null);
       setTotalPoints(0);
     }
   }, [gameState, currentRound?.roundNumber]);

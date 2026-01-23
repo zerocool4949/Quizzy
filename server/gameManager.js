@@ -63,6 +63,7 @@ export function getCurrentRound(code) {
   room.answers.clear();
 
   const answerTime = 5;
+  const startingLives = room.difficulty === 3 ? 5 : 3;
 
   return {
     roundNumber: round.roundNumber,
@@ -71,6 +72,7 @@ export function getCurrentRound(code) {
     answerMode: room.answerMode,
     clipDuration: room.clipDuration,
     answerTime,
+    startingLives,
     options: room.answerMode === 'mcq' ? round.options : undefined
   };
 }
