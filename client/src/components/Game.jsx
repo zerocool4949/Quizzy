@@ -294,20 +294,29 @@ export default function Game() {
       <div className="min-h-screen flex flex-col items-center justify-center p-4">
         <div className="card max-w-lg w-full animate-fade-up">
           <div className="text-center mb-6">
-            <p className="text-slate-400 mb-2">The answer was</p>
-            <div className="flex items-center justify-center gap-4">
-              {roundResults.albumArt && (
-                <img
-                  src={roundResults.albumArt}
-                  alt="Album art"
-                  className="w-20 h-20 rounded-lg"
-                />
-              )}
-              <div className="text-left">
-                <p className="text-xl font-bold">{roundResults.correctName}</p>
-                <p className="text-slate-400">{roundResults.correctArtist}</p>
+            <p className="text-slate-400 text-xs uppercase tracking-[0.3em] mb-3">Answer Reveal</p>
+            <div className="flex flex-col items-center gap-4 bg-slate-900/50 rounded-2xl p-5 border border-teal-500/20">
+              <div className="relative">
+                <div className="absolute -inset-3 rounded-3xl bg-teal-500/20 blur-xl"></div>
+                {roundResults.albumArt ? (
+                  <img
+                    src={roundResults.albumArt}
+                    alt="Album art"
+                    className="relative w-40 h-40 sm:w-48 sm:h-48 rounded-3xl border border-teal-400/40"
+                  />
+                ) : (
+                  <div className="relative w-40 h-40 sm:w-48 sm:h-48 rounded-3xl bg-slate-800/60 border border-teal-500/30 flex items-center justify-center text-slate-400 text-sm">
+                    No cover
+                  </div>
+                )}
+              </div>
+              <div className="text-center">
+                <p className="text-2xl sm:text-3xl font-bold text-teal-200">{roundResults.correctName}</p>
+                <p className="text-slate-300">{roundResults.correctArtist}</p>
                 {roundResults.correctYear && (
-                  <p className="text-slate-500 text-sm">Year: {roundResults.correctYear}</p>
+                  <span className="inline-flex mt-3 px-2.5 py-1 rounded-full text-xs text-slate-300 bg-slate-800/70 border border-slate-700">
+                    {roundResults.correctYear}
+                  </span>
                 )}
               </div>
             </div>
