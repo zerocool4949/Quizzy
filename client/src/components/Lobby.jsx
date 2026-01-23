@@ -158,13 +158,12 @@ export default function Lobby() {
         categoryIds: selectedCategories,
         answerMode,
         difficulty,
-        totalRounds: rounds,
-        musicProvider
+        totalRounds: rounds
       });
     }, 300);
 
     return () => clearTimeout(timeout);
-  }, [isHost, selectedCategories, answerMode, difficulty, rounds, musicProvider, updateSettings]);
+  }, [isHost, selectedCategories, answerMode, difficulty, rounds, updateSettings]);
 
   const handleStartGame = () => {
     if (selectedCategories.length === 0) return;
