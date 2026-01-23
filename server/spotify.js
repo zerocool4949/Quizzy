@@ -67,10 +67,12 @@ function cleanTitle(title) {
 
 // Map Spotify track to our internal format
 function mapTrack(track) {
+  const artistNames = (track.artists || []).map(a => a.name).filter(Boolean);
   return {
     id: `spotify-${track.id}`,
     name: cleanTitle(track.name),
-    artist: track.artists?.[0]?.name ?? '',
+    artist: artistNames.join(' & ') || '',
+    artists: artistNames,
     previewUrl: track.preview_url,
     albumArt: track.album?.images?.[1]?.url ?? track.album?.images?.[0]?.url ?? ''
   };
@@ -78,10 +80,12 @@ function mapTrack(track) {
 
 // Map Spotify track metadata (keep even without preview)
 function mapTrackMeta(track) {
+  const artistNames = (track.artists || []).map(a => a.name).filter(Boolean);
   return {
     id: `spotify-${track.id}`,
     name: cleanTitle(track.name),
-    artist: track.artists?.[0]?.name ?? '',
+    artist: artistNames.join(' & ') || '',
+    artists: artistNames,
     previewUrl: track.preview_url,
     albumArt: track.album?.images?.[1]?.url ?? track.album?.images?.[0]?.url ?? '',
     year: track.album?.release_date ? String(track.album.release_date).slice(0, 4) : null

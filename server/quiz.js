@@ -301,6 +301,7 @@ export async function getQuizTracks(
       correctId: correctTrack.id,
       correctName: correctTrack.name,
       correctArtist: correctTrack.artist,
+      correctArtists: correctTrack.artists || [correctTrack.artist],
       correctYear: correctTrack.year || null,
       options
     });

@@ -90,6 +90,7 @@ export async function getArtistTopTracks(artistIdObj, limit = 10) {
           id: match.id,
           name: track.name,
           artist: track.artist,
+          artists: track.artists || [track.artist],
           previewUrl: match.previewUrl,
           albumArt: track.albumArt || match.albumArt,
           year: track.year || null
@@ -131,12 +132,16 @@ async function getSpotifyTopTrackNames(spotifyArtistId, limit = 20) {
     if (!response.ok) return [];
     const data = await response.json();
 
-    return (data.tracks || []).slice(0, limit).map(track => ({
-      name: track.name,
-      artist: track.artists?.[0]?.name || '',
-      albumArt: track.album?.images?.[1]?.url ?? track.album?.images?.[0]?.url ?? '',
-      year: track.album?.release_date ? String(track.album.release_date).slice(0, 4) : null
-    }));
+    return (data.tracks || []).slice(0, limit).map(track => {
+      const artistNames = (track.artists || []).map(a => a.name).filter(Boolean);
+      return {
+        name: track.name,
+        artist: artistNames.join(' & ') || '',
+        artists: artistNames,
+        albumArt: track.album?.images?.[1]?.url ?? track.album?.images?.[0]?.url ?? '',
+        year: track.album?.release_date ? String(track.album.release_date).slice(0, 4) : null
+      };
+    });
   } catch {
     return [];
   }
@@ -172,6 +177,7 @@ export async function searchTracks(query, limit = 50) {
       id: match.id,
       name: track.name,
       artist: track.artist,
+      artists: track.artists || [track.artist],
       previewUrl: match.previewUrl,
       albumArt: track.albumArt || match.albumArt,
       year: track.year || null

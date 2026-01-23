@@ -1,5 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { useGame } from '../context/GameContext';
+import RoundReveal from './RoundReveal';
+import GameOver from './GameOver';
 
 export default function Game() {
   const {
@@ -232,135 +234,11 @@ export default function Game() {
   }
 
   if (gameState === 'finished' && gameResults) {
-    return (
-      <div className="min-h-screen flex flex-col items-center justify-center p-4">
-        <div className="card max-w-lg w-full text-center">
-          <h2 className="text-3xl font-bold mb-2">Game Over!</h2>
-          <div className="my-8">
-            <p className="text-gray-400 mb-2">Winner</p>
-            <p className="text-4xl font-bold text-yellow-400 animate-bounce-in">
-              {gameResults.winner.name}
-            </p>
-            <p className="text-2xl text-sky-400 mt-2">
-              {gameResults.winner.score.toLocaleString()} points
-            </p>
-          </div>
-
-          <div className="mb-8">
-            <h3 className="text-lg font-semibold mb-4 text-gray-300">Final Standings</h3>
-            <div className="space-y-2">
-              {gameResults.standings.map((player) => (
-                <div
-                  key={player.id}
-                  className={`flex items-center justify-between rounded-lg px-4 py-3 ${
-                    player.rank === 1
-                      ? 'bg-yellow-600/20 border border-yellow-500/50'
-                      : player.rank === 2
-                      ? 'bg-gray-400/20 border border-gray-400/50'
-                      : player.rank === 3
-                      ? 'bg-orange-600/20 border border-orange-500/50'
-                      : 'bg-gray-700/50'
-                  }`}
-                >
-                  <div className="flex items-center gap-3">
-                    <span className="text-2xl font-bold text-gray-500">#{player.rank}</span>
-                    <span className="font-medium">{player.name}</span>
-                  </div>
-                  <span className="font-bold text-sky-400">
-                    {player.score.toLocaleString()}
-                  </span>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          <div className="space-y-3">
-            {isHost && (
-              <button onClick={playAgain} className="btn-primary w-full">
-                Play Again
-              </button>
-            )}
-            <button onClick={leaveGame} className="btn-secondary w-full">
-              Leave Game
-            </button>
-          </div>
-        </div>
-      </div>
-    );
+    return <GameOver gameResults={gameResults} isHost={isHost} playAgain={playAgain} leaveGame={leaveGame} />;
   }
 
   if (gameState === 'roundEnd' && roundResults) {
-    return (
-      <div className="min-h-screen flex flex-col items-center justify-center p-4">
-        <div className="card max-w-lg w-full">
-          <div className="text-center mb-6">
-            <p className="text-gray-400 mb-2">The answer was</p>
-            <div className="flex items-center justify-center gap-4">
-              {roundResults.albumArt && (
-                <img
-                  src={roundResults.albumArt}
-                  alt="Album art"
-                  className="w-20 h-20 rounded-lg"
-                />
-              )}
-              <div className="text-left">
-                <p className="text-xl font-bold">{roundResults.correctName}</p>
-                <p className="text-gray-400">{roundResults.correctArtist}</p>
-                {roundResults.correctYear && (
-                  <p className="text-gray-500 text-sm">Year: {roundResults.correctYear}</p>
-                )}
-              </div>
-            </div>
-          </div>
-
-          {answerResult && (
-            <div
-              className={`text-center p-4 rounded-xl mb-6 ${
-                answerResult.points > 0 ? 'bg-green-600/20' : 'bg-red-600/20'
-              }`}
-            >
-              <p className="text-2xl font-bold">
-                {answerResult.points > 0 ? '+' + answerResult.points : 'No points'}
-              </p>
-              {answerResult.mode === 'typed' && !answerResult.fullCorrect && answerResult.points > 0 && (
-                <p className="text-gray-400 text-sm">
-                  {answerResult.artistCorrect && !answerResult.titleCorrect && 'Artist only'}
-                  {answerResult.titleCorrect && !answerResult.artistCorrect && 'Title only'}
-                </p>
-              )}
-              {answerResult.streak > 1 && (
-                <p className="text-yellow-400 text-sm">{answerResult.streak} streak!</p>
-              )}
-            </div>
-          )}
-
-          <div>
-            <h3 className="text-lg font-semibold mb-3 text-gray-300">Scoreboard</h3>
-            <div className="space-y-2">
-              {roundResults.playerResults.map((player, index) => (
-                <div
-                  key={player.id}
-                  className="flex items-center justify-between bg-gray-700/50 rounded-lg px-4 py-2"
-                >
-                  <div className="flex items-center gap-3">
-                    <span className="text-gray-500 font-bold">#{index + 1}</span>
-                    <span>{player.name}</span>
-                    {player.roundPoints > 0 && (
-                      <span className="text-green-400 text-sm">+{player.roundPoints}</span>
-                    )}
-                  </div>
-                  <span className="font-bold text-sky-400">
-                    {player.score.toLocaleString()}
-                  </span>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          <p className="text-center text-gray-400 mt-6">Next round starting...</p>
-        </div>
-      </div>
-    );
+    return <RoundReveal roundResults={roundResults} answerResult={answerResult} />;
   }
 
   // Sort players by score for live scoreboard

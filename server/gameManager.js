@@ -1,192 +1,21 @@
+// Game logic - rounds, scoring, answers
+
 import { getQuizTracks } from './quiz.js';
+import { normalize, looselyMatches } from './answerMatcher.js';
+import {
+  createRoom,
+  joinRoom,
+  leaveRoom,
+  getRoom,
+  updateRoomSettings,
+  resetRoom
+} from './roomManager.js';
 
-const rooms = new Map();
-
-function generateRoomCode() {
-  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
-  let code = '';
-  for (let i = 0; i < 6; i++) {
-    code += chars.charAt(Math.floor(Math.random() * chars.length));
-  }
-  return code;
-}
-
-// ---------- Typed-answer helpers ----------
-function normalize(text) {
-  return String(text || '')
-    .toLowerCase()
-    .normalize('NFD')
-    .replace(/[\u0300-\u036f]/g, '') // remove accents
-    .replace(/[^a-z0-9\s]/g, ' ') // punctuation -> space
-    .replace(/\s+/g, ' ')
-    .trim();
-}
-
-// Levenshtein distance for typo tolerance
-function levenshtein(a, b) {
-  const matrix = [];
-  for (let i = 0; i <= b.length; i++) matrix[i] = [i];
-  for (let j = 0; j <= a.length; j++) matrix[0][j] = j;
-  for (let i = 1; i <= b.length; i++) {
-    for (let j = 1; j <= a.length; j++) {
-      matrix[i][j] = b[i - 1] === a[j - 1]
-        ? matrix[i - 1][j - 1]
-        : Math.min(matrix[i - 1][j - 1] + 1, matrix[i][j - 1] + 1, matrix[i - 1][j] + 1);
-    }
-  }
-  return matrix[b.length][a.length];
-}
-
-// Fuzzy matching with typo tolerance (stricter version)
-function looselyMatches(userText, targetText) {
-  const u = normalize(userText);
-  const t = normalize(targetText);
-
-  if (!u || !t) return false;
-  if (u === t) return true;
-
-  // Require minimum length
-  if (u.length < 3) return false;
-
-  // Compare without spaces (handles "bonjovi" vs "bon jovi")
-  const uNoSpaces = u.replace(/\s/g, '');
-  const tNoSpaces = t.replace(/\s/g, '');
-  if (uNoSpaces === tNoSpaces) return true;
-
-  // For short targets (single word like "Drake"), require near-exact match
-  // User must type at least 70% of the target (ignoring spaces)
-  if (uNoSpaces.length < tNoSpaces.length * 0.7) return false;
-
-  // Levenshtein distance on spaceless versions - allow ~15% typos (max 2 chars)
-  const maxDistance = Math.min(2, Math.max(1, Math.floor(tNoSpaces.length * 0.15)));
-  const distance = levenshtein(uNoSpaces, tNoSpaces);
-  if (distance <= maxDistance) return true;
-
-  // For multi-word targets, check if user typed most words correctly
-  const targetWords = t.split(' ').filter(w => w.length >= 2);
-  const userWords = u.split(' ').filter(w => w.length >= 2);
-
-  if (targetWords.length > 1 && userWords.length > 0) {
-    let matchedWords = 0;
-    const usedTargetWords = new Set();
-
-    for (const uw of userWords) {
-      for (const tw of targetWords) {
-        if (usedTargetWords.has(tw)) continue;
-        // Word must be close match (1 typo allowed for words 5+ chars)
-        const wordMaxDist = tw.length >= 5 ? 1 : 0;
-        if (levenshtein(uw, tw) <= wordMaxDist) {
-          matchedWords++;
-          usedTargetWords.add(tw);
-          break;
-        }
-      }
-    }
-
-    // Must match at least 60% of target words (e.g., 2/3 for "Avril Lavigne")
-    // AND user must have typed at least half as many words
-    if (matchedWords >= targetWords.length * 0.6 && userWords.length >= targetWords.length * 0.5) {
-      return true;
-    }
-  }
-
-  return false;
-}
-
-export function createRoom(hostId, hostName) {
-  let code = generateRoomCode();
-  while (rooms.has(code)) code = generateRoomCode();
-
-  const room = {
-    code,
-    hostId,
-    players: [
-      {
-        id: hostId,
-        name: hostName,
-        score: 0,
-        streak: 0,
-        isHost: true
-      }
-    ],
-    state: 'lobby', // lobby, playing, finished
-    categoryIds: ['top-hits'], // Array of category IDs for multi-select
-    clipDuration: 15, // Hardcoded to 15 seconds
-    answerMode: 'mcq', // 'mcq' | 'typed'
-    difficulty: 1, // 1=easy (top 1), 2=medium (top 3), 3=hard (top 10)
-    musicProvider: 'spotify', // Spotify metadata + Deezer previews
-    rounds: [],
-    currentRound: 0,
-    totalRounds: 10,
-    roundStartTime: null,
-    answers: new Map(),
-    usedTrackIds: new Set()
-  };
-
-  rooms.set(code, room);
-  return room;
-}
-
-export function joinRoom(code, playerId, playerName) {
-  const room = rooms.get(code.toUpperCase());
-
-  if (!room) return { error: 'Room not found' };
-  if (room.state !== 'lobby') return { error: 'Game already in progress' };
-  if (room.players.find(p => p.id === playerId)) return { error: 'Already in room' };
-  if (room.players.length >= 8) return { error: 'Room is full (max 8 players)' };
-
-  room.players.push({
-    id: playerId,
-    name: playerName,
-    score: 0,
-    streak: 0,
-    isHost: false
-  });
-
-  return { room };
-}
-
-export function leaveRoom(code, playerId) {
-  const room = rooms.get(code);
-  if (!room) return null;
-
-  room.players = room.players.filter(p => p.id !== playerId);
-
-  // Remove the player's answer entry if they had one
-  room.answers?.delete(playerId);
-
-  // If host left, assign new host or delete room
-  if (room.hostId === playerId) {
-    if (room.players.length > 0) {
-      room.hostId = room.players[0].id;
-      room.players[0].isHost = true;
-    } else {
-      rooms.delete(code);
-      return null;
-    }
-  }
-
-  return room;
-}
-
-export function getRoom(code) {
-  return rooms.get(code?.toUpperCase());
-}
-
-export function updateRoomSettings(code, { categoryIds, answerMode, difficulty, totalRounds }) {
-  const room = rooms.get(code);
-  if (room && room.state === 'lobby') {
-    if (categoryIds && categoryIds.length > 0) room.categoryIds = categoryIds;
-    if (answerMode) room.answerMode = answerMode; // 'mcq' | 'typed'
-    if (difficulty) room.difficulty = difficulty; // 1=easy, 2=medium, 3=hard
-    if (totalRounds) room.totalRounds = totalRounds; // 10, 15, or 20
-    return true;
-  }
-  return false;
-}
+// Re-export room management functions
+export { createRoom, joinRoom, leaveRoom, getRoom, updateRoomSettings, resetRoom };
 
 export async function startGame(code, onProgress = null) {
-  const room = rooms.get(code);
+  const room = getRoom(code);
   if (!room || room.state !== 'lobby') return { error: 'Cannot start game' };
   if (room.players.length < 1) return { error: 'Need at least 1 player' };
 
@@ -209,7 +38,7 @@ export async function startGame(code, onProgress = null) {
       p.streak = 0;
     });
 
-    // Track used songs so we can avoid repeats across games in the same room
+    // Track used songs to avoid repeats across games
     room.rounds.forEach(round => {
       if (round?.correctId) {
         room.usedTrackIds.add(round.correctId);
@@ -223,7 +52,7 @@ export async function startGame(code, onProgress = null) {
 }
 
 export function getCurrentRound(code) {
-  const room = rooms.get(code);
+  const room = getRoom(code);
   if (!room || room.state !== 'playing') return null;
 
   const round = room.rounds[room.currentRound];
@@ -233,28 +62,21 @@ export function getCurrentRound(code) {
   room.roundEnded = false;
   room.answers.clear();
 
-  // Typed mode gets more time (10s after clip ends vs 5s for MCQ)
   const answerTime = room.answerMode === 'typed' ? 10 : 5;
 
-  // Return round data without the correct answer
   return {
     roundNumber: round.roundNumber,
     totalRounds: room.totalRounds,
     previewUrl: round.previewUrl,
     answerMode: room.answerMode,
     clipDuration: room.clipDuration,
-    answerTime, // extra time after clip to answer
+    answerTime,
     options: room.answerMode === 'mcq' ? round.options : undefined
   };
 }
 
-/**
- * submitAnswer supports:
- *  - MCQ: submitAnswer(code, playerId, { answerId }) OR submitAnswer(code, playerId, answerId)
- *  - TYPED: submitAnswer(code, playerId, { phase: 'artist'|'title', text: '...' })
- */
 export function submitAnswer(code, playerId, payload) {
-  const room = rooms.get(code);
+  const room = getRoom(code);
   if (!room || room.state !== 'playing') return null;
 
   const round = room.rounds[room.currentRound];
@@ -263,24 +85,17 @@ export function submitAnswer(code, playerId, payload) {
 
   const timeTaken = (Date.now() - room.roundStartTime) / 1000;
 
-  // -----------------------
   // MCQ MODE
-  // Scoring: 10 base + speed bonus (3 if <3s, 2 if <6s, 1 if <10s)
-  // -----------------------
   if (room.answerMode !== 'typed') {
-    // Backward compatibility: payload might be a raw answerId string
     const answerId = payload?.answerId ?? payload;
-
-    // Don't allow duplicate answers
     if (room.answers.has(playerId)) return null;
 
     const isCorrect = answerId === round.correctId;
-
     let points = 0;
     let speedBonus = 0;
+
     if (isCorrect) {
-      points = 10; // Base points
-      // Speed bonus based on time taken
+      points = 10;
       if (timeTaken < 3) speedBonus = 3;
       else if (timeTaken < 6) speedBonus = 2;
       else if (timeTaken < 10) speedBonus = 1;
@@ -312,20 +127,12 @@ export function submitAnswer(code, playerId, payload) {
     };
   }
 
-  // -----------------------
-  // TYPED MODE (single input - guess artist or title in any order)
-  // 3 lives total - wrong guesses lose a life
-  // Scoring: Artist = 10 base + speed bonus, Title = 15 base + speed bonus
-  // Speed bonus: 3 if <5s, 2 if <10s, 1 if <15s
-  // payload: { text: '...' }
-  // -----------------------
+  // TYPED MODE
   const text = payload?.text;
-
   if (!text) return null;
 
   let existing = room.answers.get(playerId);
 
-  // Initialize entry if doesn't exist
   if (!existing) {
     existing = {
       mode: 'typed',
@@ -338,13 +145,11 @@ export function submitAnswer(code, playerId, payload) {
     room.answers.set(playerId, existing);
   }
 
-  // If already finished, block further submissions
   if (existing.finished) return null;
 
-  const correctArtist = round.correctArtist;
+  const correctArtists = round.correctArtists || [round.correctArtist];
   const correctTitle = round.correctName;
 
-  // Calculate speed bonus for typed mode
   function getSpeedBonus(time) {
     if (time < 5) return 3;
     if (time < 10) return 2;
@@ -352,33 +157,27 @@ export function submitAnswer(code, playerId, payload) {
     return 0;
   }
 
-  // Check if the guess matches artist or title (in any order)
-  // Also check if both are contained in a single input (e.g., "Drake Hotline Bling")
-  let matchesArtist = !existing.artistCorrect && looselyMatches(text, correctArtist);
+  let matchesArtist = !existing.artistCorrect && correctArtists.some(artist => looselyMatches(text, artist));
   let matchesTitle = !existing.titleCorrect && looselyMatches(text, correctTitle);
 
-  // If input is long enough, check if it contains both artist AND title
+  // Check if input contains both artist AND title
   if (text.length >= 6 && !existing.artistCorrect && !existing.titleCorrect) {
     const normalizedInput = normalize(text);
-    const normalizedArtist = normalize(correctArtist);
     const normalizedTitle = normalize(correctTitle);
-
-    // Check if input contains both (e.g., "drake hotline bling" contains "drake" and "hotline bling")
-    if (normalizedInput.includes(normalizedArtist) && normalizedInput.includes(normalizedTitle)) {
+    const matchesAnyArtist = correctArtists.some(artist => normalizedInput.includes(normalize(artist)));
+    if (matchesAnyArtist && normalizedInput.includes(normalizedTitle)) {
       matchesArtist = true;
       matchesTitle = true;
     }
   }
 
-  // If matches neither, lose a life
+  // Wrong guess - lose a life
   if (!matchesArtist && !matchesTitle) {
     existing.lives--;
-
     if (existing.lives <= 0) {
       player.streak = 0;
       existing.finished = true;
     }
-
     room.answers.set(playerId, existing);
 
     return {
@@ -402,7 +201,6 @@ export function submitAnswer(code, playerId, payload) {
     const speedBonus = getSpeedBonus(timeTaken);
     const pointsAwarded = 10 + speedBonus;
     player.score += pointsAwarded;
-
     existing.artistText = text;
     existing.artistCorrect = true;
     existing.points = (existing.points || 0) + pointsAwarded;
@@ -415,7 +213,6 @@ export function submitAnswer(code, playerId, payload) {
     const speedBonus = getSpeedBonus(timeTaken);
     const pointsAwarded = 15 + speedBonus;
     player.score += pointsAwarded;
-
     existing.titleText = text;
     existing.titleCorrect = true;
     existing.points = (existing.points || 0) + pointsAwarded;
@@ -423,7 +220,6 @@ export function submitAnswer(code, playerId, payload) {
     existing.titleTime = timeTaken;
   }
 
-  // Check if both are now correct
   const fullCorrect = existing.artistCorrect && existing.titleCorrect;
   if (fullCorrect) {
     player.streak++;
@@ -432,7 +228,6 @@ export function submitAnswer(code, playerId, payload) {
 
   room.answers.set(playerId, existing);
 
-  // Determine what was matched this submission
   const matchedBoth = matchesArtist && matchesTitle;
   const matched = matchedBoth ? 'both' : (matchesArtist ? 'artist' : 'title');
   const pointsAwarded = (matchesArtist ? 10 + (existing.artistSpeedBonus || 0) : 0) +
@@ -456,30 +251,26 @@ export function submitAnswer(code, playerId, payload) {
 }
 
 export function allPlayersAnswered(code) {
-  const room = rooms.get(code);
+  const room = getRoom(code);
   if (!room) return false;
-
-  // In typed mode a player is only "done" when finished=true
   return room.players.every(p => room.answers.get(p.id)?.finished);
 }
 
-// Check if round can be ended (prevents double-ending)
 export function canEndRound(code) {
-  const room = rooms.get(code);
+  const room = getRoom(code);
   if (!room || room.state !== 'playing') return false;
   if (room.roundEnded) return false;
-
   room.roundEnded = true;
   return true;
 }
 
 export function getRoundResults(code) {
-  const room = rooms.get(code);
+  const room = getRoom(code);
   if (!room || room.state !== 'playing') return null;
 
   const round = room.rounds[room.currentRound];
 
-  const results = {
+  return {
     correctId: round.correctId,
     correctName: round.correctName,
     correctArtist: round.correctArtist,
@@ -488,31 +279,23 @@ export function getRoundResults(code) {
     playerResults: room.players
       .map(p => {
         const answer = room.answers.get(p.id);
-
-        // For typed mode, “isCorrect” means full correct (artist+title)
-        const isCorrectTyped =
-          answer?.mode === 'typed' ? !!(answer.artistCorrect && answer.titleCorrect) : false;
+        const isCorrectTyped = answer?.mode === 'typed' ? !!(answer.artistCorrect && answer.titleCorrect) : false;
 
         return {
           id: p.id,
           name: p.name,
           score: p.score,
           roundPoints: answer?.points || 0,
-          isCorrect:
-            answer?.mode === 'mcq'
-              ? (answer?.isCorrect || false)
-              : isCorrectTyped,
+          isCorrect: answer?.mode === 'mcq' ? (answer?.isCorrect || false) : isCorrectTyped,
           streak: p.streak
         };
       })
       .sort((a, b) => b.score - a.score)
   };
-
-  return results;
 }
 
 export function nextRound(code) {
-  const room = rooms.get(code);
+  const room = getRoom(code);
   if (!room || room.state !== 'playing') return null;
 
   room.currentRound++;
@@ -526,7 +309,7 @@ export function nextRound(code) {
 }
 
 export function getGameResults(code) {
-  const room = rooms.get(code);
+  const room = getRoom(code);
   if (!room) return null;
 
   const sortedPlayers = [...room.players].sort((a, b) => b.score - a.score);
@@ -545,20 +328,4 @@ export function getGameResults(code) {
       score: p.score
     }))
   };
-}
-
-export function resetRoom(code) {
-  const room = rooms.get(code);
-  if (!room) return null;
-
-  room.state = 'lobby';
-  room.rounds = [];
-  room.currentRound = 0;
-  room.answers.clear();
-  room.players.forEach(p => {
-    p.score = 0;
-    p.streak = 0;
-  });
-
-  return room;
 }

@@ -18,7 +18,8 @@ Open http://localhost:5173
 - **Typed mode** - Single input, guess artist/title in any order, type both at once for bonus
 - **Fuzzy matching** - Typo tolerance, accent insensitive, partial matches
 - **Configurable** - Rounds, difficulty, music categories, import Spotify playlists
-- **No API keys needed** - Uses free Deezer API (Spotify optional for rankings)
+- **Multi-artist support** - Songs with multiple artists display all names, accept any for typed mode
+- **Spotify + Deezer hybrid** - Spotify metadata (accurate info, album art, year) + Deezer previews
 
 ## Game Modes
 
@@ -41,7 +42,7 @@ Open http://localhost:5173
 |---------|---------|
 | Rounds | 10, 15, or 20 |
 | Difficulty | Easy (top hit), Medium (top 3), Hard (top 10) |
-| Music Source | Deezer or Spotify hybrid |
+| Music Source | Spotify metadata + Deezer audio |
 | Categories | Multi-select, mix genres |
 | Import | Add any public Spotify playlist |
 
@@ -72,7 +73,7 @@ Edit `server/categories.json`:
 }
 ```
 
-### Enable Spotify Rankings (Optional)
+### Spotify API (Required)
 
 Add to `server/.env`:
 
@@ -81,13 +82,13 @@ SPOTIFY_CLIENT_ID=your_id
 SPOTIFY_CLIENT_SECRET=your_secret
 ```
 
-Get credentials from [Spotify Developer Dashboard](https://developer.spotify.com/dashboard).
+Get credentials from [Spotify Developer Dashboard](https://developer.spotify.com/dashboard). The app uses Spotify for metadata and Deezer for audio previews.
 
 ## Tech Stack
 
 - React + Vite + Tailwind CSS
 - Node.js + Express + Socket.io
-- Deezer API (free) / Spotify API (optional)
+- Spotify API (metadata) + Deezer API (audio previews)
 - Docker
 
 ## Project Structure
@@ -95,15 +96,23 @@ Get credentials from [Spotify Developer Dashboard](https://developer.spotify.com
 ```
 quizzy/
 ├── client/src/
-│   ├── components/     # Home, Lobby, Game
-│   └── context/        # GameContext (state + sockets)
+│   ├── components/        # Game UI
+│   │   ├── Game.jsx       # Playing state, audio, timers
+│   │   ├── RoundReveal.jsx# Answer reveal screen
+│   │   ├── GameOver.jsx   # Final standings
+│   │   ├── Lobby.jsx      # Room settings
+│   │   └── Home.jsx       # Join/create
+│   └── context/           # GameContext (state + sockets)
 ├── server/
-│   ├── index.js        # Express + Socket.io
-│   ├── gameManager.js  # Room logic, scoring, matching
-│   ├── quiz.js         # Track selection, decoys
-│   ├── deezer.js       # Deezer API
-│   ├── spotify.js      # Spotify API
-│   └── categories.json # Music categories
+│   ├── index.js           # Express + Socket.io
+│   ├── gameManager.js     # Game flow, scoring
+│   ├── roomManager.js     # Room CRUD, settings
+│   ├── answerMatcher.js   # Fuzzy matching for typed mode
+│   ├── quiz.js            # Track selection, decoys
+│   ├── spotify.js         # Spotify API
+│   ├── spotify-hybrid.js  # Spotify metadata + Deezer previews
+│   ├── deezer.js          # Deezer API (audio only)
+│   └── categories.json    # Music categories
 ├── Dockerfile
 └── compose.yml
 ```
