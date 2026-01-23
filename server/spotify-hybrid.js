@@ -20,6 +20,10 @@ function normalizeForSearch(text) {
     .trim();
 }
 
+function isRemixTitle(title) {
+  return /\bremix\b/i.test(String(title || ''));
+}
+
 // Simple concurrency limiter
 async function runWithLimit(tasks, limit = 5) {
   const results = [];
@@ -69,6 +73,7 @@ export async function getArtistTopTracks(artistIdObj, limit = 10) {
     const normalizedArtist = normalizeForSearch(track.artist);
 
     const match = deezerResults.find(d => {
+      if (isRemixTitle(d.name)) return false;
       const dName = normalizeForSearch(d.name);
       const dArtist = normalizeForSearch(d.artist);
 
@@ -132,7 +137,10 @@ async function getSpotifyTopTrackNames(spotifyArtistId, limit = 20) {
     if (!response.ok) return [];
     const data = await response.json();
 
-    return (data.tracks || []).slice(0, limit).map(track => {
+    return (data.tracks || [])
+      .filter(track => !isRemixTitle(track.name))
+      .slice(0, limit)
+      .map(track => {
       const artistNames = (track.artists || []).map(a => a.name).filter(Boolean);
       return {
         name: spotify.cleanTitle(track.name),
@@ -160,6 +168,7 @@ export async function searchTracks(query, limit = 50) {
     const normalizedArtist = normalizeForSearch(track.artist);
 
     const match = deezerResults.find(d => {
+      if (isRemixTitle(d.name)) return false;
       const dName = normalizeForSearch(d.name);
       const dArtist = normalizeForSearch(d.artist);
 

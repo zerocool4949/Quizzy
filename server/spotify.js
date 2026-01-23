@@ -148,7 +148,9 @@ export async function searchTracksMeta(query, limit = 50) {
 
     const data = await response.json();
 
-    return (data.tracks?.items || []).map(mapTrackMeta);
+    return (data.tracks?.items || [])
+      .filter(track => !isRemixTitle(track.name))
+      .map(mapTrackMeta);
   } catch (error) {
     console.log(`Spotify search error for "${query}":`, error?.message ?? error);
     return [];
