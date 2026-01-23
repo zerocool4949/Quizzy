@@ -135,7 +135,7 @@ async function getSpotifyTopTrackNames(spotifyArtistId, limit = 20) {
     return (data.tracks || []).slice(0, limit).map(track => {
       const artistNames = (track.artists || []).map(a => a.name).filter(Boolean);
       return {
-        name: track.name,
+        name: spotify.cleanTitle(track.name),
         artist: artistNames.join(' & ') || '',
         artists: artistNames,
         albumArt: track.album?.images?.[1]?.url ?? track.album?.images?.[0]?.url ?? '',

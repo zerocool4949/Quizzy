@@ -50,7 +50,7 @@ async function getAccessToken() {
 }
 
 // Clean up track titles by removing parenthetical content and common suffixes
-function cleanTitle(title) {
+export function cleanTitle(title) {
   if (!title) return '';
 
   let cleaned = title
@@ -60,9 +60,15 @@ function cleanTitle(title) {
     .replace(/\s*\[[^\]]*\]/g, '')
     // Remove common dash suffixes
     .replace(/\s*-\s*(remaster(ed)?|live|acoustic|remix|radio edit|single version)(\s+\d{4})?$/gi, '')
-    .replace(/\s*-\s*\d{4}\s+remaster(ed)?$/gi, '');
+    .replace(/\s*-\s*\d{4}\s+remaster(ed)?$/gi, '')
+    // Remove "From ..." suffixes
+    .replace(/\s*-\s*from\s+.*$/gi, '');
 
   return cleaned.trim();
+}
+
+function isRemixTitle(title) {
+  return /\bremix\b/i.test(String(title || ''));
 }
 
 // Map Spotify track to our internal format
@@ -114,6 +120,7 @@ export async function searchTracks(query, limit = 50) {
 
     return (data.tracks?.items || [])
       .filter(track => track.preview_url) // Only tracks with previews
+      .filter(track => !isRemixTitle(track.name))
       .map(mapTrack);
   } catch (error) {
     console.log(`Spotify search error for "${query}":`, error?.message ?? error);

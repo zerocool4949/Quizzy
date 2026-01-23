@@ -24,6 +24,7 @@ npm test
 - **Typed mode** - Single input, guess artist/title in any order, type both at once for bonus
 - **Fuzzy matching** - Typo tolerance, accent insensitive, partial matches
 - **Configurable** - Rounds, difficulty, music categories, import Spotify playlists
+- **Multi-artist support** - Songs with multiple artists display all names, accept any for typed mode
 - **Spotify + Deezer hybrid** - Spotify metadata (accurate info, album art, year) + Deezer previews
 
 ## Game Modes
@@ -97,25 +98,27 @@ Get credentials from [Spotify Developer Dashboard](https://developer.spotify.com
 
 ## Project Structure
 
-`
+```
 quizzy/
-|-- client/src/
-|   |-- components/        # Game UI
-|   |   |-- Game.jsx       # Playing state, audio, timers
-|   |   |-- Lobby.jsx      # Room settings
-|   |   -- Home.jsx       # Join/create
-|   -- context/           # GameContext (state + sockets)
-|-- server/
-|   |-- index.js           # Express + Socket.io
-|   |-- gameManager.js     # Game flow, scoring, matching
-|   |-- quiz.js            # Track selection, decoys
-|   |-- spotify.js         # Spotify API
-|   |-- spotify-hybrid.js  # Spotify metadata + Deezer previews
-|   |-- deezer.js          # Deezer API (audio previews)
-|   -- categories.json    # Music categories
-|-- Dockerfile
--- compose.yml
-`
+├── client/src/
+│   ├── components/        # Game UI
+│   │   ├── Game.jsx       # Game states, audio, timers
+│   │   ├── Lobby.jsx      # Room settings
+│   │   └── Home.jsx       # Join/create
+│   └── context/           # GameContext (state + sockets)
+├── server/
+│   ├── index.js           # Express + Socket.io
+│   ├── gameManager.js     # Game flow, scoring
+│   ├── roomManager.js     # Room CRUD, settings
+│   ├── answerMatcher.js   # Fuzzy matching for typed mode
+│   ├── quiz.js            # Track selection, decoys
+│   ├── spotify.js         # Spotify API
+│   ├── spotify-hybrid.js  # Spotify metadata + Deezer previews
+│   ├── deezer.js          # Deezer API (audio only)
+│   └── categories.json    # Music categories
+├── Dockerfile
+└── compose.yml
+```
 
 ## Notes
 
