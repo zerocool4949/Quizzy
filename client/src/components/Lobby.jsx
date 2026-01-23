@@ -8,7 +8,7 @@ export default function Lobby() {
   const { roomCode, players, isHost, startGame, leaveGame, gameState, updateSettings, roomSettings } = useGame();
   const [categories, setCategories] = useState([]);
   const [selectedCategories, setSelectedCategories] = useState([]);
-  const [answerMode, setAnswerMode] = useState('mcq');
+  const [answerMode, setAnswerMode] = useState('typed');
   const [difficulty, setDifficulty] = useState(2);
   const [rounds, setRounds] = useState(10);
   const [countdown, setCountdown] = useState(3);
