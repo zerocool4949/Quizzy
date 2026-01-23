@@ -116,6 +116,7 @@ quizzy/
 - Track titles cleaned (removes all parenthetical content like "Remastered", "Live", etc.)
 - Loading screen shows track fetching progress
 - Non-host players see live settings updates in lobby
+- Rooms avoid repeating the same song across consecutive games when possible
 
 ---
 
