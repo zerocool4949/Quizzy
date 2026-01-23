@@ -144,7 +144,8 @@ export function submitAnswer(code, playerId, payload) {
       lives: startingLives,
       artistCorrect: false,
       titleCorrect: false,
-      points: 0
+      points: 0,
+      comboApplied: false
     };
     room.answers.set(playerId, existing);
   }
@@ -225,9 +226,16 @@ export function submitAnswer(code, playerId, payload) {
   }
 
   const fullCorrect = existing.artistCorrect && existing.titleCorrect;
+  let comboBonus = 0;
   if (fullCorrect) {
     player.streak++;
     existing.finished = true;
+    if (!existing.comboApplied) {
+      comboBonus = 5;
+      player.score += comboBonus;
+      existing.points += comboBonus;
+      existing.comboApplied = true;
+    }
   }
 
   room.answers.set(playerId, existing);
@@ -235,7 +243,8 @@ export function submitAnswer(code, playerId, payload) {
   const matchedBoth = matchesArtist && matchesTitle;
   const matched = matchedBoth ? 'both' : (matchesArtist ? 'artist' : 'title');
   const pointsAwarded = (matchesArtist ? 10 + (existing.artistSpeedBonus || 0) : 0) +
-                        (matchesTitle ? 15 + (existing.titleSpeedBonus || 0) : 0);
+                        (matchesTitle ? 15 + (existing.titleSpeedBonus || 0) : 0) +
+                        comboBonus;
 
   return {
     mode: 'typed',

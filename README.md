@@ -41,6 +41,7 @@ npm test
 - 5 seconds to answer after clip ends
 - Artist: 10 points + speed bonus
 - Title: 15 points + speed bonus
+- Combo: +5 bonus if both are found
 
 ## Host Settings
 
@@ -134,6 +135,7 @@ quizzy/
 ---
 
 *Created by Raph*
+
 
 
 
