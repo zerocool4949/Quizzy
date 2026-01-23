@@ -8,6 +8,7 @@ const GameContext = createContext(null);
 const SOCKET_URL = import.meta.env.VITE_SOCKET_URL || (import.meta.env.PROD ? '' : 'http://localhost:3001');
 
 const initialState = {
+  playerId: null,
   roomCode: null,
   players: [],
   isHost: false,
@@ -25,6 +26,8 @@ const initialState = {
 
 function gameReducer(state, action) {
   switch (action.type) {
+    case 'SET_PLAYER_ID':
+      return { ...state, playerId: action.payload };
     case 'SET_PLAYER_NAME':
       return { ...state, playerName: action.payload };
     case 'ROOM_CREATED':
@@ -42,7 +45,7 @@ function gameReducer(state, action) {
       return {
         ...state,
         players: action.payload.players,
-        isHost: action.payload.newHostId ? state.players.find(p => p.id === action.payload.newHostId)?.id === state.playerId : state.isHost,
+        isHost: state.playerId ? !!action.payload.players.find(p => p.id === state.playerId)?.isHost : state.isHost,
       };
     case 'GAME_LOADING':
       return { ...state, gameState: 'loading', loadingProgress: action.payload };
@@ -115,6 +118,10 @@ export function GameProvider({ children }) {
     });
 
     const socket = socketRef.current;
+
+    socket.on('connect', () => {
+      dispatch({ type: 'SET_PLAYER_ID', payload: socket.id });
+    });
 
     socket.on('room-created', (data) => {
       dispatch({ type: 'ROOM_CREATED', payload: data });
