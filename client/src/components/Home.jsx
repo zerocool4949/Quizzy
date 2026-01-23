@@ -32,25 +32,29 @@ export default function Home() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center p-4">
-      <div className="text-center mb-12">
-        <h1 className="text-6xl font-bold mb-4 bg-gradient-to-r from-sky-400 via-cyan-400 to-teal-400 text-transparent bg-clip-text">
+    <div className="min-h-screen flex flex-col items-center justify-center p-4 relative overflow-hidden">
+      <div className="glow-orb w-64 h-64 bg-teal-400/30 -left-10 -top-10" />
+      <div className="glow-orb w-80 h-80 bg-rose-400/30 -right-10 top-20" />
+      <div className="glow-orb w-72 h-72 bg-blue-400/20 left-1/3 -bottom-10" />
+
+      <div className="text-center mb-12 animate-fade-up">
+        <h1 className="text-6xl md:text-7xl font-bold mb-4 bg-gradient-to-r from-teal-300 via-cyan-300 to-sky-300 text-transparent bg-clip-text drop-shadow">
           Quizzy
         </h1>
-        <p className="text-gray-400 text-lg">The multiplayer music quiz game</p>
+        <p className="text-slate-300 text-lg">The multiplayer music quiz game</p>
       </div>
 
       {error && (
-        <div className="card bg-red-900/50 border-red-500 mb-6 max-w-md w-full">
-          <p className="text-red-200">{error}</p>
-          <button onClick={clearError} className="text-red-400 text-sm mt-2 hover:underline">
+        <div className="card bg-rose-900/40 border-rose-500/60 mb-6 max-w-md w-full animate-fade-up">
+          <p className="text-rose-100">{error}</p>
+          <button onClick={clearError} className="text-rose-200 text-sm mt-2 hover:underline">
             Dismiss
           </button>
         </div>
       )}
 
       {!mode && (
-        <div className="card max-w-md w-full space-y-4">
+        <div className="card max-w-md w-full space-y-4 animate-fade-up">
           <button onClick={() => setMode('create')} className="btn-primary w-full text-lg">
             Create Game
           </button>
@@ -61,7 +65,7 @@ export default function Home() {
       )}
 
       {mode === 'create' && (
-        <form onSubmit={handleCreate} className="card max-w-md w-full space-y-4">
+        <form onSubmit={handleCreate} className="card max-w-md w-full space-y-4 animate-fade-up">
           <h2 className="text-2xl font-bold text-center">Create a Room</h2>
           <input
             type="text"
@@ -82,7 +86,7 @@ export default function Home() {
       )}
 
       {mode === 'join' && (
-        <form onSubmit={handleJoin} className="card max-w-md w-full space-y-4">
+        <form onSubmit={handleJoin} className="card max-w-md w-full space-y-4 animate-fade-up">
           <h2 className="text-2xl font-bold text-center">Join a Room</h2>
           <input
             type="text"
@@ -114,7 +118,7 @@ export default function Home() {
         </form>
       )}
 
-      <div className="mt-8 text-center text-gray-500 text-sm">
+      <div className="mt-8 text-center text-slate-400 text-sm animate-fade-up">
         <p className="mt-1">Created by Raph</p>
       </div>
     </div>
