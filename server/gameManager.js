@@ -119,7 +119,8 @@ export function createRoom(hostId, hostName) {
     currentRound: 0,
     totalRounds: 10,
     roundStartTime: null,
-    answers: new Map()
+    answers: new Map(),
+    usedTrackIds: new Set()
   };
 
   rooms.set(code, room);
@@ -191,7 +192,15 @@ export async function startGame(code, onProgress = null) {
   if (room.players.length < 1) return { error: 'Need at least 1 player' };
 
   try {
-    room.rounds = await getQuizTracks(room.categoryIds, room.totalRounds, room.difficulty, room.musicProvider, onProgress);
+    const excludeTrackIds = room.usedTrackIds ? Array.from(room.usedTrackIds) : [];
+    room.rounds = await getQuizTracks(
+      room.categoryIds,
+      room.totalRounds,
+      room.difficulty,
+      room.musicProvider,
+      onProgress,
+      excludeTrackIds
+    );
     room.state = 'playing';
     room.currentRound = 0;
 
@@ -199,6 +208,13 @@ export async function startGame(code, onProgress = null) {
     room.players.forEach(p => {
       p.score = 0;
       p.streak = 0;
+    });
+
+    // Track used songs so we can avoid repeats across games in the same room
+    room.rounds.forEach(round => {
+      if (round?.correctId) {
+        room.usedTrackIds.add(round.correctId);
+      }
     });
 
     return { room };

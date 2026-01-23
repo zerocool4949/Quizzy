@@ -117,7 +117,14 @@ function getAllArtistsFromCategories(categoryIds) {
 // @param count - number of rounds
 // @param difficulty - 1 (easy), 2 (medium), 3 (hard)
 // @param musicProvider - 'deezer' or 'spotify'
-export async function getQuizTracks(categoryIds, count = 10, difficulty = 1, musicProvider = 'deezer', onProgress = null) {
+export async function getQuizTracks(
+  categoryIds,
+  count = 10,
+  difficulty = 1,
+  musicProvider = 'deezer',
+  onProgress = null,
+  excludeTrackIds = []
+) {
   // Handle both single categoryId (string) and array of categoryIds for backward compatibility
   const categories = Array.isArray(categoryIds) ? categoryIds : [categoryIds];
 
@@ -168,21 +175,37 @@ export async function getQuizTracks(categoryIds, count = 10, difficulty = 1, mus
   // Shuffle tracks
   const shuffled = [...tracks].sort(() => Math.random() - 0.5);
 
+  const excludeSet = new Set((excludeTrackIds || []).map(id => String(id)));
+
   // Pick tracks for rounds, limiting each artist to 1 appearance
-  const maxPerArtist = 1;
-  const artistCount = new Map();
-  const roundTracks = [];
+  function selectRoundTracks(sourceTracks) {
+    const maxPerArtist = 1;
+    const artistCount = new Map();
+    const selected = [];
 
-  for (const track of shuffled) {
-    if (roundTracks.length >= count) break;
+    for (const track of sourceTracks) {
+      if (selected.length >= count) break;
 
-    const artistLower = track.artist.toLowerCase();
-    const currentCount = artistCount.get(artistLower) || 0;
+      const artistLower = track.artist.toLowerCase();
+      const currentCount = artistCount.get(artistLower) || 0;
 
-    if (currentCount < maxPerArtist) {
-      roundTracks.push(track);
-      artistCount.set(artistLower, currentCount + 1);
+      if (currentCount < maxPerArtist) {
+        selected.push(track);
+        artistCount.set(artistLower, currentCount + 1);
+      }
     }
+
+    return selected;
+  }
+
+  const filtered = excludeSet.size > 0
+    ? shuffled.filter(track => !excludeSet.has(String(track.id)))
+    : shuffled;
+
+  let roundTracks = selectRoundTracks(filtered);
+  if (excludeSet.size > 0 && roundTracks.length < count) {
+    console.log('Not enough fresh tracks, allowing repeats for this game');
+    roundTracks = selectRoundTracks(shuffled);
   }
 
   console.log(`Selected ${roundTracks.length} tracks with artist diversity`);
