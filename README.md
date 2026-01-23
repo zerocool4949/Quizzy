@@ -11,6 +11,12 @@ npm run dev
 
 Open http://localhost:5173
 
+### Run Tests
+
+```bash
+npm test
+```
+
 ## Features
 
 - **Multiplayer** - 6-character room codes, up to 8 players, shareable invite links
