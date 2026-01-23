@@ -134,10 +134,12 @@ export function submitAnswer(code, playerId, payload) {
   let existing = room.answers.get(playerId);
 
   if (!existing) {
+    // Hard difficulty (3) gets 5 lives, others get 3
+    const startingLives = room.difficulty === 3 ? 5 : 3;
     existing = {
       mode: 'typed',
       finished: false,
-      lives: 3,
+      lives: startingLives,
       artistCorrect: false,
       titleCorrect: false,
       points: 0
