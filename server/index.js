@@ -24,7 +24,7 @@ import {
   getGameResults,
   resetRoom
 } from './gameManager.js';
-import { getCategoryList, getProviderList } from './music.js';
+import { getCategoryList } from './music.js';
 import { importPlaylist, deleteImportedPlaylist } from './categories.js';
 import { getPlaylist } from './spotify.js';
 
@@ -45,11 +45,6 @@ app.use(express.json());
 // Get available categories from categories.json
 app.get('/api/categories', (_req, res) => {
   res.json(getCategoryList());
-});
-
-// Get available music providers
-app.get('/api/providers', (_req, res) => {
-  res.json(getProviderList());
 });
 
 // Import a Spotify playlist as a new category
@@ -151,8 +146,7 @@ io.on('connection', (socket) => {
       categoryIds: result.room.categoryIds,
       answerMode: result.room.answerMode,
       difficulty: result.room.difficulty,
-      totalRounds: result.room.totalRounds,
-      musicProvider: result.room.musicProvider
+      totalRounds: result.room.totalRounds
     });
 
     // Notify others
@@ -163,22 +157,21 @@ io.on('connection', (socket) => {
     console.log(`${playerName} joined room ${code}`);
   });
 
-  // Update game settings (categories, answer mode, difficulty, rounds, music provider)
-  socket.on('update-settings', ({ categoryIds, answerMode, difficulty, totalRounds, musicProvider }) => {
+  // Update game settings (categories, answer mode, difficulty, rounds)
+  socket.on('update-settings', ({ categoryIds, answerMode, difficulty, totalRounds }) => {
     if (!currentRoom) return;
 
     const room = getRoom(currentRoom);
     if (room && room.hostId === socket.id) {
-      updateRoomSettings(currentRoom, { categoryIds, answerMode, difficulty, totalRounds, musicProvider });
-      console.log(`Settings updated: categories: [${categoryIds?.join(', ')}], mode: "${answerMode}", difficulty: ${difficulty}, rounds: ${totalRounds}, provider: ${musicProvider}`);
+      updateRoomSettings(currentRoom, { categoryIds, answerMode, difficulty, totalRounds });
+      console.log(`Settings updated: categories: [${categoryIds?.join(', ')}], mode: "${answerMode}", difficulty: ${difficulty}, rounds: ${totalRounds}`);
 
       // Broadcast settings to all players in the room
       io.to(currentRoom).emit('settings-updated', {
         categoryIds: room.categoryIds,
         answerMode: room.answerMode,
         difficulty: room.difficulty,
-        totalRounds: room.totalRounds,
-        musicProvider: room.musicProvider
+        totalRounds: room.totalRounds
       });
     }
   });

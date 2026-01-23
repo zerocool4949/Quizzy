@@ -127,12 +127,12 @@ async function enrichTracksWithYear(tracks, limit = 4) {
 // @param categoryIds - array of category IDs
 // @param count - number of rounds
 // @param difficulty - 1 (easy), 2 (medium), 3 (hard)
-// @param musicProvider - 'deezer' or 'spotify'
+// @param musicProvider - music provider to use (default: spotify hybrid)
 export async function getQuizTracks(
   categoryIds,
   count = 10,
   difficulty = 1,
-  musicProvider = 'deezer',
+  musicProvider = 'spotify',
   onProgress = null,
   excludeTrackIds = []
 ) {

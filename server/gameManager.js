@@ -173,14 +173,13 @@ export function getRoom(code) {
   return rooms.get(code?.toUpperCase());
 }
 
-export function updateRoomSettings(code, { categoryIds, answerMode, difficulty, totalRounds, musicProvider }) {
+export function updateRoomSettings(code, { categoryIds, answerMode, difficulty, totalRounds }) {
   const room = rooms.get(code);
   if (room && room.state === 'lobby') {
     if (categoryIds && categoryIds.length > 0) room.categoryIds = categoryIds;
     if (answerMode) room.answerMode = answerMode; // 'mcq' | 'typed'
     if (difficulty) room.difficulty = difficulty; // 1=easy, 2=medium, 3=hard
     if (totalRounds) room.totalRounds = totalRounds; // 10, 15, or 20
-    if (musicProvider) room.musicProvider = musicProvider; // 'deezer' | 'spotify'
     return true;
   }
   return false;

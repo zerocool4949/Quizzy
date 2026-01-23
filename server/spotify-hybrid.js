@@ -44,14 +44,9 @@ export async function searchArtistId(artistName) {
   return null;
 }
 
-// Get top tracks using Spotify metadata, then find on Deezer
+// Get top tracks using Spotify metadata, then find on Deezer for previews
 export async function getArtistTopTracks(artistIdObj, limit = 10) {
   if (!artistIdObj) return [];
-
-  // If we have a Deezer ID, just use Deezer directly
-  if (artistIdObj.provider === 'deezer') {
-    return deezer.getArtistTopTracks(artistIdObj.id, limit);
-  }
 
   // Use Spotify to get top track names
   const spotifyTracks = await getSpotifyTopTrackNames(artistIdObj.id, limit * 2);
@@ -136,12 +131,12 @@ async function getSpotifyTopTrackNames(spotifyArtistId, limit = 20) {
     if (!response.ok) return [];
     const data = await response.json();
 
-  return (data.tracks || []).slice(0, limit).map(track => ({
-    name: track.name,
-    artist: track.artists?.[0]?.name || '',
-    albumArt: track.album?.images?.[1]?.url ?? track.album?.images?.[0]?.url ?? '',
-    year: track.album?.release_date ? String(track.album.release_date).slice(0, 4) : null
-  }));
+    return (data.tracks || []).slice(0, limit).map(track => ({
+      name: track.name,
+      artist: track.artists?.[0]?.name || '',
+      albumArt: track.album?.images?.[1]?.url ?? track.album?.images?.[0]?.url ?? '',
+      year: track.album?.release_date ? String(track.album.release_date).slice(0, 4) : null
+    }));
   } catch {
     return [];
   }
