@@ -62,7 +62,7 @@ export function getCurrentRound(code) {
   room.roundEnded = false;
   room.answers.clear();
 
-  const answerTime = room.answerMode === 'typed' ? 10 : 5;
+  const answerTime = 5;
 
   return {
     roundNumber: round.roundNumber,
@@ -329,3 +329,4 @@ export function getGameResults(code) {
     }))
   };
 }
+
