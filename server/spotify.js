@@ -76,6 +76,18 @@ function mapTrack(track) {
   };
 }
 
+// Map Spotify track metadata (keep even without preview)
+function mapTrackMeta(track) {
+  return {
+    id: `spotify-${track.id}`,
+    name: cleanTitle(track.name),
+    artist: track.artists?.[0]?.name ?? '',
+    previewUrl: track.preview_url,
+    albumArt: track.album?.images?.[1]?.url ?? track.album?.images?.[0]?.url ?? '',
+    year: track.album?.release_date ? String(track.album.release_date).slice(0, 4) : null
+  };
+}
+
 // Search for tracks
 export async function searchTracks(query, limit = 50) {
   const token = await getAccessToken();
@@ -99,6 +111,33 @@ export async function searchTracks(query, limit = 50) {
     return (data.tracks?.items || [])
       .filter(track => track.preview_url) // Only tracks with previews
       .map(mapTrack);
+  } catch (error) {
+    console.log(`Spotify search error for "${query}":`, error?.message ?? error);
+    return [];
+  }
+}
+
+// Search for tracks with metadata (does not require preview_url)
+export async function searchTracksMeta(query, limit = 50) {
+  const token = await getAccessToken();
+  if (!token) return [];
+
+  try {
+    const response = await fetch(
+      `https://api.spotify.com/v1/search?q=${encodeURIComponent(query)}&type=track&limit=${limit}`,
+      {
+        headers: { 'Authorization': `Bearer ${token}` }
+      }
+    );
+
+    if (!response.ok) {
+      console.log(`Spotify search error for "${query}": ${response.status}`);
+      return [];
+    }
+
+    const data = await response.json();
+
+    return (data.tracks?.items || []).map(mapTrackMeta);
   } catch (error) {
     console.log(`Spotify search error for "${query}":`, error?.message ?? error);
     return [];
@@ -243,5 +282,32 @@ export async function getPlaylist(playlistIdOrUrl) {
   } catch (error) {
     console.error('Spotify playlist fetch error:', error.message);
     return { error: 'Failed to fetch playlist' };
+  }
+}
+
+// Get release year for a track using Spotify search
+export async function getTrackYear(artist, trackName) {
+  const token = await getAccessToken();
+  if (!token) return null;
+
+  const safeArtist = String(artist || '').trim();
+  const safeTrack = String(trackName || '').trim();
+  if (!safeArtist || !safeTrack) return null;
+
+  const query = `track:${safeTrack} artist:${safeArtist}`;
+
+  try {
+    const response = await fetch(
+      `https://api.spotify.com/v1/search?q=${encodeURIComponent(query)}&type=track&limit=1`,
+      { headers: { 'Authorization': `Bearer ${token}` } }
+    );
+
+    if (!response.ok) return null;
+
+    const data = await response.json();
+    const releaseDate = data.tracks?.items?.[0]?.album?.release_date;
+    return releaseDate ? String(releaseDate).slice(0, 4) : null;
+  } catch {
+    return null;
   }
 }

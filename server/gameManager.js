@@ -114,7 +114,7 @@ export function createRoom(hostId, hostName) {
     clipDuration: 15, // Hardcoded to 15 seconds
     answerMode: 'mcq', // 'mcq' | 'typed'
     difficulty: 1, // 1=easy (top 1), 2=medium (top 3), 3=hard (top 10)
-    musicProvider: 'deezer', // 'deezer' | 'spotify'
+    musicProvider: 'spotify', // Spotify metadata + Deezer previews
     rounds: [],
     currentRound: 0,
     totalRounds: 10,

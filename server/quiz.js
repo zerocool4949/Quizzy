@@ -1,6 +1,7 @@
 // Quiz generation logic - track selection, difficulty, decoys
 
 import { getProvider } from './music.js';
+import { getTrackYear } from './spotify.js';
 import { getArtistsForCategory } from './categories.js';
 
 // Simple concurrency limiter (prevents rate-limit spikes)
@@ -112,6 +113,16 @@ function getAllArtistsFromCategories(categoryIds) {
   return dedupeStrings(allArtists);
 }
 
+async function enrichTracksWithYear(tracks, limit = 4) {
+  const tasks = tracks.map(track => async () => {
+    if (track.year) return track;
+    const year = await getTrackYear(track.artist, track.name);
+    return { ...track, year: year || null };
+  });
+
+  return runWithLimit(tasks, limit);
+}
+
 // Main quiz generation function
 // @param categoryIds - array of category IDs
 // @param count - number of rounds
@@ -210,6 +221,8 @@ export async function getQuizTracks(
 
   console.log(`Selected ${roundTracks.length} tracks with artist diversity`);
 
+  const enrichedRoundTracks = await enrichTracksWithYear(roundTracks);
+
   // Get ALL artists from categories for decoy generation (not just the 50 sampled)
   const allCategoryArtists = getAllArtistsFromCategories(categories);
   console.log(`Using ${allCategoryArtists.length} artists from full category list for decoys`);
@@ -217,8 +230,8 @@ export async function getQuizTracks(
   // For each round, create question with decoys from the FULL artist list
   const rounds = [];
 
-  for (let index = 0; index < roundTracks.length; index++) {
-    const correctTrack = roundTracks[index];
+  for (let index = 0; index < enrichedRoundTracks.length; index++) {
+    const correctTrack = enrichedRoundTracks[index];
     const correctArtistLower = correctTrack.artist.toLowerCase();
 
     // Filter out the correct artist from decoy candidates

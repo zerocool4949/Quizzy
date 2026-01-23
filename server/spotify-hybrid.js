@@ -20,13 +20,24 @@ function normalizeForSearch(text) {
     .trim();
 }
 
+// Simple concurrency limiter
+async function runWithLimit(tasks, limit = 5) {
+  const results = [];
+  let i = 0;
+
+  const workers = Array.from({ length: Math.min(limit, tasks.length) }, async () => {
+    while (i < tasks.length) {
+      const idx = i++;
+      results[idx] = await tasks[idx]();
+    }
+  });
+
+  await Promise.all(workers);
+  return results;
+}
+
 // Search for artist ID (use Deezer directly - it works fine for this)
 export async function searchArtistId(artistName) {
-  // Try Deezer first since it's simpler
-  const deezerId = await deezer.searchArtistId(artistName);
-  if (deezerId) return { provider: 'deezer', id: deezerId };
-
-  // Fall back to Spotify
   const spotifyId = await spotify.searchArtistId(artistName);
   if (spotifyId) return { provider: 'spotify', id: spotifyId };
 
@@ -80,7 +91,14 @@ export async function getArtistTopTracks(artistIdObj, limit = 10) {
     if (match && match.previewUrl) {
       // Avoid duplicates
       if (!results.some(r => r.id === match.id)) {
-        results.push({ ...match, year: track.year || null });
+        results.push({
+          id: match.id,
+          name: track.name,
+          artist: track.artist,
+          previewUrl: match.previewUrl,
+          albumArt: track.albumArt || match.albumArt,
+          year: track.year || null
+        });
       }
     }
   }
@@ -118,19 +136,65 @@ async function getSpotifyTopTrackNames(spotifyArtistId, limit = 20) {
     if (!response.ok) return [];
     const data = await response.json();
 
-    return (data.tracks || []).slice(0, limit).map(track => ({
-      name: track.name,
-      artist: track.artists?.[0]?.name || '',
-      year: track.album?.release_date ? String(track.album.release_date).slice(0, 4) : null
-    }));
+  return (data.tracks || []).slice(0, limit).map(track => ({
+    name: track.name,
+    artist: track.artists?.[0]?.name || '',
+    albumArt: track.album?.images?.[1]?.url ?? track.album?.images?.[0]?.url ?? '',
+    year: track.album?.release_date ? String(track.album.release_date).slice(0, 4) : null
+  }));
   } catch {
     return [];
   }
 }
 
-// Search tracks - use Deezer directly (it's reliable)
+// Search tracks - use Spotify metadata, Deezer for previews
 export async function searchTracks(query, limit = 50) {
-  return deezer.searchTracks(query, limit);
+  const spotifyTracks = await spotify.searchTracksMeta(query, limit);
+  if (spotifyTracks.length === 0) return [];
+
+  const tasks = spotifyTracks.map(track => async () => {
+    const searchQuery = `${track.artist} ${track.name}`;
+    const deezerResults = await deezer.searchTracks(searchQuery, 3);
+
+    const normalizedName = normalizeForSearch(track.name);
+    const normalizedArtist = normalizeForSearch(track.artist);
+
+    const match = deezerResults.find(d => {
+      const dName = normalizeForSearch(d.name);
+      const dArtist = normalizeForSearch(d.artist);
+
+      const artistMatch = dArtist.includes(normalizedArtist) || normalizedArtist.includes(dArtist);
+      if (!artistMatch) return false;
+
+      const titleMatch = dName.includes(normalizedName) || normalizedName.includes(dName) ||
+        dName.split(' ').some(word => word.length > 3 && normalizedName.includes(word));
+      return titleMatch;
+    });
+
+    if (!match || !match.previewUrl) return null;
+
+    return {
+      id: match.id,
+      name: track.name,
+      artist: track.artist,
+      previewUrl: match.previewUrl,
+      albumArt: track.albumArt || match.albumArt,
+      year: track.year || null
+    };
+  });
+
+  const results = await runWithLimit(tasks, 5);
+  const deduped = [];
+  const seen = new Set();
+
+  for (const track of results) {
+    if (!track) continue;
+    if (seen.has(track.id)) continue;
+    seen.add(track.id);
+    deduped.push(track);
+  }
+
+  return deduped;
 }
 
 // Check if hybrid mode is available (needs Spotify credentials)
