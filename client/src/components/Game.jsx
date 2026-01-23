@@ -29,7 +29,7 @@ export default function Game() {
   const [typedInput, setTypedInput] = useState('');
   const [artistCorrect, setArtistCorrect] = useState(false);
   const [titleCorrect, setTitleCorrect] = useState(false);
-  const [lives, setLives] = useState(3); // 3 lives for typed mode
+  const [lives, setLives] = useState(null);
   const [totalPoints, setTotalPoints] = useState(0);
   const [volume, setVolume] = useState(() => {
     const saved = localStorage.getItem('quizzy-volume');
@@ -72,7 +72,7 @@ export default function Game() {
       setTypedInput('');
       setArtistCorrect(false);
       setTitleCorrect(false);
-      setLives(3);
+      setLives(null);
       setTotalPoints(0);
     }
   }, [gameState, currentRound?.roundNumber]);
@@ -520,17 +520,17 @@ export default function Game() {
               </div>
 
               {/* Lives display */}
-              {!(artistCorrect && titleCorrect) && lives > 0 && (
-                <div className="flex justify-center gap-2 mb-2">
-                  {[0, 1, 2].map((i) => (
-                    <svg
-                      key={i}
-                      className={`w-6 h-6 transition-all ${
-                        i < lives ? 'text-rose-400' : 'text-slate-700'
-                      }`}
-                      fill="currentColor"
-                      viewBox="0 0 20 20"
-                    >
+            {!(artistCorrect && titleCorrect) && lives > 0 && (
+              <div className="flex justify-center gap-2 mb-2">
+                {Array.from({ length: Math.max(lives, 0) }).map((_, i) => (
+                  <svg
+                    key={i}
+                    className={`w-6 h-6 transition-all ${
+                      i < lives ? 'text-rose-400' : 'text-slate-700'
+                    }`}
+                    fill="currentColor"
+                    viewBox="0 0 20 20"
+                  >
                       <path
                         fillRule="evenodd"
                         d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z"

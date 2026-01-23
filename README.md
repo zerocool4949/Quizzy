@@ -37,7 +37,7 @@ npm test
 ### Typed (Default)
 - Single input field - guess artist or title in any order
 - Type both together (e.g., "Drake Hotline Bling") for double credit
-- 3 lives per round - wrong guesses cost a life
+- 3 lives per round (5 on Hard) - wrong guesses cost a life
 - 5 seconds to answer after clip ends
 - Artist: 10 points + speed bonus
 - Title: 15 points + speed bonus
@@ -134,6 +134,7 @@ quizzy/
 ---
 
 *Created by Raph*
+
 
 
 
