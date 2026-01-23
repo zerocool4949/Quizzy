@@ -288,6 +288,7 @@ export async function getQuizTracks(
       correctId: correctTrack.id,
       correctName: correctTrack.name,
       correctArtist: correctTrack.artist,
+      correctYear: correctTrack.year || null,
       options
     });
   }

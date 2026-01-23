@@ -306,6 +306,9 @@ export default function Game() {
               <div className="text-left">
                 <p className="text-xl font-bold">{roundResults.correctName}</p>
                 <p className="text-gray-400">{roundResults.correctArtist}</p>
+                {roundResults.correctYear && (
+                  <p className="text-gray-500 text-sm">Year: {roundResults.correctYear}</p>
+                )}
               </div>
             </div>
           </div>

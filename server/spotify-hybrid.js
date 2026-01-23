@@ -80,7 +80,7 @@ export async function getArtistTopTracks(artistIdObj, limit = 10) {
     if (match && match.previewUrl) {
       // Avoid duplicates
       if (!results.some(r => r.id === match.id)) {
-        results.push(match);
+        results.push({ ...match, year: track.year || null });
       }
     }
   }
@@ -120,7 +120,8 @@ async function getSpotifyTopTrackNames(spotifyArtistId, limit = 20) {
 
     return (data.tracks || []).slice(0, limit).map(track => ({
       name: track.name,
-      artist: track.artists?.[0]?.name || ''
+      artist: track.artists?.[0]?.name || '',
+      year: track.album?.release_date ? String(track.album.release_date).slice(0, 4) : null
     }));
   } catch {
     return [];

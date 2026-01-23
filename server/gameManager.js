@@ -484,6 +484,7 @@ export function getRoundResults(code) {
     correctId: round.correctId,
     correctName: round.correctName,
     correctArtist: round.correctArtist,
+    correctYear: round.correctYear,
     albumArt: round.albumArt,
     playerResults: room.players
       .map(p => {
