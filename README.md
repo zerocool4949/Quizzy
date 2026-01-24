@@ -26,6 +26,7 @@ npm test
 - **Configurable** - Rounds, difficulty, music categories, import Spotify playlists
 - **Multi-artist support** - Songs with multiple artists display all names, accept any for typed mode
 - **Spotify + Deezer hybrid** - Spotify metadata (accurate info, album art, year) + Deezer previews
+- **Multilanguage UI** - English and French with a language switcher (defaults to browser language, remembers choice)
 
 ## Game Modes
 
@@ -90,6 +91,12 @@ SPOTIFY_CLIENT_SECRET=your_secret
 
 Get credentials from [Spotify Developer Dashboard](https://developer.spotify.com/dashboard). The app uses Spotify for metadata and Deezer for audio previews.
 
+## Localization
+
+- Language files live in `client/src/locales/` (`en.json`, `fr.json`).
+- Add a new language by creating a new JSON file and registering it in `client/src/i18n.jsx`.
+- The UI defaults to the browser language unless a saved choice exists in localStorage.
+
 ## Tech Stack
 
 - React + Vite + Tailwind CSS
@@ -106,6 +113,7 @@ quizzy/
 │   │   ├── Game.jsx       # Game states, audio, timers
 │   │   ├── Lobby.jsx      # Room settings
 │   │   └── Home.jsx       # Join/create
+│   ├── locales/           # UI translations (en.json, fr.json)
 │   └── context/           # GameContext (state + sockets)
 ├── server/
 │   ├── index.js           # Express + Socket.io
