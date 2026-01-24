@@ -1,0 +1,127 @@
+{
+  "app": {
+    "title": "Quizzy",
+    "tagline": "Le jeu de quiz musical multijoueur",
+    "createdBy": "Créé par Raph"
+  },
+  "language": {
+    "label": "Langue",
+    "english": "Anglais",
+    "french": "Français"
+  },
+  "buttons": {
+    "createGame": "Créer une partie",
+    "joinGame": "Rejoindre une partie",
+    "createRoom": "Créer la salle",
+    "joinRoom": "Rejoindre la salle",
+    "back": "Retour",
+    "startGame": "Démarrer la partie",
+    "leaveRoom": "Quitter la salle",
+    "leaveGame": "Quitter la partie",
+    "playAgain": "Rejouer",
+    "submit": "Envoyer",
+    "add": "Ajouter",
+    "delete": "Supprimer"
+  },
+  "home": {
+    "createRoomTitle": "Créer une salle",
+    "joinRoomTitle": "Rejoindre une salle",
+    "nicknamePlaceholder": "Votre pseudo",
+    "roomCodePlaceholder": "Code de salle",
+    "dismiss": "Fermer"
+  },
+  "lobby": {
+    "roomCode": "Code de salle",
+    "copyInvite": "Cliquez pour copier le lien d'invitation",
+    "copied": "Lien copié !",
+    "players": "Joueurs ({count}/8)",
+    "hostTag": "HÔTE",
+    "rounds": "Manches",
+    "difficulty": "Difficulté",
+    "modeLabel": "Mode :",
+    "categoriesLabel": "Catégories",
+    "mode": {
+      "typed": "Réponse écrite",
+      "mcq": "Choix multiple"
+    },
+    "difficultyLabel": {
+      "easy": "Facile",
+      "medium": "Moyen",
+      "hard": "Difficile"
+    },
+    "difficultyShort": {
+      "easy": "Fac",
+      "medium": "Moy",
+      "hard": "Dur"
+    },
+    "selectedDifficulty": "Sélectionné : {level}",
+    "selectDifficulty": "Sélectionner {level}",
+    "import": "+ Importer",
+    "imported": "importé",
+    "importPlaceholder": "URL de playlist Spotify...",
+    "importTitle": "Importer une playlist",
+    "deleteConfirm": "Supprimer cette playlist importée ?",
+    "waitingForHost": "En attente du démarrage par l'hôte..."
+  },
+  "game": {
+    "loadingTitle": "Préparation du quiz...",
+    "fetchingTracks": "Récupération des titres",
+    "buildingQuiz": "Création du quiz...",
+    "getReady": "Prêt ?",
+    "gameStarting": "La partie commence...",
+    "gameOver": "Partie terminée !",
+    "winner": "Gagnant",
+    "finalStandings": "Classement final",
+    "answerReveal": "Révélation",
+    "noCover": "Pas de pochette",
+    "noPoints": "Aucun point",
+    "artistOnly": "Artiste seulement",
+    "titleOnly": "Titre seulement",
+    "streak": "série {count} !",
+    "scoreboard": "Tableau des scores",
+    "nextRound": "Prochaine manche...",
+    "roundProgress": "Progression des manches",
+    "roundOf": "{current}/{total}",
+    "secondsLeft": "secondes restantes",
+    "playing": "Lecture...",
+    "songEnded": "Extrait terminé",
+    "clip": "extrait de {seconds}s",
+    "question": "Quelle chanson est-ce ?",
+    "artistLabel": "Artiste",
+    "titleLabel": "Titre",
+    "status": {
+      "ok": "OK",
+      "pending": "?"
+    },
+    "pointsPlus": "+{points} points",
+    "pointsLabel": "points",
+    "typeArtistOrTitle": "Tapez l'artiste ou le titre",
+    "nowGuessTitle": "Maintenant devinez le titre",
+    "nowGuessArtist": "Maintenant devinez l'artiste",
+    "typeYourAnswer": "Tapez votre réponse...",
+    "perfect": "Parfait !",
+    "outOfLives": "Plus de vies !",
+    "waitingForPlayers": "En attente des autres joueurs...",
+    "liveScores": "Scores en direct"
+  },
+  "errors": {
+    "roomNotFound": "Salle introuvable",
+    "gameAlreadyInProgress": "Partie déjà en cours",
+    "alreadyInRoom": "Déjà dans la salle",
+    "roomFull": "Salle complète (max 8 joueurs)",
+    "cannotStartGame": "Impossible de démarrer la partie",
+    "needPlayer": "Au moins 1 joueur requis",
+    "playlistUrlRequired": "URL de playlist requise",
+    "playlistEmpty": "La playlist ne contient pas d'artistes",
+    "playlistAlreadyImported": "Playlist déjà importée",
+    "spotifyNotConfigured": "Spotify non configuré",
+    "playlistUrlInvalid": "URL de playlist invalide",
+    "playlistNotFound": "Playlist introuvable",
+    "playlistFetchFailed": "Échec de récupération de la playlist",
+    "playlistSaveFailed": "Échec de sauvegarde de la playlist",
+    "playlistDeleteFailed": "Échec de suppression de la playlist",
+    "playlistDeleteDenied": "Suppression réservée aux playlists importées",
+    "spotifyApi": "Erreur API Spotify : {status}",
+    "importFailed": "Échec de l'import de la playlist"
+  }
+}

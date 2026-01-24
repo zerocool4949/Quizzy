@@ -1,5 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { useGame } from '../context/GameContext';
+import LanguageSwitcher from './LanguageSwitcher';
+import { useI18n } from '../i18n';
 
 export default function Game() {
   const {
@@ -17,6 +19,7 @@ export default function Game() {
     isHost,
     players,
   } = useGame();
+  const { t, language } = useI18n();
 
   const audioRef = useRef(null);
   const volumeRef = useRef(0.7);
@@ -184,15 +187,16 @@ export default function Game() {
       : 0;
 
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center p-4">
+      <div className="min-h-screen flex flex-col items-center justify-center p-4 relative">
+        <LanguageSwitcher />
         <div className="card text-center max-w-md w-full animate-fade-up">
-          <h2 className="text-2xl font-bold mb-6">Setting up quiz...</h2>
+          <h2 className="text-2xl font-bold mb-6">{t('game.loadingTitle')}</h2>
 
           {/* Progress bar */}
           {progress.phase === 'artists' && (
             <div className="mb-6">
               <div className="flex justify-between text-sm text-slate-400 mb-2">
-                <span>Fetching tracks</span>
+                <span>{t('game.fetchingTracks')}</span>
                 <span>{percent}%</span>
               </div>
               <div className="h-3 bg-slate-800 rounded-full overflow-hidden">
@@ -206,9 +210,7 @@ export default function Game() {
 
           {/* Building phase */}
           {progress.phase === 'building' && (
-            <p className="text-slate-300 mb-6">
-              Building quiz...
-            </p>
+            <p className="text-slate-300 mb-6">{t('game.buildingQuiz')}</p>
           )}
 
           {/* Spinner */}
@@ -222,9 +224,10 @@ export default function Game() {
 
   if (gameState === 'countdown') {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center p-4">
+      <div className="min-h-screen flex flex-col items-center justify-center p-4 relative">
+        <LanguageSwitcher />
         <div className="card text-center animate-fade-up">
-          <h2 className="text-4xl font-bold mb-4">Get Ready!</h2>
+          <h2 className="text-4xl font-bold mb-4">{t('game.getReady')}</h2>
           <div className="text-8xl font-bold text-teal-400 animate-pulse">{countdown}</div>
         </div>
       </div>
@@ -233,21 +236,22 @@ export default function Game() {
 
   if (gameState === 'finished' && gameResults) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center p-4">
+      <div className="min-h-screen flex flex-col items-center justify-center p-4 relative">
+        <LanguageSwitcher />
         <div className="card max-w-lg w-full text-center animate-fade-up">
-          <h2 className="text-3xl font-bold mb-2">Game Over!</h2>
+          <h2 className="text-3xl font-bold mb-2">{t('game.gameOver')}</h2>
           <div className="my-8">
-            <p className="text-slate-400 mb-2">Winner</p>
+            <p className="text-slate-400 mb-2">{t('game.winner')}</p>
             <p className="text-4xl font-bold text-amber-300 animate-bounce-in">
               {gameResults.winner.name}
             </p>
             <p className="text-2xl text-teal-300 mt-2">
-              {gameResults.winner.score.toLocaleString()} points
+              {gameResults.winner.score.toLocaleString(language)} {t('game.pointsLabel')}
             </p>
           </div>
 
           <div className="mb-8">
-            <h3 className="text-lg font-semibold mb-4 text-slate-300">Final Standings</h3>
+            <h3 className="text-lg font-semibold mb-4 text-slate-300">{t('game.finalStandings')}</h3>
             <div className="space-y-2">
               {gameResults.standings.map((player) => (
                 <div
@@ -267,7 +271,7 @@ export default function Game() {
                     <span className="font-medium">{player.name}</span>
                   </div>
                   <span className="font-bold text-teal-300">
-                    {player.score.toLocaleString()}
+                    {player.score.toLocaleString(language)}
                   </span>
                 </div>
               ))}
@@ -277,11 +281,11 @@ export default function Game() {
           <div className="space-y-3">
             {isHost && (
               <button onClick={playAgain} className="btn-primary w-full">
-                Play Again
+                {t('buttons.playAgain')}
               </button>
             )}
             <button onClick={leaveGame} className="btn-secondary w-full">
-              Leave Game
+              {t('buttons.leaveGame')}
             </button>
           </div>
         </div>
@@ -291,10 +295,11 @@ export default function Game() {
 
   if (gameState === 'roundEnd' && roundResults) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center p-4">
+      <div className="min-h-screen flex flex-col items-center justify-center p-4 relative">
+        <LanguageSwitcher />
         <div className="card max-w-lg w-full animate-fade-up">
           <div className="text-center mb-6">
-            <p className="text-slate-400 text-xs uppercase tracking-[0.3em] mb-3">Answer Reveal</p>
+            <p className="text-slate-400 text-xs uppercase tracking-[0.3em] mb-3">{t('game.answerReveal')}</p>
             <div className="flex flex-col items-center gap-4 bg-slate-900/50 rounded-2xl p-5 border border-teal-500/20">
               <div className="relative">
                 <div className="absolute -inset-3 rounded-3xl bg-teal-500/20 blur-xl"></div>
@@ -306,7 +311,7 @@ export default function Game() {
                   />
                 ) : (
                   <div className="relative w-40 h-40 sm:w-48 sm:h-48 rounded-3xl bg-slate-800/60 border border-teal-500/30 flex items-center justify-center text-slate-400 text-sm">
-                    No cover
+                    {t('game.noCover')}
                   </div>
                 )}
               </div>
@@ -329,22 +334,24 @@ export default function Game() {
               }`}
             >
               <p className="text-2xl font-bold">
-                {answerResult.points > 0 ? '+' + answerResult.points : 'No points'}
+                {answerResult.points > 0
+                  ? t('game.pointsPlus', { points: answerResult.points })
+                  : t('game.noPoints')}
               </p>
               {answerResult.mode === 'typed' && !answerResult.fullCorrect && answerResult.points > 0 && (
                 <p className="text-slate-300 text-sm">
-                  {answerResult.artistCorrect && !answerResult.titleCorrect && 'Artist only'}
-                  {answerResult.titleCorrect && !answerResult.artistCorrect && 'Title only'}
+                  {answerResult.artistCorrect && !answerResult.titleCorrect && t('game.artistOnly')}
+                  {answerResult.titleCorrect && !answerResult.artistCorrect && t('game.titleOnly')}
                 </p>
               )}
               {answerResult.streak > 1 && (
-                <p className="text-amber-300 text-sm">{answerResult.streak} streak!</p>
+                <p className="text-amber-300 text-sm">{t('game.streak', { count: answerResult.streak })}</p>
               )}
             </div>
           )}
 
           <div>
-            <h3 className="text-lg font-semibold mb-3 text-slate-300">Scoreboard</h3>
+            <h3 className="text-lg font-semibold mb-3 text-slate-300">{t('game.scoreboard')}</h3>
             <div className="space-y-2">
               {roundResults.playerResults.map((player, index) => (
                 <div
@@ -359,14 +366,14 @@ export default function Game() {
                     )}
                   </div>
                   <span className="font-bold text-teal-300">
-                    {player.score.toLocaleString()}
+                    {player.score.toLocaleString(language)}
                   </span>
                 </div>
               ))}
             </div>
           </div>
 
-          <p className="text-center text-slate-400 mt-6">Next round starting...</p>
+          <p className="text-center text-slate-400 mt-6">{t('game.nextRound')}</p>
         </div>
       </div>
     );
@@ -377,16 +384,17 @@ export default function Game() {
 
   // Playing state
   return (
-    <div className="min-h-screen flex flex-col p-4">
+    <div className="min-h-screen flex flex-col p-4 relative">
+      <LanguageSwitcher />
       <audio ref={audioRef} />
 
       <div className="w-full max-w-4xl mx-auto">
         {/* Round progression bar at top */}
         <div className="w-full md:max-w-lg mb-6">
           <div className="flex justify-between items-center mb-2">
-            <span className="text-sm text-slate-400">Round Progress</span>
+            <span className="text-sm text-slate-400">{t('game.roundProgress')}</span>
             <span className="text-sm text-slate-400">
-              {currentRound?.roundNumber}/{currentRound?.totalRounds}
+              {t('game.roundOf', { current: currentRound?.roundNumber, total: currentRound?.totalRounds })}
             </span>
           </div>
           <div className="flex gap-1">
@@ -417,16 +425,16 @@ export default function Game() {
             >
               {timeLeft}
             </div>
-            <span className="text-slate-400 text-sm">seconds left</span>
+            <span className="text-slate-400 text-sm">{t('game.secondsLeft')}</span>
           </div>
 
           {/* Song progress bar */}
           <div className="mb-6">
             <div className="flex justify-between items-center mb-1">
               <span className="text-xs text-slate-400">
-                {songProgress < 100 ? 'Playing...' : 'Song ended'}
+                {songProgress < 100 ? t('game.playing') : t('game.songEnded')}
               </span>
-              <span className="text-xs text-slate-400">{clipDuration}s clip</span>
+              <span className="text-xs text-slate-400">{t('game.clip', { seconds: clipDuration })}</span>
             </div>
             <div className="h-2 bg-slate-800 rounded-full overflow-hidden">
               <div
@@ -470,7 +478,7 @@ export default function Game() {
             </div>
           </div>
 
-          <p className="text-center text-slate-300 mb-4">What song is this?</p>
+          <p className="text-center text-slate-300 mb-4">{t('game.question')}</p>
 
           {/* MCQ Mode */}
           {currentRound?.answerMode !== 'typed' && (
@@ -510,12 +518,12 @@ export default function Game() {
                 <div className={`px-3 py-1 rounded-full text-sm ${
                   artistCorrect ? 'bg-emerald-600/30 text-emerald-300' : 'bg-slate-800 text-slate-400'
                 }`}>
-                  Artist {artistCorrect ? '✓' : '?'}
+                  {t('game.artistLabel')} {artistCorrect ? t('game.status.ok') : t('game.status.pending')}
                 </div>
                 <div className={`px-3 py-1 rounded-full text-sm ${
                   titleCorrect ? 'bg-emerald-600/30 text-emerald-300' : 'bg-slate-800 text-slate-400'
                 }`}>
-                  Title {titleCorrect ? '✓' : '?'}
+                  {t('game.titleLabel')} {titleCorrect ? t('game.status.ok') : t('game.status.pending')}
                 </div>
               </div>
 
@@ -544,7 +552,7 @@ export default function Game() {
               {/* Points earned so far */}
               {totalPoints > 0 && (
                 <div className="text-center text-emerald-300 text-sm">
-                  +{totalPoints} points
+                  {t('game.pointsPlus', { points: totalPoints })}
                 </div>
               )}
 
@@ -552,9 +560,9 @@ export default function Game() {
               {!(artistCorrect && titleCorrect) && lives > 0 && (
                 <div>
                   <label className="block text-sm text-slate-400 mb-2">
-                    {!artistCorrect && !titleCorrect && 'Type the artist or song title'}
-                    {artistCorrect && !titleCorrect && 'Now guess the song title'}
-                    {!artistCorrect && titleCorrect && 'Now guess the artist'}
+                    {!artistCorrect && !titleCorrect && t('game.typeArtistOrTitle')}
+                    {artistCorrect && !titleCorrect && t('game.nowGuessTitle')}
+                    {!artistCorrect && titleCorrect && t('game.nowGuessArtist')}
                   </label>
                   <form
                     onSubmit={(e) => {
@@ -568,7 +576,7 @@ export default function Game() {
                       type="text"
                       value={typedInput}
                       onChange={(e) => setTypedInput(e.target.value)}
-                      placeholder="Type your answer..."
+                      placeholder={t('game.typeYourAnswer')}
                       className="flex-1 bg-slate-800 border border-slate-700 rounded-xl px-4 py-3 focus:outline-none focus:border-teal-400"
                       autoFocus
                     />
@@ -577,7 +585,7 @@ export default function Game() {
                       disabled={!typedInput.trim()}
                       className="btn-primary px-6"
                     >
-                      Submit
+                      {t('buttons.submit')}
                     </button>
                   </form>
                 </div>
@@ -587,8 +595,8 @@ export default function Game() {
               {(artistCorrect && titleCorrect) && (
                 <div className="text-center">
                   <div className="p-4 rounded-xl bg-emerald-600/20">
-                    <p className="text-lg font-bold">Perfect!</p>
-                    <p className="text-emerald-300">+{totalPoints} points</p>
+                    <p className="text-lg font-bold">{t('game.perfect')}</p>
+                    <p className="text-emerald-300">{t('game.pointsPlus', { points: totalPoints })}</p>
                   </div>
                 </div>
               )}
@@ -596,9 +604,9 @@ export default function Game() {
               {lives === 0 && !(artistCorrect && titleCorrect) && (
                 <div className="text-center">
                   <div className="p-4 rounded-xl bg-rose-600/20">
-                    <p className="text-lg font-bold">Out of lives!</p>
+                    <p className="text-lg font-bold">{t('game.outOfLives')}</p>
                     {totalPoints > 0 && (
-                      <p className="text-emerald-300">+{totalPoints} points</p>
+                      <p className="text-emerald-300">{t('game.pointsPlus', { points: totalPoints })}</p>
                     )}
                   </div>
                 </div>
@@ -607,7 +615,7 @@ export default function Game() {
           )}
 
           {myAnswer && !answerResult && currentRound?.answerMode !== 'typed' && (
-            <p className="text-center text-slate-400 mt-4">Waiting for other players...</p>
+            <p className="text-center text-slate-400 mt-4">{t('game.waitingForPlayers')}</p>
           )}
         </div>
 
@@ -618,7 +626,7 @@ export default function Game() {
               <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
                 <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
               </svg>
-              Live Scores
+              {t('game.liveScores')}
             </h3>
             <div className="space-y-2">
               {sortedPlayers.map((player, index) => (
@@ -635,7 +643,7 @@ export default function Game() {
                     <span className="truncate">{player.name}</span>
                   </div>
                   <span className="font-bold text-teal-300 ml-2">
-                    {player.score.toLocaleString()}
+                    {player.score.toLocaleString(language)}
                   </span>
                 </div>
               ))}
@@ -645,7 +653,7 @@ export default function Game() {
               onClick={leaveGame}
               className="w-full mt-4 px-3 py-2 text-xs text-slate-400 hover:text-white bg-slate-800/60 hover:bg-rose-600/50 rounded-lg transition-colors"
             >
-              Leave Game
+              {t('buttons.leaveGame')}
             </button>
           </div>
         </div>

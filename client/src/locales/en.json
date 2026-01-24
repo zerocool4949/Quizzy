@@ -1,0 +1,127 @@
+{
+  "app": {
+    "title": "Quizzy",
+    "tagline": "The multiplayer music quiz game",
+    "createdBy": "Created by Raph"
+  },
+  "language": {
+    "label": "Language",
+    "english": "English",
+    "french": "French"
+  },
+  "buttons": {
+    "createGame": "Create Game",
+    "joinGame": "Join Game",
+    "createRoom": "Create Room",
+    "joinRoom": "Join Room",
+    "back": "Back",
+    "startGame": "Start Game",
+    "leaveRoom": "Leave Room",
+    "leaveGame": "Leave Game",
+    "playAgain": "Play Again",
+    "submit": "Submit",
+    "add": "Add",
+    "delete": "Delete"
+  },
+  "home": {
+    "createRoomTitle": "Create a Room",
+    "joinRoomTitle": "Join a Room",
+    "nicknamePlaceholder": "Your nickname",
+    "roomCodePlaceholder": "Room code",
+    "dismiss": "Dismiss"
+  },
+  "lobby": {
+    "roomCode": "Room Code",
+    "copyInvite": "Click to copy invite link",
+    "copied": "Link copied!",
+    "players": "Players ({count}/8)",
+    "hostTag": "HOST",
+    "rounds": "Rounds",
+    "difficulty": "Difficulty",
+    "modeLabel": "Mode:",
+    "categoriesLabel": "Categories",
+    "mode": {
+      "typed": "Type Answer",
+      "mcq": "Multiple Choice"
+    },
+    "difficultyLabel": {
+      "easy": "Easy",
+      "medium": "Medium",
+      "hard": "Hard"
+    },
+    "difficultyShort": {
+      "easy": "Easy",
+      "medium": "Med",
+      "hard": "Hard"
+    },
+    "selectedDifficulty": "Selected: {level}",
+    "selectDifficulty": "Select {level}",
+    "import": "+ Import",
+    "imported": "imported",
+    "importPlaceholder": "Spotify playlist URL...",
+    "importTitle": "Import Playlist",
+    "deleteConfirm": "Delete this imported playlist?",
+    "waitingForHost": "Waiting for host to start..."
+  },
+  "game": {
+    "loadingTitle": "Setting up quiz...",
+    "fetchingTracks": "Fetching tracks",
+    "buildingQuiz": "Building quiz...",
+    "getReady": "Get Ready!",
+    "gameStarting": "Game starting...",
+    "gameOver": "Game Over!",
+    "winner": "Winner",
+    "finalStandings": "Final Standings",
+    "answerReveal": "Answer Reveal",
+    "noCover": "No cover",
+    "noPoints": "No points",
+    "artistOnly": "Artist only",
+    "titleOnly": "Title only",
+    "streak": "{count} streak!",
+    "scoreboard": "Scoreboard",
+    "nextRound": "Next round starting...",
+    "roundProgress": "Round Progress",
+    "roundOf": "{current}/{total}",
+    "secondsLeft": "seconds left",
+    "playing": "Playing...",
+    "songEnded": "Song ended",
+    "clip": "{seconds}s clip",
+    "question": "What song is this?",
+    "artistLabel": "Artist",
+    "titleLabel": "Title",
+    "status": {
+      "ok": "OK",
+      "pending": "?"
+    },
+    "pointsPlus": "+{points} points",
+    "pointsLabel": "points",
+    "typeArtistOrTitle": "Type the artist or song title",
+    "nowGuessTitle": "Now guess the song title",
+    "nowGuessArtist": "Now guess the artist",
+    "typeYourAnswer": "Type your answer...",
+    "perfect": "Perfect!",
+    "outOfLives": "Out of lives!",
+    "waitingForPlayers": "Waiting for other players...",
+    "liveScores": "Live Scores"
+  },
+  "errors": {
+    "roomNotFound": "Room not found",
+    "gameAlreadyInProgress": "Game already in progress",
+    "alreadyInRoom": "Already in room",
+    "roomFull": "Room is full (max 8 players)",
+    "cannotStartGame": "Cannot start game",
+    "needPlayer": "Need at least 1 player",
+    "playlistUrlRequired": "Playlist URL is required",
+    "playlistEmpty": "Playlist has no tracks with artists",
+    "playlistAlreadyImported": "Playlist already imported",
+    "spotifyNotConfigured": "Spotify not configured",
+    "playlistUrlInvalid": "Invalid playlist URL or ID",
+    "playlistNotFound": "Playlist not found",
+    "playlistFetchFailed": "Failed to fetch playlist",
+    "playlistSaveFailed": "Failed to save playlist",
+    "playlistDeleteFailed": "Failed to delete playlist",
+    "playlistDeleteDenied": "Can only delete imported playlists",
+    "spotifyApi": "Spotify API error: {status}",
+    "importFailed": "Failed to import playlist"
+  }
+}

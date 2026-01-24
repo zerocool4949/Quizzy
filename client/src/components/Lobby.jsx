@@ -1,5 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useGame } from '../context/GameContext';
+import LanguageSwitcher from './LanguageSwitcher';
+import { useI18n } from '../i18n';
 
 // In production, use same origin. In dev, use localhost:3001
 const API_URL = import.meta.env.VITE_SOCKET_URL || (import.meta.env.PROD ? '' : 'http://localhost:3001');
@@ -12,6 +14,7 @@ export default function Lobby() {
   const [difficulty, setDifficulty] = useState(2);
   const [rounds, setRounds] = useState(10);
   const [countdown, setCountdown] = useState(3);
+  const { t, tError } = useI18n();
 
   // Playlist import state
   const [showImport, setShowImport] = useState(false);
@@ -72,7 +75,7 @@ export default function Lobby() {
       const data = await res.json();
 
       if (!res.ok) {
-        setImportError(data.error || 'Failed to import playlist');
+        setImportError(data.error ? tError(data.error) : t('errors.importFailed'));
         return;
       }
 
@@ -82,7 +85,7 @@ export default function Lobby() {
       setImportUrl('');
       setShowImport(false);
     } catch (err) {
-      setImportError('Failed to import playlist');
+      setImportError(t('errors.importFailed'));
     } finally {
       setImportLoading(false);
     }
@@ -92,7 +95,7 @@ export default function Lobby() {
   const handleDeletePlaylist = async (categoryId, e) => {
     e.stopPropagation();
 
-    if (!confirm('Delete this imported playlist?')) return;
+    if (!confirm(t('lobby.deleteConfirm'))) return;
 
     try {
       const res = await fetch(`${API_URL}/api/playlists/${categoryId}`, {
@@ -172,38 +175,40 @@ export default function Lobby() {
 
   if (gameState === 'countdown') {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center p-4">
+      <div className="min-h-screen flex flex-col items-center justify-center p-4 relative">
+        <LanguageSwitcher />
         <div className="card text-center animate-fade-up">
-          <h2 className="text-4xl font-bold mb-4">Get Ready!</h2>
+          <h2 className="text-4xl font-bold mb-4">{t('game.getReady')}</h2>
           <div className="text-8xl font-bold text-teal-400 animate-pulse" key={countdown}>
             {countdown}
           </div>
-          <p className="text-slate-300 mt-4">Game starting...</p>
+          <p className="text-slate-300 mt-4">{t('game.gameStarting')}</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center p-4">
+    <div className="min-h-screen flex flex-col items-center justify-center p-4 relative">
+      <LanguageSwitcher />
       <div className="card max-w-lg w-full animate-fade-up">
         <div className="text-center mb-6">
-          <p className="text-slate-400 mb-2">Room Code</p>
+          <p className="text-slate-400 mb-2">{t('lobby.roomCode')}</p>
           <button
             onClick={copyLink}
             className="text-4xl font-bold tracking-widest text-teal-300 hover:text-teal-200 transition-colors"
-            title="Click to copy invite link"
+            title={t('lobby.copyInvite')}
           >
             {roomCode}
           </button>
           <p className="text-slate-400 text-sm mt-2">
-            {copied ? 'Link copied!' : 'Click to copy invite link'}
+            {copied ? t('lobby.copied') : t('lobby.copyInvite')}
           </p>
         </div>
 
         <div className="mb-6">
           <h3 className="text-lg font-semibold mb-3 text-slate-300">
-            Players ({players.length}/8)
+            {t('lobby.players', { count: players.length })}
           </h3>
           <div className="space-y-2">
             {players.map((player) => (
@@ -213,7 +218,7 @@ export default function Lobby() {
               >
                 <span className="font-medium">{player.name}</span>
                 {player.isHost && (
-                  <span className="text-xs bg-teal-600/40 px-2 py-1 rounded-full">HOST</span>
+                  <span className="text-xs bg-teal-600/40 px-2 py-1 rounded-full">{t('lobby.hostTag')}</span>
                 )}
               </div>
             ))}
@@ -226,7 +231,7 @@ export default function Lobby() {
             <div className="flex gap-3">
               {/* Rounds */}
               <div className="flex-1">
-                <label className="block text-xs text-slate-400 mb-1">Rounds</label>
+                <label className="block text-xs text-slate-400 mb-1">{t('lobby.rounds')}</label>
                 <div className="flex gap-1">
                   {[10, 15, 20].map((num) => (
                     <button
@@ -246,16 +251,19 @@ export default function Lobby() {
 
               {/* Difficulty */}
               <div className="flex-1">
-                <label className="block text-xs text-slate-400 mb-1">Difficulty</label>
+                <label className="block text-xs text-slate-400 mb-1">{t('lobby.difficulty')}</label>
                 <div className="flex gap-1">
                   {[
-                    { id: 1, name: 'Easy' },
-                    { id: 2, name: 'Med' },
-                    { id: 3, name: 'Hard' },
+                    { id: 1, name: t('lobby.difficultyShort.easy') },
+                    { id: 2, name: t('lobby.difficultyShort.medium') },
+                    { id: 3, name: t('lobby.difficultyShort.hard') },
                   ].map((level) => (
                     <button
                       key={level.id}
                       onClick={() => setDifficulty(level.id)}
+                      title={difficulty === level.id
+                        ? t('lobby.selectedDifficulty', { level: level.name })
+                        : t('lobby.selectDifficulty', { level: level.name })}
                       className={`flex-1 px-2 py-1.5 rounded-lg text-sm border transition-colors ${
                         difficulty === level.id
                           ? 'bg-teal-600/30 border-teal-400 text-teal-200'
@@ -271,7 +279,7 @@ export default function Lobby() {
 
             {/* Answer Mode Toggle */}
             <div className="flex items-center gap-3">
-              <span className="text-xs text-slate-400">Mode:</span>
+              <span className="text-xs text-slate-400">{t('lobby.modeLabel')}</span>
               <div className="flex flex-1 bg-slate-900 rounded-lg p-0.5">
                 <button
                   onClick={() => setAnswerMode('typed')}
@@ -281,7 +289,7 @@ export default function Lobby() {
                       : 'text-slate-400 hover:text-slate-200'
                   }`}
                 >
-                  Type Answer
+                  {t('lobby.mode.typed')}
                 </button>
                 <button
                   onClick={() => setAnswerMode('mcq')}
@@ -291,7 +299,7 @@ export default function Lobby() {
                       : 'text-slate-400 hover:text-slate-200'
                   }`}
                 >
-                  Multiple Choice
+                  {t('lobby.mode.mcq')}
                 </button>
               </div>
             </div>
@@ -300,13 +308,13 @@ export default function Lobby() {
             <div>
               <div className="flex items-center justify-between mb-2">
                 <label className="text-xs text-slate-400">
-                  Categories <span className="text-teal-300">({selectedCategories.length})</span>
+                  {t('lobby.categoriesLabel')} <span className="text-teal-300">({selectedCategories.length})</span>
                 </label>
                 <button
                   onClick={() => setShowImport(!showImport)}
                   className="text-xs px-2 py-0.5 rounded bg-emerald-600/30 text-emerald-200 hover:bg-emerald-600/50 transition-colors"
                 >
-                  + Import
+                  {t('lobby.import')}
                 </button>
               </div>
 
@@ -318,7 +326,7 @@ export default function Lobby() {
                       type="text"
                       value={importUrl}
                       onChange={(e) => setImportUrl(e.target.value)}
-                      placeholder="Spotify playlist URL..."
+                      placeholder={t('lobby.importPlaceholder')}
                       className="flex-1 px-2 py-1.5 text-sm bg-slate-800 border border-slate-700 rounded text-white placeholder-slate-500 focus:outline-none focus:border-teal-500"
                     />
                     <button
@@ -326,7 +334,7 @@ export default function Lobby() {
                       disabled={importLoading || !importUrl.trim()}
                       className="px-3 py-1.5 text-sm bg-emerald-600 text-white rounded hover:bg-emerald-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                     >
-                      {importLoading ? '...' : 'Add'}
+                      {importLoading ? '...' : t('buttons.add')}
                     </button>
                   </div>
                   {importError && (
@@ -358,14 +366,14 @@ export default function Lobby() {
                     }`}>
                       {category.name}
                       {category.imported && (
-                        <span className="ml-1.5 text-xs text-emerald-300/80">imported</span>
+                        <span className="ml-1.5 text-xs text-emerald-300/80">{t('lobby.imported')}</span>
                       )}
                     </span>
                     {category.imported && (
                       <button
                         onClick={(e) => handleDeletePlaylist(category.id, e)}
                         className="opacity-0 group-hover:opacity-100 text-rose-400 hover:text-rose-300 text-xs px-1 transition-opacity"
-                        title="Delete"
+                        title={t('buttons.delete')}
                       >
                         x
                       </button>
@@ -379,27 +387,31 @@ export default function Lobby() {
 
         {!isHost && (
           <div className="mb-6 p-4 bg-slate-900/40 rounded-xl space-y-3">
-            <p className="text-center text-slate-400 text-sm">Waiting for host to start...</p>
+            <p className="text-center text-slate-400 text-sm">{t('lobby.waitingForHost')}</p>
             {roomSettings && (
               <div className="space-y-2 text-sm">
                 <div className="flex justify-between">
-                  <span className="text-slate-500">Rounds</span>
+                  <span className="text-slate-500">{t('lobby.rounds')}</span>
                   <span className="text-slate-300">{roomSettings.totalRounds}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-slate-500">Difficulty</span>
+                  <span className="text-slate-500">{t('lobby.difficulty')}</span>
                   <span className="text-slate-300">
-                    {roomSettings.difficulty === 1 ? 'Easy' : roomSettings.difficulty === 2 ? 'Medium' : 'Hard'}
+                    {roomSettings.difficulty === 1
+                      ? t('lobby.difficultyLabel.easy')
+                      : roomSettings.difficulty === 2
+                      ? t('lobby.difficultyLabel.medium')
+                      : t('lobby.difficultyLabel.hard')}
                   </span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-slate-500">Mode</span>
+                  <span className="text-slate-500">{t('lobby.modeLabel')}</span>
                   <span className="text-slate-300">
-                    {roomSettings.answerMode === 'typed' ? 'Type Answer' : 'Multiple Choice'}
+                    {roomSettings.answerMode === 'typed' ? t('lobby.mode.typed') : t('lobby.mode.mcq')}
                   </span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-slate-500">Categories</span>
+                  <span className="text-slate-500">{t('lobby.categoriesLabel')}</span>
                   <span className="text-slate-300 text-right max-w-[60%]">
                     {roomSettings.categoryIds?.map(id =>
                       categories.find(c => c.id === id)?.name || id
@@ -418,11 +430,11 @@ export default function Lobby() {
               className="btn-primary w-full text-lg"
               disabled={players.length < 1}
             >
-              Start Game
+              {t('buttons.startGame')}
             </button>
           ) : null}
           <button onClick={leaveGame} className="btn-secondary w-full">
-            Leave Room
+            {t('buttons.leaveRoom')}
           </button>
         </div>
       </div>
