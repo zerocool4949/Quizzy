@@ -54,8 +54,11 @@
       "medium": "Moy",
       "hard": "Dur"
     },
-    "selectedDifficulty": "Sélectionné : {level}",
-    "selectDifficulty": "Sélectionner {level}",
+    "difficultyTooltip": {
+      "easy": "Facile : top 1 titre par artiste",
+      "medium": "Moyen : top 3 titres par artiste",
+      "hard": "Difficile : top 10 titres par artiste"
+    },
     "import": "+ Importer",
     "imported": "importé",
     "importPlaceholder": "URL de playlist Spotify...",

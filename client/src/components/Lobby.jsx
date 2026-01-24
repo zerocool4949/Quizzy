@@ -254,16 +254,14 @@ export default function Lobby() {
                 <label className="block text-xs text-slate-400 mb-1">{t('lobby.difficulty')}</label>
                 <div className="flex gap-1">
                   {[
-                    { id: 1, name: t('lobby.difficultyShort.easy') },
-                    { id: 2, name: t('lobby.difficultyShort.medium') },
-                    { id: 3, name: t('lobby.difficultyShort.hard') },
+                    { id: 1, name: t('lobby.difficultyShort.easy'), tooltipKey: 'easy' },
+                    { id: 2, name: t('lobby.difficultyShort.medium'), tooltipKey: 'medium' },
+                    { id: 3, name: t('lobby.difficultyShort.hard'), tooltipKey: 'hard' },
                   ].map((level) => (
                     <button
                       key={level.id}
                       onClick={() => setDifficulty(level.id)}
-                      title={difficulty === level.id
-                        ? t('lobby.selectedDifficulty', { level: level.name })
-                        : t('lobby.selectDifficulty', { level: level.name })}
+                      title={t(`lobby.difficultyTooltip.${level.tooltipKey}`)}
                       className={`flex-1 px-2 py-1.5 rounded-lg text-sm border transition-colors ${
                         difficulty === level.id
                           ? 'bg-teal-600/30 border-teal-400 text-teal-200'

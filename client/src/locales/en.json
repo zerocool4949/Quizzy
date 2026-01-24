@@ -54,8 +54,11 @@
       "medium": "Med",
       "hard": "Hard"
     },
-    "selectedDifficulty": "Selected: {level}",
-    "selectDifficulty": "Select {level}",
+    "difficultyTooltip": {
+      "easy": "Easy: top 1 track per artist",
+      "medium": "Medium: top 3 tracks per artist",
+      "hard": "Hard: top 10 tracks per artist"
+    },
     "import": "+ Import",
     "imported": "imported",
     "importPlaceholder": "Spotify playlist URL...",
