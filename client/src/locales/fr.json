@@ -62,7 +62,6 @@
     "import": "+ Importer",
     "imported": "importé",
     "importPlaceholder": "URL de playlist Spotify...",
-    "importTitle": "Importer une playlist",
     "deleteConfirm": "Supprimer cette playlist importée ?",
     "waitingForHost": "En attente du démarrage par l'hôte..."
   },
