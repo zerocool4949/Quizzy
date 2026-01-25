@@ -40,7 +40,7 @@
 - Do not commit secrets; use `.env` and keep API credentials local.
 
 ## Key Implementation Details
-- **Playlist sampling**: When multiple playlists are selected, artists are sampled equally from each playlist (not proportionally by size) to ensure smaller playlists get fair representation. See `getMultiCategoryTracks` in `server/quiz.js`.
-- **Spotify token caching**: The Spotify access token is cached with a lock to prevent parallel fetches when concurrent requests arrive. See `getAccessToken` in `server/spotify.js`.
-- **Title cleaning**: Track titles are cleaned to remove suffixes like "(Remastered)", "[Deluxe]", "- Acoustic", and French variants ("Acoustique", "Remasterisée"). See `cleanTitle` in `server/spotify.js`.
+- **Playlist sampling**: Artists are sampled equally from each playlist (not proportionally by size) to ensure smaller playlists get fair representation. Sample size scales with round count (`rounds * 3` buffer, minimum 60). See `getMultiCategoryTracks` in `server/quiz.js`.
+- **Spotify token caching**: The Spotify access token is cached with a promise lock to prevent parallel fetches when concurrent requests arrive. See `getAccessToken` in `server/spotify.js`.
+- **Title cleaning**: Track titles are cleaned by removing parenthetical content `(...)`, bracketed content `[...]`, and everything after ` - ` (which typically contains metadata like "Remastered", "Live", "Acoustic", etc.). See `cleanTitle` in `server/spotify.js`.
 - **Typed answer matching**: Uses Levenshtein distance with ~15% typo tolerance and word-level matching for multi-word answers. Accents and punctuation are normalized. See `server/answerMatcher.js`.
