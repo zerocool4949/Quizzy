@@ -6,12 +6,18 @@ dotenv.config();
 
 let accessToken = null;
 let tokenExpiry = 0;
+let tokenPromise = null; // Prevents parallel token fetches
 
 // Get access token using client credentials flow
 async function getAccessToken() {
   // Return cached token if still valid (with 60s buffer)
   if (accessToken && Date.now() < tokenExpiry - 60000) {
     return accessToken;
+  }
+
+  // If a fetch is already in progress, wait for it
+  if (tokenPromise) {
+    return tokenPromise;
   }
 
   const clientId = process.env.SPOTIFY_CLIENT_ID;
@@ -22,31 +28,38 @@ async function getAccessToken() {
     return null;
   }
 
-  try {
-    const response = await fetch('https://accounts.spotify.com/api/token', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/x-www-form-urlencoded',
-        'Authorization': 'Basic ' + Buffer.from(`${clientId}:${clientSecret}`).toString('base64')
-      },
-      body: 'grant_type=client_credentials'
-    });
+  // Start fetching and store the promise
+  tokenPromise = (async () => {
+    try {
+      const response = await fetch('https://accounts.spotify.com/api/token', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+          'Authorization': 'Basic ' + Buffer.from(`${clientId}:${clientSecret}`).toString('base64')
+        },
+        body: 'grant_type=client_credentials'
+      });
 
-    if (!response.ok) {
-      console.error('Spotify auth failed:', response.status);
+      if (!response.ok) {
+        console.error('Spotify auth failed:', response.status);
+        return null;
+      }
+
+      const data = await response.json();
+      accessToken = data.access_token;
+      tokenExpiry = Date.now() + (data.expires_in * 1000);
+
+      console.log('Spotify token acquired, expires in', data.expires_in, 'seconds');
+      return accessToken;
+    } catch (error) {
+      console.error('Spotify auth error:', error.message);
       return null;
+    } finally {
+      tokenPromise = null;
     }
+  })();
 
-    const data = await response.json();
-    accessToken = data.access_token;
-    tokenExpiry = Date.now() + (data.expires_in * 1000);
-
-    console.log('Spotify token acquired, expires in', data.expires_in, 'seconds');
-    return accessToken;
-  } catch (error) {
-    console.error('Spotify auth error:', error.message);
-    return null;
-  }
+  return tokenPromise;
 }
 
 // Clean up track titles by removing parenthetical content and common suffixes
@@ -54,13 +67,13 @@ export function cleanTitle(title) {
   if (!title) return '';
 
   let cleaned = title
-    // Remove all parenthetical content: (Remastered), (Live), (feat. X), etc.
+    // Remove all parenthetical content: (Remastered), (Live), (feat. X), (Acoustique), etc.
     .replace(/\s*\([^)]*\)/g, '')
     // Remove all bracketed content: [Remastered], [Deluxe], etc.
     .replace(/\s*\[[^\]]*\]/g, '')
-    // Remove common dash suffixes
-    .replace(/\s*-\s*(remaster(ed)?|live|acoustic|remix|radio edit|single version)(\s+\d{4})?$/gi, '')
-    .replace(/\s*-\s*\d{4}\s+remaster(ed)?$/gi, '')
+    // Remove common dash suffixes (English and French)
+    .replace(/\s*-\s*(remaster(ed|is[ée]e?)?|live|acousti(c|que)|remix|radio edit|single version|version acoustique|edition deluxe)(\s+\d{4})?$/gi, '')
+    .replace(/\s*-\s*\d{4}\s+remaster(ed|is[ée]e?)?$/gi, '')
     // Remove "From ..." suffixes
     .replace(/\s*-\s*from\s+.*$/gi, '');
 

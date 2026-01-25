@@ -384,13 +384,13 @@ export default function Game() {
 
   // Playing state
   return (
-    <div className="min-h-screen flex flex-col p-4 relative">
+    <div className="min-h-screen flex flex-col items-center p-4 relative">
       <LanguageSwitcher />
       <audio ref={audioRef} />
 
       <div className="w-full max-w-4xl mx-auto">
         {/* Round progression bar at top */}
-        <div className="w-full md:max-w-lg mb-6">
+        <div className="w-full mb-6">
           <div className="flex justify-between items-center mb-2">
             <span className="text-sm text-slate-400">{t('game.roundProgress')}</span>
             <span className="text-sm text-slate-400">

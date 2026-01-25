@@ -45,29 +45,44 @@ function getTrackLimitForDifficulty(difficulty) {
 
 // Fetch tracks for multiple categories based on difficulty
 async function getMultiCategoryTracks(categoryIds, difficulty = 1, provider, onProgress = null) {
-  // Collect all artists from selected categories
-  let allArtists = [];
+  // Sample equally from each category to avoid large playlists dominating
+  const targetTotal = 50;
+  const perCategory = Math.ceil(targetTotal / categoryIds.length);
+
+  let sampledArtists = [];
+  const seenArtists = new Set();
+
   for (const categoryId of categoryIds) {
     const artists = getArtistsForCategory(categoryId);
-    if (artists && artists.length > 0) {
-      allArtists.push(...artists);
+    if (!artists || artists.length === 0) continue;
+
+    // Shuffle this category's artists
+    const shuffled = [...artists].sort(() => Math.random() - 0.5);
+
+    // Take up to perCategory unique artists from this playlist
+    let taken = 0;
+    for (const artist of shuffled) {
+      if (taken >= perCategory) break;
+      const key = artist.trim().toLowerCase();
+      if (!key || seenArtists.has(key)) continue;
+      seenArtists.add(key);
+      sampledArtists.push(artist);
+      taken++;
     }
   }
 
-  if (allArtists.length === 0) {
+  if (sampledArtists.length === 0) {
     console.warn(`No artists found for categories: [${categoryIds.join(', ')}]`);
     return [];
   }
 
-  // Dedupe artists across all categories
-  allArtists = dedupeStrings(allArtists);
+  // Final shuffle of the combined sample
+  sampledArtists = sampledArtists.sort(() => Math.random() - 0.5);
 
   const trackLimit = getTrackLimitForDifficulty(difficulty);
-  console.log(`[${provider.name}] Fetching tracks for ${allArtists.length} artists from categories: [${categoryIds.join(', ')}] (difficulty: ${difficulty}, top ${trackLimit} per artist)`);
+  console.log(`[${provider.name}] Fetching tracks for ${sampledArtists.length} artists from ${categoryIds.length} categories (${perCategory} per category, difficulty: ${difficulty}, top ${trackLimit} per artist)`);
 
-  // Shuffle artists and pick 50 random ones for variety
-  const shuffledArtists = [...allArtists].sort(() => Math.random() - 0.5);
-  const sampleArtists = shuffledArtists.slice(0, 50);
+  const sampleArtists = sampledArtists;
 
   let completed = 0;
   const total = sampleArtists.length;
