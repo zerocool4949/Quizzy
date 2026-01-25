@@ -44,10 +44,10 @@ function getTrackLimitForDifficulty(difficulty) {
 }
 
 // Fetch tracks for multiple categories based on difficulty
-async function getMultiCategoryTracks(categoryIds, difficulty = 1, provider, onProgress = null) {
-  // Sample equally from each category to avoid large playlists dominating
-  const targetTotal = 50;
-  const perCategory = Math.ceil(targetTotal / categoryIds.length);
+async function getMultiCategoryTracks(categoryIds, difficulty = 1, provider, onProgress = null, targetRounds = 50) {
+  // Sample equally from each category, enough to cover requested rounds (with buffer)
+  const artistsNeeded = Math.max(60, targetRounds * 3); // 3x buffer for failed lookups
+  const perCategory = Math.ceil(artistsNeeded / categoryIds.length);
 
   let sampledArtists = [];
   const seenArtists = new Set();
@@ -76,13 +76,11 @@ async function getMultiCategoryTracks(categoryIds, difficulty = 1, provider, onP
     return [];
   }
 
-  // Final shuffle of the combined sample
-  sampledArtists = sampledArtists.sort(() => Math.random() - 0.5);
+  // Shuffle the combined sample
+  const sampleArtists = sampledArtists.sort(() => Math.random() - 0.5);
 
   const trackLimit = getTrackLimitForDifficulty(difficulty);
-  console.log(`[${provider.name}] Fetching tracks for ${sampledArtists.length} artists from ${categoryIds.length} categories (${perCategory} per category, difficulty: ${difficulty}, top ${trackLimit} per artist)`);
-
-  const sampleArtists = sampledArtists;
+  console.log(`[${provider.name}] Fetching tracks for ${sampleArtists.length} artists from ${categoryIds.length} categories (${perCategory} per category, difficulty: ${difficulty}, top ${trackLimit} per artist)`);
 
   let completed = 0;
   const total = sampleArtists.length;
@@ -163,7 +161,7 @@ export async function getQuizTracks(
   }
 
   // Get tracks from curated artist lists (reliable)
-  let tracks = await getMultiCategoryTracks(categories, difficulty, provider, onProgress);
+  let tracks = await getMultiCategoryTracks(categories, difficulty, provider, onProgress, count);
 
   // Fallback to search if not enough tracks
   if (tracks.length < count * 2) {

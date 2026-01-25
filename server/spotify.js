@@ -71,11 +71,8 @@ export function cleanTitle(title) {
     .replace(/\s*\([^)]*\)/g, '')
     // Remove all bracketed content: [Remastered], [Deluxe], etc.
     .replace(/\s*\[[^\]]*\]/g, '')
-    // Remove common dash suffixes (English and French)
-    .replace(/\s*-\s*(remaster(ed|is[ée]e?)?|live|acousti(c|que)|remix|radio edit|single version|version acoustique|edition deluxe)(\s+\d{4})?$/gi, '')
-    .replace(/\s*-\s*\d{4}\s+remaster(ed|is[ée]e?)?$/gi, '')
-    // Remove "From ..." suffixes
-    .replace(/\s*-\s*from\s+.*$/gi, '');
+    // Remove everything after " - " (usually metadata like Remastered, Live, From Movie, etc.)
+    .replace(/\s+-\s+.*$/, '');
 
   return cleaned.trim();
 }
