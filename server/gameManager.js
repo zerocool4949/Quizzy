@@ -2,6 +2,7 @@
 
 import { getQuizTracks } from './quiz.js';
 import { normalize, looselyMatches } from './answerMatcher.js';
+import { logGame } from './gameLogger.js';
 import {
   createRoom,
   joinRoom,
@@ -44,6 +45,9 @@ export async function startGame(code, onProgress = null) {
         room.usedTrackIds.add(round.correctId);
       }
     });
+
+    // Log game for debugging/review
+    logGame(code, room.categoryIds, room.rounds, room.players.length);
 
     return { room };
   } catch (error) {

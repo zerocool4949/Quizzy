@@ -17,6 +17,8 @@ services:
       - ./server/categories.json:/app/server/categories.json:ro
       # Mount imported playlists so they persist across rebuilds
       - ./server/imported-playlists.json:/app/server/imported-playlists.json
+      # Mount logs directory for game history
+      - ./server/logs:/app/server/logs
     healthcheck:
       test: ["CMD", "wget", "-q", "--spider", "http://localhost:7111/api/categories"]
       interval: 30s
