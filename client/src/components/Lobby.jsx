@@ -9,10 +9,10 @@ const API_URL = import.meta.env.VITE_SOCKET_URL || (import.meta.env.PROD ? '' : 
 export default function Lobby() {
   const { roomCode, players, isHost, startGame, leaveGame, gameState, updateSettings, roomSettings } = useGame();
   const [categories, setCategories] = useState([]);
-  const [selectedCategories, setSelectedCategories] = useState([]);
-  const [answerMode, setAnswerMode] = useState('typed');
-  const [difficulty, setDifficulty] = useState(2);
-  const [rounds, setRounds] = useState(10);
+  const [selectedCategories, setSelectedCategories] = useState(roomSettings?.categoryIds || []);
+  const [answerMode, setAnswerMode] = useState(roomSettings?.answerMode || 'typed');
+  const [difficulty, setDifficulty] = useState(roomSettings?.difficulty || 2);
+  const [rounds, setRounds] = useState(roomSettings?.totalRounds || 10);
   const [countdown, setCountdown] = useState(3);
   const { t, tError } = useI18n();
 
@@ -45,10 +45,11 @@ export default function Lobby() {
       .then(res => res.json())
       .then(data => {
         setCategories(data);
-        // Select first category by default if none selected
-        if (data.length > 0 && selectedCategories.length === 0) {
-          setSelectedCategories([data[0].id]);
-        }
+        // Select first category by default only if no selection exists
+        setSelectedCategories(prev => {
+          if (prev.length > 0) return prev;
+          return data.length > 0 ? [data[0].id] : [];
+        });
       })
       .catch(err => console.error('Failed to fetch categories:', err));
   };
