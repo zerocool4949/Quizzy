@@ -10,6 +10,8 @@ function normalizeForSearch(text) {
   if (!text) return '';
   return text
     .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '') // Remove accents
     .replace(/\(feat\..*?\)/gi, '')
     .replace(/\(ft\..*?\)/gi, '')
     .replace(/\(with .*?\)/gi, '')
@@ -99,6 +101,28 @@ export async function getArtistTopTracks(artistIdObj, limit = 10) {
           previewUrl: match.previewUrl,
           albumArt: track.albumArt || match.albumArt,
           year: track.year || null
+        });
+      }
+    }
+  }
+
+  // Fallback: if Spotify->Deezer matching failed, try direct Deezer artist search
+  if (results.length === 0 && spotifyTracks.length > 0) {
+    const artistName = spotifyTracks[0].artist;
+    const deezerArtistId = await deezer.searchArtistId(artistName);
+
+    if (deezerArtistId) {
+      const deezerTracks = await deezer.getArtistTopTracks(deezerArtistId, limit);
+      for (const track of deezerTracks) {
+        if (isRemixTitle(track.name)) continue;
+        results.push({
+          id: track.id,
+          name: track.name,
+          artist: track.artist,
+          artists: [track.artist],
+          previewUrl: track.previewUrl,
+          albumArt: track.albumArt,
+          year: null
         });
       }
     }
