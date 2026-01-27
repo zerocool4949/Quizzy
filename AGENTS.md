@@ -132,11 +132,32 @@ Deezer API (30-sec previews)
   - Search YouTube for "{artist} {title} official audio"
   - Download and extract 30-sec clip at 20% position
   - Save to cache with track ID filename
-- [ ] Create `server/populate-cache.js` script:
-  - Read artists from `categories.json` / `imported-playlists.json`
-  - For each artist: check artist cache → fetch Last.fm if missing
-  - Download audio via YouTube, save to audio cache
-  - CLI: `node server/populate-cache.js`
+- [x] Create cache scripts (split into two for flexibility):
+
+  **`server/cache-tracks.js`** - Fetch track lists:
+  ```bash
+  node cache-tracks.js                    # Process all artists
+  node cache-tracks.js --artist "Orelsan" # Single artist
+  node cache-tracks.js --limit 10         # Tracks per artist
+  node cache-tracks.js --refresh          # Force refresh all
+  node cache-tracks.js --stats            # Show statistics
+  ```
+
+  **`server/cache-audio.js`** - Download audio previews:
+  ```bash
+  node cache-audio.js                     # Process all cached artists
+  node cache-audio.js --artist "Orelsan"  # Single artist
+  node cache-audio.js --limit 5           # Limit tracks per artist
+  node cache-audio.js --stats             # Show statistics
+  ```
+
+  - **Data sources**:
+    - `server/categories.json` - built-in categories
+    - `server/imported-playlists.json` - user-imported Spotify playlists
+  - **Run modes**:
+    - Manual: Run before deployment or after adding new playlists
+    - Scheduled: Cron job (tracks weekly, audio on-demand)
+  - Scripts are idempotent - skip anything already cached
 
 **Phase 5: Unified Flow**
 ```
