@@ -54,6 +54,82 @@
 - **Timing-sensitive areas**: Any emit that happens early in component lifecycle (direct links, page refresh) may fire before socket connects. Use `pendingJoinRef` pattern if adding similar features.
 - Room join flow: URL `/join/:code` → `Home.jsx` extracts code → user submits → `joinRoom()` → server `join-room` event → `room-joined` response → navigate to `/lobby/:code`.
 
+## Audio Architecture Plan
+
+### Current State
+- Spotify provides metadata (artist, title, year, album art)
+- Deezer provides 30-second previews
+- Spotify "top tracks" returns current popularity only (misses classics)
+
+### Planned Architecture
+
+**Track Discovery (with fallback):**
+```
+Last.fm API (all-time top tracks by scrobbles)
+    ↓ fallback if artist not found
+Spotify API (current top tracks)
+```
+
+**Audio Preview (with fallback):**
+```
+Local cache (server/audio-cache/)
+    ↓ fallback if not cached
+Deezer API (30-sec previews)
+```
+
+### Implementation Plan
+
+**Phase 1: Last.fm Integration**
+- [ ] Add `LASTFM_API_KEY` to `.env` (free at https://www.last.fm/api/account/create)
+- [ ] Create `server/lastfm.js` module:
+  - `getArtistTopTracks(artistName, limit)` - returns all-time top tracks
+- [ ] Modify `server/quiz.js` to use Last.fm first, fallback to Spotify
+
+**Phase 2: Local Audio Cache**
+- [ ] Create `server/audio-cache/` directory (gitignored)
+- [ ] Create `server/audioCache.js` module:
+  - `hasTrack(trackId)` - check if cached
+  - `getTrackUrl(trackId)` - returns local URL or null
+  - `saveTrack(trackId, buffer)` - save audio to cache
+- [ ] Add Express route: `GET /audio/:trackId.mp3`
+- [ ] Modify preview flow: check cache → fallback to Deezer
+
+**Phase 3: Cache Pre-population (YouTube)**
+- [ ] Install dependencies: `yt-dlp`, `ffmpeg`
+- [ ] Create `server/youtube-downloader.js`:
+  - Search YouTube for "{artist} {title} official audio"
+  - Download and extract 30-sec clip at 20% position
+  - Save to cache with track ID filename
+- [ ] Create `server/populate-cache.js` script:
+  - Read artists from `categories.json` / `imported-playlists.json`
+  - Fetch top tracks from Last.fm
+  - Download via YouTube, save to cache
+  - CLI: `node server/populate-cache.js`
+
+**Phase 4: Unified Flow**
+```
+Quiz requests tracks for artist
+    ↓
+1. Get track list: Last.fm → fallback Spotify
+    ↓
+2. For each track, get preview:
+   a. Check local cache → return /audio/{trackId}.mp3
+   b. Fallback: Deezer preview URL
+    ↓
+3. Return tracks with previewUrl (local or Deezer)
+```
+
+### File Naming Convention
+Use Spotify track ID for cache files (consistent, unique):
+```
+server/audio-cache/
+  spotify-4iV5W9uYEdYUVa79Axb7Rh.mp3
+  spotify-7ouMYWpwJ422jRcDASAM9z.mp3
+```
+
+### POC Branch
+Proof of concept with YouTube downloading available on `feature/audio-cache` branch.
+
 ## Docker Notes
 - `compose.yml` mounts three volumes: `categories.json` (read-only), `imported-playlists.json`, and `logs/` directory for game history persistence.
 - Images are built via GitHub Actions on tag push and stored in `ghcr.io/zerocool4949/quizzy`.
