@@ -63,29 +63,61 @@
 
 ### Planned Architecture
 
-**Track Discovery (with fallback):**
+**Track Discovery (with fallback + cache):**
 ```
+Local artist cache (server/data/artists.json)
+    ↓ fallback if artist not cached
 Last.fm API (all-time top tracks by scrobbles)
-    ↓ fallback if artist not found
+    ↓ fallback if artist not found on Last.fm
 Spotify API (current top tracks)
+    ↓
+Save to local artist cache
 ```
 
 **Audio Preview (with fallback):**
 ```
-Local cache (server/audio-cache/)
+Local audio cache (server/audio-cache/)
     ↓ fallback if not cached
 Deezer API (30-sec previews)
 ```
 
+**Why cache Last.fm results:**
+- Avoid bombing Last.fm API with repeated requests
+- Faster track discovery (no network latency)
+- Works offline for known artists
+- Top tracks rarely change (all-time rankings are stable)
+
 ### Implementation Plan
 
-**Phase 1: Last.fm Integration**
+**Phase 1: Artist Track Cache**
+- [ ] Create `server/data/artists.json` to store top tracks per artist:
+  ```json
+  {
+    "Orelsan": {
+      "lastUpdated": "2025-01-27",
+      "source": "lastfm",
+      "tracks": [
+        { "name": "La pluie", "playcount": 485751 },
+        { "name": "Basique", "playcount": 344534 }
+      ]
+    }
+  }
+  ```
+- [ ] Create `server/artistCache.js` module:
+  - `getArtistTracks(artistName)` - returns cached tracks or null
+  - `saveArtistTracks(artistName, tracks, source)` - save to cache
+  - `isStale(artistName, maxAgeDays)` - check if needs refresh
+
+**Phase 2: Last.fm Integration**
 - [ ] Add `LASTFM_API_KEY` to `.env` (free at https://www.last.fm/api/account/create)
 - [ ] Create `server/lastfm.js` module:
-  - `getArtistTopTracks(artistName, limit)` - returns all-time top tracks
-- [ ] Modify `server/quiz.js` to use Last.fm first, fallback to Spotify
+  - `getArtistTopTracks(artistName, limit)` - fetch from API
+- [ ] Modify `server/quiz.js` flow:
+  1. Check artist cache → return if found
+  2. Fetch from Last.fm → fallback Spotify
+  3. Save to artist cache
 
-**Phase 2: Local Audio Cache**
+**Phase 3: Local Audio Cache**
 - [ ] Create `server/audio-cache/` directory (gitignored)
 - [ ] Create `server/audioCache.js` module:
   - `hasTrack(trackId)` - check if cached
@@ -94,7 +126,7 @@ Deezer API (30-sec previews)
 - [ ] Add Express route: `GET /audio/:trackId.mp3`
 - [ ] Modify preview flow: check cache → fallback to Deezer
 
-**Phase 3: Cache Pre-population (YouTube)**
+**Phase 4: Cache Pre-population (YouTube)**
 - [ ] Install dependencies: `yt-dlp`, `ffmpeg`
 - [ ] Create `server/youtube-downloader.js`:
   - Search YouTube for "{artist} {title} official audio"
@@ -102,18 +134,18 @@ Deezer API (30-sec previews)
   - Save to cache with track ID filename
 - [ ] Create `server/populate-cache.js` script:
   - Read artists from `categories.json` / `imported-playlists.json`
-  - Fetch top tracks from Last.fm
-  - Download via YouTube, save to cache
+  - For each artist: check artist cache → fetch Last.fm if missing
+  - Download audio via YouTube, save to audio cache
   - CLI: `node server/populate-cache.js`
 
-**Phase 4: Unified Flow**
+**Phase 5: Unified Flow**
 ```
 Quiz requests tracks for artist
     ↓
-1. Get track list: Last.fm → fallback Spotify
+1. Check artist cache → if miss: Last.fm → fallback Spotify → save to cache
     ↓
 2. For each track, get preview:
-   a. Check local cache → return /audio/{trackId}.mp3
+   a. Check audio cache → return /audio/{trackId}.mp3
    b. Fallback: Deezer preview URL
     ↓
 3. Return tracks with previewUrl (local or Deezer)
