@@ -109,6 +109,7 @@ function gameReducer(state, action) {
 export function GameProvider({ children }) {
   const [state, dispatch] = useReducer(gameReducer, initialState);
   const socketRef = useRef(null);
+  const pendingJoinRef = useRef(null);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -121,6 +122,12 @@ export function GameProvider({ children }) {
 
     socket.on('connect', () => {
       dispatch({ type: 'SET_PLAYER_ID', payload: socket.id });
+      // Process any pending join request
+      if (pendingJoinRef.current) {
+        const { code, playerName } = pendingJoinRef.current;
+        pendingJoinRef.current = null;
+        socket.emit('join-room', { code: code.toUpperCase(), playerName });
+      }
     });
 
     socket.on('room-created', (data) => {
@@ -203,7 +210,12 @@ export function GameProvider({ children }) {
 
   const joinRoom = useCallback((code, playerName) => {
     dispatch({ type: 'SET_PLAYER_NAME', payload: playerName });
-    socketRef.current?.emit('join-room', { code: code.toUpperCase(), playerName });
+    if (socketRef.current?.connected) {
+      socketRef.current.emit('join-room', { code: code.toUpperCase(), playerName });
+    } else {
+      // Queue the join request for when socket connects
+      pendingJoinRef.current = { code, playerName };
+    }
   }, []);
 
   const updateSettings = useCallback((settings) => {
