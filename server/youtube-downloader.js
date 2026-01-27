@@ -1,4 +1,4 @@
-// YouTube audio downloader - downloads and extracts 30-second clips
+// YouTube audio downloader - downloads and extracts 15-second clips
 // Requires yt-dlp and ffmpeg installed on the system
 
 import { execSync } from 'child_process';
@@ -7,7 +7,7 @@ import { join } from 'path';
 import { getCacheDir, hasTrack } from './audioCache.js';
 
 // Clip configuration
-const CLIP_DURATION = 30; // seconds
+const CLIP_DURATION = 15; // seconds
 const CLIP_START_PERCENT = 0.20; // Start at 20% into the song (often hits verse/chorus)
 const MIN_START = 15; // Minimum 15 seconds in (skip short intros)
 

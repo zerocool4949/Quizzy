@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// Audio cache script - downloads 30-second previews from YouTube
+// Audio cache script - downloads 15-second previews from YouTube
 // Reads track lists from server/data/artists.json (run cache-tracks.js first)
 // Saves audio to server/audio-cache/
 //
@@ -41,7 +41,7 @@ function parseArgs() {
 Audio Cache Script
 ==================
 
-Downloads 30-second audio previews from YouTube.
+Downloads 15-second audio previews from YouTube.
 Requires track lists in server/data/artists.json (run cache-tracks.js first).
 
 Usage:
@@ -69,15 +69,6 @@ Requirements:
   return options;
 }
 
-// Sanitize string for track ID
-function sanitize(str) {
-  return String(str || '')
-    .toLowerCase()
-    .replace(/[^a-z0-9]/g, '-')
-    .replace(/-+/g, '-')
-    .substring(0, 50);
-}
-
 // Process a single artist
 async function processArtist(artistName, options) {
   console.log(`\n${artistName}`);
@@ -98,9 +89,17 @@ async function processArtist(artistName, options) {
   let downloaded = 0;
   let skipped = 0;
   let failed = 0;
+  let noSpotifyId = 0;
 
   for (const track of tracks) {
-    const trackId = `${sanitize(artistName)}-${sanitize(track.name)}`;
+    // Use Spotify ID for cache filename (matches Quizzy's track IDs)
+    if (!track.spotifyId) {
+      console.log(`  ⚠ ${track.name} (no Spotify ID, skipping)`);
+      noSpotifyId++;
+      continue;
+    }
+
+    const trackId = `spotify-${track.spotifyId}`;
 
     // Check if already cached
     if (audioCache.hasTrack(trackId)) {
@@ -124,6 +123,10 @@ async function processArtist(artistName, options) {
 
     // Delay between downloads
     await new Promise(r => setTimeout(r, 1500));
+  }
+
+  if (noSpotifyId > 0) {
+    console.log(`  (${noSpotifyId} tracks skipped - no Spotify ID, re-run cache-tracks.js --refresh)`);
   }
 
   return { artist: artistName, total: tracks.length, downloaded, skipped, failed };

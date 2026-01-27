@@ -58,7 +58,7 @@
 
 ### Current State
 - Spotify provides metadata (artist, title, year, album art)
-- Deezer provides 30-second previews
+- Deezer provides 15-second previews
 - Spotify "top tracks" returns current popularity only (misses classics)
 
 ### Planned Architecture
@@ -78,7 +78,7 @@ Save to local artist cache
 ```
 Local audio cache (server/audio-cache/)
     ↓ fallback if not cached
-Deezer API (30-sec previews)
+Deezer API (15-sec previews)
 ```
 
 **Why cache Last.fm results:**
@@ -89,75 +89,52 @@ Deezer API (30-sec previews)
 
 ### Implementation Plan
 
-**Phase 1: Artist Track Cache**
-- [ ] Create `server/data/artists.json` to store top tracks per artist:
-  ```json
-  {
-    "Orelsan": {
-      "lastUpdated": "2025-01-27",
-      "source": "lastfm",
-      "tracks": [
-        { "name": "La pluie", "playcount": 485751 },
-        { "name": "Basique", "playcount": 344534 }
-      ]
-    }
+**Phase 1-4: Cache Modules (DONE)**
+- [x] `server/artistCache.js` - Persists top tracks per artist to `server/data/artists.json`
+- [x] `server/lastfm.js` - Last.fm API wrapper for all-time top tracks
+- [x] `server/audioCache.js` - Manages local audio files in `server/audio-cache/`
+- [x] `server/youtube-downloader.js` - Downloads 15-sec clips from YouTube
+- [x] `server/cache-tracks.js` - CLI to fetch track lists (Last.fm → Spotify fallback)
+- [x] `server/cache-audio.js` - CLI to download audio previews
+- [x] Auto-prune: Deleted artists/playlists are automatically cleaned from cache
+- [x] Spotify ID mapping: Tracks include `spotifyId` for direct cache lookup
+
+**Cache data format** (`server/data/artists.json`):
+```json
+{
+  "Stromae": {
+    "lastUpdated": "2026-01-27",
+    "source": "lastfm",
+    "tracks": [
+      { "name": "Papaoutai", "playcount": 6228941, "spotifyId": "34dx8DACTJsc3rsJdaEIQw" }
+    ]
   }
+}
+```
+
+**CLI Usage:**
+```bash
+# Track lists (fast, run often)
+node cache-tracks.js                    # All artists from categories/playlists
+node cache-tracks.js --artist "Stromae" # Single artist
+node cache-tracks.js --refresh          # Force refresh all (re-fetch Spotify IDs)
+node cache-tracks.js --stats            # Show statistics
+
+# Audio previews (slow, run on-demand)
+node cache-audio.js                     # All cached artists
+node cache-audio.js --artist "Stromae"  # Single artist
+node cache-audio.js --stats             # Show statistics
+```
+
+**Phase 5: Quizzy Integration (TODO)**
+- [ ] Add Express route: `GET /audio/:trackId.mp3` to serve cached audio
+- [ ] Modify `server/quiz.js` to check audio cache before Deezer:
+  ```js
+  const cacheUrl = audioCache.getTrackUrl(`spotify-${track.spotifyId}`);
+  if (cacheUrl) return cacheUrl;
+  // fallback to Deezer
   ```
-- [ ] Create `server/artistCache.js` module:
-  - `getArtistTracks(artistName)` - returns cached tracks or null
-  - `saveArtistTracks(artistName, tracks, source)` - save to cache
-  - `isStale(artistName, maxAgeDays)` - check if needs refresh
-
-**Phase 2: Last.fm Integration**
-- [ ] Add `LASTFM_API_KEY` to `.env` (free at https://www.last.fm/api/account/create)
-- [ ] Create `server/lastfm.js` module:
-  - `getArtistTopTracks(artistName, limit)` - fetch from API
-- [ ] Modify `server/quiz.js` flow:
-  1. Check artist cache → return if found
-  2. Fetch from Last.fm → fallback Spotify
-  3. Save to artist cache
-
-**Phase 3: Local Audio Cache**
-- [ ] Create `server/audio-cache/` directory (gitignored)
-- [ ] Create `server/audioCache.js` module:
-  - `hasTrack(trackId)` - check if cached
-  - `getTrackUrl(trackId)` - returns local URL or null
-  - `saveTrack(trackId, buffer)` - save audio to cache
-- [ ] Add Express route: `GET /audio/:trackId.mp3`
-- [ ] Modify preview flow: check cache → fallback to Deezer
-
-**Phase 4: Cache Pre-population (YouTube)**
-- [ ] Install dependencies: `yt-dlp`, `ffmpeg`
-- [ ] Create `server/youtube-downloader.js`:
-  - Search YouTube for "{artist} {title} official audio"
-  - Download and extract 30-sec clip at 20% position
-  - Save to cache with track ID filename
-- [x] Create cache scripts (split into two for flexibility):
-
-  **`server/cache-tracks.js`** - Fetch track lists:
-  ```bash
-  node cache-tracks.js                    # Process all artists
-  node cache-tracks.js --artist "Orelsan" # Single artist
-  node cache-tracks.js --limit 10         # Tracks per artist
-  node cache-tracks.js --refresh          # Force refresh all
-  node cache-tracks.js --stats            # Show statistics
-  ```
-
-  **`server/cache-audio.js`** - Download audio previews:
-  ```bash
-  node cache-audio.js                     # Process all cached artists
-  node cache-audio.js --artist "Orelsan"  # Single artist
-  node cache-audio.js --limit 5           # Limit tracks per artist
-  node cache-audio.js --stats             # Show statistics
-  ```
-
-  - **Data sources**:
-    - `server/categories.json` - built-in categories
-    - `server/imported-playlists.json` - user-imported Spotify playlists
-  - **Run modes**:
-    - Manual: Run before deployment or after adding new playlists
-    - Scheduled: Cron job (tracks weekly, audio on-demand)
-  - Scripts are idempotent - skip anything already cached
+- [ ] Consider using artist cache for track selection (instead of Spotify top tracks)
 
 **Phase 5: Unified Flow**
 ```

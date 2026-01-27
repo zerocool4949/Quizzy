@@ -18,8 +18,9 @@ import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
 
 import * as artistCache from './artistCache.js';
+import * as audioCache from './audioCache.js';
 import * as lastfm from './lastfm.js';
-import { searchArtistId, getArtistTopTracks } from './spotify.js';
+import { searchArtistId, getArtistTopTracks, getTrackId } from './spotify.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -117,23 +118,44 @@ function loadAllArtists() {
   return Array.from(artists).sort();
 }
 
+// Look up Spotify IDs for tracks
+async function enrichWithSpotifyIds(artistName, tracks) {
+  const enriched = [];
+  for (const track of tracks) {
+    const spotifyId = await getTrackId(artistName, track.name);
+    enriched.push({
+      ...track,
+      spotifyId: spotifyId || null
+    });
+    // Small delay to avoid rate limiting
+    await new Promise(r => setTimeout(r, 100));
+  }
+  return enriched;
+}
+
 // Fetch top tracks for an artist (Last.fm with Spotify fallback)
 async function fetchArtistTracks(artistName, limit) {
   // Try Last.fm first (all-time top tracks by scrobbles)
   if (lastfm.isConfigured()) {
     const tracks = await lastfm.getArtistTopTracks(artistName, limit);
     if (tracks.length > 0) {
-      return { tracks, source: 'lastfm' };
+      // Enrich with Spotify IDs for audio cache mapping
+      const enrichedTracks = await enrichWithSpotifyIds(artistName, tracks);
+      return { tracks: enrichedTracks, source: 'lastfm' };
     }
   }
 
-  // Fallback to Spotify (current popularity)
+  // Fallback to Spotify (current popularity) - already has IDs
   const artistId = await searchArtistId(artistName);
   if (artistId) {
     const tracks = await getArtistTopTracks(artistId, limit);
     if (tracks.length > 0) {
       return {
-        tracks: tracks.map(t => ({ name: t.name, playcount: null })),
+        tracks: tracks.map(t => ({
+          name: t.name,
+          playcount: null,
+          spotifyId: t.id?.replace('spotify-', '') || null
+        })),
         source: 'spotify'
       };
     }
@@ -164,6 +186,41 @@ async function processArtist(artistName, options) {
     console.log(`  ✗ ${artistName} (no tracks found)`);
     return { artist: artistName, tracks: 0, source: null, cached: false };
   }
+}
+
+// Prune cached artists not in current categories/playlists
+function pruneDeletedArtists(validArtists) {
+  // Get Spotify IDs for artists being removed (to clean audio cache)
+  const cachedArtists = artistCache.getCachedArtists();
+  const validSet = new Set(validArtists);
+  const toRemove = cachedArtists.filter(a => !validSet.has(a));
+
+  if (toRemove.length === 0) return;
+
+  // Collect Spotify IDs for audio cleanup
+  const spotifyIdsToRemove = [];
+  for (const artist of toRemove) {
+    const cached = artistCache.getArtistTracks(artist);
+    if (cached?.tracks) {
+      for (const track of cached.tracks) {
+        if (track.spotifyId) {
+          spotifyIdsToRemove.push(track.spotifyId);
+        }
+      }
+    }
+  }
+
+  // Remove from artist cache
+  const removed = artistCache.pruneArtists(validArtists);
+
+  // Remove audio files
+  const audioRemoved = audioCache.removeTracks(spotifyIdsToRemove);
+
+  console.log(`Pruned ${removed.length} deleted artists (${audioRemoved} audio files)`);
+  for (const artist of removed) {
+    console.log(`  - ${artist}`);
+  }
+  console.log('');
 }
 
 // Show cache statistics
@@ -205,6 +262,9 @@ async function main() {
   } else {
     artists = loadAllArtists();
     console.log(`Found ${artists.length} unique artists\n`);
+
+    // Auto-prune deleted artists
+    pruneDeletedArtists(artists);
   }
 
   // Process each artist

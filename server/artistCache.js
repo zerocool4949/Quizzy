@@ -54,7 +54,7 @@ export function getArtistTracks(artistName) {
 }
 
 // Save tracks for an artist
-// tracks: [{ name, playcount? }]
+// tracks: [{ name, playcount?, spotifyId? }]
 // source: 'lastfm' | 'spotify'
 export function saveArtistTracks(artistName, tracks, source) {
   const cache = loadCache();
@@ -64,7 +64,8 @@ export function saveArtistTracks(artistName, tracks, source) {
     source,
     tracks: tracks.map(t => ({
       name: t.name,
-      playcount: t.playcount || null
+      playcount: t.playcount || null,
+      spotifyId: t.spotifyId || null
     }))
   };
 
@@ -111,4 +112,34 @@ export function getCacheStats() {
     lastfmCount,
     spotifyCount
   };
+}
+
+// Remove an artist from cache
+export function removeArtist(artistName) {
+  const cache = loadCache();
+  if (!cache[artistName]) return false;
+
+  delete cache[artistName];
+  return saveCache(cache);
+}
+
+// Prune artists not in the provided list
+// Returns list of removed artist names
+export function pruneArtists(validArtists) {
+  const cache = loadCache();
+  const validSet = new Set(validArtists);
+  const removed = [];
+
+  for (const artist of Object.keys(cache)) {
+    if (!validSet.has(artist)) {
+      removed.push(artist);
+      delete cache[artist];
+    }
+  }
+
+  if (removed.length > 0) {
+    saveCache(cache);
+  }
+
+  return removed;
 }

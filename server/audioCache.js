@@ -114,3 +114,15 @@ export function getCacheStats() {
     };
   }
 }
+
+// Remove audio files for specific Spotify track IDs
+// Returns count of removed files
+export function removeTracks(spotifyIds) {
+  let removed = 0;
+  for (const id of spotifyIds) {
+    if (deleteTrack(`spotify-${id}`)) {
+      removed++;
+    }
+  }
+  return removed;
+}

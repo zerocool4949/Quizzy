@@ -308,6 +308,28 @@ export async function getPlaylist(playlistIdOrUrl) {
   }
 }
 
+// Get Spotify track ID for an artist + track name
+export async function getTrackId(artist, trackName) {
+  const token = await getAccessToken();
+  if (!token) return null;
+
+  const query = `track:${trackName} artist:${artist}`;
+
+  try {
+    const response = await fetch(
+      `https://api.spotify.com/v1/search?q=${encodeURIComponent(query)}&type=track&limit=1`,
+      { headers: { 'Authorization': `Bearer ${token}` } }
+    );
+
+    if (!response.ok) return null;
+
+    const data = await response.json();
+    return data.tracks?.items?.[0]?.id ?? null;
+  } catch {
+    return null;
+  }
+}
+
 // Get release year for a track using Spotify search
 export async function getTrackYear(artist, trackName) {
   const token = await getAccessToken();
