@@ -2,7 +2,6 @@
 // Requires SPOTIFY_CLIENT_ID and SPOTIFY_CLIENT_SECRET in .env
 
 import dotenv from 'dotenv';
-import { cleanTitle } from './titleUtils.js';
 dotenv.config();
 
 let accessToken = null;
@@ -72,7 +71,7 @@ function mapTrack(track) {
   const artistNames = (track.artists || []).map(a => a.name).filter(Boolean);
   return {
     id: `spotify-${track.id}`,
-    name: cleanTitle(track.name),
+    name: track.name,
     artist: artistNames.join(' & ') || '',
     artists: artistNames,
     previewUrl: track.preview_url,
@@ -85,7 +84,7 @@ function mapTrackMeta(track) {
   const artistNames = (track.artists || []).map(a => a.name).filter(Boolean);
   return {
     id: `spotify-${track.id}`,
-    name: cleanTitle(track.name),
+    name: track.name,
     artist: artistNames.join(' & ') || '',
     artists: artistNames,
     previewUrl: track.preview_url,

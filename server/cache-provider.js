@@ -7,6 +7,7 @@ import * as artistCache from './artistCache.js';
 import * as lastfm from './lastfm.js';
 import * as spotify from './spotify.js';
 import * as deezer from './deezer.js';
+import { cleanTitle } from './titleUtils.js';
 
 const CACHE_STALENESS_DAYS = 90;
 
@@ -135,8 +136,8 @@ async function enrichTracksWithPreviews(cachedTracks, artistName, limit) {
     // Skip remixes
     if (isRemixTitle(track.name)) continue;
 
-    // Search Deezer for this specific track
-    const query = `${artistName} ${track.name}`;
+    // Search Deezer for this specific track (clean title for better search results)
+    const query = `${artistName} ${cleanTitle(track.name)}`;
     const deezerResults = await deezer.searchTracks(query, 5);
 
     // Find best match - must match both artist AND have similar title
@@ -214,7 +215,7 @@ export async function searchTracks(query, limit = 50) {
   for (const track of spotifyTracks) {
     if (results.length >= limit) break;
 
-    const searchQuery = `${track.artist} ${track.name}`;
+    const searchQuery = `${track.artist} ${cleanTitle(track.name)}`;
     const deezerResults = await deezer.searchTracks(searchQuery, 3);
 
     const normalizedName = normalizeForSearch(track.name);
