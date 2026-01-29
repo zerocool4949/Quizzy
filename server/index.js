@@ -27,8 +27,13 @@ import {
 import { getCategoryList } from './music.js';
 import { importPlaylist, deleteImportedPlaylist } from './categories.js';
 import { getPlaylist } from './spotify.js';
+import { warmCache, refreshArtists } from './cache-warmer.js';
+import * as artistCache from './artistCache.js';
 
 dotenv.config();
+
+// Warm cache on startup (non-blocking)
+warmCache().catch(err => console.error('[Cache Warmer] Error:', err.message));
 
 const app = express();
 const server = createServer(app);
@@ -74,7 +79,28 @@ app.post('/api/playlists/import', async (req, res) => {
   }
 
   console.log(`Imported playlist "${result.name}" with ${result.artistCount} artists`);
-  res.json(result);
+
+  // Cache tracks for new/stale artists (with timeout)
+  const newArtists = playlist.artists.filter(artist => {
+    const cached = artistCache.getArtistTracks(artist);
+    return !cached || artistCache.isStale(artist, 90);
+  });
+
+  let cachedCount = 0;
+  if (newArtists.length > 0) {
+    console.log(`[Playlist Import] Caching tracks for ${newArtists.length} new/stale artists...`);
+    try {
+      await Promise.race([
+        refreshArtists(newArtists).then(r => { cachedCount = r.success; }),
+        new Promise((_, reject) => setTimeout(() => reject(new Error('Timeout')), 30000))
+      ]);
+      console.log(`[Playlist Import] Cached ${cachedCount} artists`);
+    } catch (err) {
+      console.warn(`[Playlist Import] Cache refresh incomplete (${err.message}), will continue in background`);
+    }
+  }
+
+  res.json({ ...result, cachedArtists: cachedCount });
 });
 
 // Delete an imported playlist

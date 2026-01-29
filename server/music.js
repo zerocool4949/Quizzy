@@ -1,15 +1,15 @@
-// Music module - Spotify metadata + Deezer previews (hybrid approach)
+// Music module - Local cache (Last.fm) + Deezer previews
 
-import * as spotifyHybrid from './spotify-hybrid.js';
+import * as cacheProvider from './cache-provider.js';
 
 export { getCategoryList } from './categories.js';
 
 // Get the provider module
 export function getProvider() {
-  return spotifyHybrid;
+  return cacheProvider;
 }
 
 // Re-export main functions
-export const searchTracks = spotifyHybrid.searchTracks;
-export const searchArtistId = spotifyHybrid.searchArtistId;
-export const getArtistTopTracks = spotifyHybrid.getArtistTopTracks;
+export const searchTracks = cacheProvider.searchTracks;
+export const searchArtistId = cacheProvider.searchArtistId;
+export const getArtistTopTracks = cacheProvider.getArtistTopTracks;

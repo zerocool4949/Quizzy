@@ -18,7 +18,6 @@ import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
 
 import * as artistCache from './artistCache.js';
-import * as audioCache from './audioCache.js';
 import * as lastfm from './lastfm.js';
 import { searchArtistId, getArtistTopTracks, getTrackId } from './spotify.js';
 
@@ -190,33 +189,11 @@ async function processArtist(artistName, options) {
 
 // Prune cached artists not in current categories/playlists
 function pruneDeletedArtists(validArtists) {
-  // Get Spotify IDs for artists being removed (to clean audio cache)
-  const cachedArtists = artistCache.getCachedArtists();
-  const validSet = new Set(validArtists);
-  const toRemove = cachedArtists.filter(a => !validSet.has(a));
-
-  if (toRemove.length === 0) return;
-
-  // Collect Spotify IDs for audio cleanup
-  const spotifyIdsToRemove = [];
-  for (const artist of toRemove) {
-    const cached = artistCache.getArtistTracks(artist);
-    if (cached?.tracks) {
-      for (const track of cached.tracks) {
-        if (track.spotifyId) {
-          spotifyIdsToRemove.push(track.spotifyId);
-        }
-      }
-    }
-  }
-
-  // Remove from artist cache
   const removed = artistCache.pruneArtists(validArtists);
 
-  // Remove audio files
-  const audioRemoved = audioCache.removeTracks(spotifyIdsToRemove);
+  if (removed.length === 0) return;
 
-  console.log(`Pruned ${removed.length} deleted artists (${audioRemoved} audio files)`);
+  console.log(`Pruned ${removed.length} deleted artists`);
   for (const artist of removed) {
     console.log(`  - ${artist}`);
   }

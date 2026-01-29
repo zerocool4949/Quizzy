@@ -36,7 +36,8 @@
 - Link related issues or feature requests when applicable.
 
 ## Configuration & Security Notes
-- Copy `.env.example` to `server/.env` and set `SPOTIFY_CLIENT_ID` and `SPOTIFY_CLIENT_SECRET`.
+- Copy `.env.example` to `server/.env` and set `SPOTIFY_CLIENT_ID`, `SPOTIFY_CLIENT_SECRET`, and `LASTFM_API_KEY`.
+- Get a free Last.fm API key at https://www.last.fm/api/account/create
 - Do not commit secrets; use `.env` and keep API credentials local.
 
 ## Key Implementation Details
@@ -54,52 +55,42 @@
 - **Timing-sensitive areas**: Any emit that happens early in component lifecycle (direct links, page refresh) may fire before socket connects. Use `pendingJoinRef` pattern if adding similar features.
 - Room join flow: URL `/join/:code` → `Home.jsx` extracts code → user submits → `joinRoom()` → server `join-room` event → `room-joined` response → navigate to `/lobby/:code`.
 
-## Audio Architecture Plan
+## Local Track Cache Architecture
 
-### Current State
-- Spotify provides metadata (artist, title, year, album art)
-- Deezer provides 15-second previews
-- Spotify "top tracks" returns current popularity only (misses classics)
+### Overview
 
-### Planned Architecture
+Quizzy uses a local JSON cache for track discovery, populated by Last.fm (with Spotify fallback). This provides all-time top tracks ranked by cumulative scrobbles rather than current streaming popularity.
 
-**Track Discovery (with fallback + cache):**
+**Why Last.fm?** Last.fm returns all-time top tracks by total scrobbles, while Spotify's API returns current streaming popularity (skewed toward recent releases). For example, Orelsan's top tracks on Last.fm include "Basique" (2017), but Spotify only returns 2021+ songs.
+
+### Data Flow
+
 ```
-Local artist cache (server/data/artists.json)
-    ↓ fallback if artist not cached
-Last.fm API (all-time top tracks by scrobbles)
-    ↓ fallback if artist not found on Last.fm
-Spotify API (current top tracks)
+Quiz requests tracks for artist
     ↓
-Save to local artist cache
+1. Check cache (server/data/artists.json)
+   - If fresh (< 90 days): use cached tracks
+   - If stale: try refresh, fallback to stale data if fails
+   - If miss: fetch from Last.fm → Spotify fallback → save to cache
+    ↓
+2. For each track, find Deezer preview
+   - Search Deezer by "artist trackname"
+   - Match by normalized artist + title
+    ↓
+3. Return tracks with previewUrl
 ```
 
-**Audio Preview (with fallback):**
-```
-Local audio cache (server/audio-cache/)
-    ↓ fallback if not cached
-Deezer API (15-sec previews)
-```
+### Cache Modules
 
-**Why cache Last.fm results:**
-- Avoid bombing Last.fm API with repeated requests
-- Faster track discovery (no network latency)
-- Works offline for known artists
-- Top tracks rarely change (all-time rankings are stable)
+- `server/artistCache.js` - Cache persistence (get/save/isStale/prune)
+- `server/lastfm.js` - Last.fm API wrapper for all-time top tracks
+- `server/cache-provider.js` - Integration layer (wraps cache + Spotify + Deezer)
+- `server/cache-warmer.js` - Startup warming and auto-prune
+- `server/cache-tracks.js` - CLI tool for batch caching
 
-### Implementation Plan
+### Cache Data Format
 
-**Phase 1-4: Cache Modules (DONE)**
-- [x] `server/artistCache.js` - Persists top tracks per artist to `server/data/artists.json`
-- [x] `server/lastfm.js` - Last.fm API wrapper for all-time top tracks
-- [x] `server/audioCache.js` - Manages local audio files in `server/audio-cache/`
-- [x] `server/youtube-downloader.js` - Downloads 15-sec clips from YouTube
-- [x] `server/cache-tracks.js` - CLI to fetch track lists (Last.fm → Spotify fallback)
-- [x] `server/cache-audio.js` - CLI to download audio previews
-- [x] Auto-prune: Deleted artists/playlists are automatically cleaned from cache
-- [x] Spotify ID mapping: Tracks include `spotifyId` for direct cache lookup
-
-**Cache data format** (`server/data/artists.json`):
+`server/data/artists.json`:
 ```json
 {
   "Stromae": {
@@ -112,53 +103,30 @@ Deezer API (15-sec previews)
 }
 ```
 
-**CLI Usage:**
+### Cache Warming
+
+- **On server startup**: Background refresh for missing/stale artists
+- **On playlist import**: Foreground fetch for new artists (30s timeout)
+- **Auto-prune**: Deleted artists removed from cache
+
+### CLI Usage
+
 ```bash
-# Track lists (fast, run often)
-node cache-tracks.js                    # All artists from categories/playlists
-node cache-tracks.js --artist "Stromae" # Single artist
-node cache-tracks.js --refresh          # Force refresh all (re-fetch Spotify IDs)
-node cache-tracks.js --stats            # Show statistics
-
-# Audio previews (slow, run on-demand)
-node cache-audio.js                     # All cached artists
-node cache-audio.js --artist "Stromae"  # Single artist
-node cache-audio.js --stats             # Show statistics
+node server/cache-tracks.js                    # Cache all artists
+node server/cache-tracks.js --artist "Stromae" # Single artist
+node server/cache-tracks.js --refresh          # Force refresh all
+node server/cache-tracks.js --stats            # Show statistics
 ```
 
-**Phase 5: Quizzy Integration (TODO)**
-- [ ] Add Express route: `GET /audio/:trackId.mp3` to serve cached audio
-- [ ] Modify `server/quiz.js` to check audio cache before Deezer:
-  ```js
-  const cacheUrl = audioCache.getTrackUrl(`spotify-${track.spotifyId}`);
-  if (cacheUrl) return cacheUrl;
-  // fallback to Deezer
-  ```
-- [ ] Consider using artist cache for track selection (instead of Spotify top tracks)
+### Configuration
 
-**Phase 5: Unified Flow**
-```
-Quiz requests tracks for artist
-    ↓
-1. Check artist cache → if miss: Last.fm → fallback Spotify → save to cache
-    ↓
-2. For each track, get preview:
-   a. Check audio cache → return /audio/{trackId}.mp3
-   b. Fallback: Deezer preview URL
-    ↓
-3. Return tracks with previewUrl (local or Deezer)
-```
+Required environment variables:
+- `LASTFM_API_KEY` - Primary source for track rankings
+- `SPOTIFY_CLIENT_ID` / `SPOTIFY_CLIENT_SECRET` - Fallback + playlist import
 
-### File Naming Convention
-Use Spotify track ID for cache files (consistent, unique):
-```
-server/audio-cache/
-  spotify-4iV5W9uYEdYUVa79Axb7Rh.mp3
-  spotify-7ouMYWpwJ422jRcDASAM9z.mp3
-```
-
-### POC Branch
-Proof of concept with YouTube downloading available on `feature/audio-cache` branch.
+Behavior:
+- If `LASTFM_API_KEY` missing → Use Spotify only
+- If Spotify credentials missing → Cache only (no fallback)
 
 ## Docker Notes
 - `compose.yml` mounts three volumes: `categories.json` (read-only), `imported-playlists.json`, and `logs/` directory for game history persistence.

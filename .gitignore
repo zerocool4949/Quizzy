@@ -23,8 +23,5 @@ npm-debug.log*
 # Claude local settings
 .claude/settings.local.json
 
-# Audio cache (populated by populate-cache.js)
-server/audio-cache/
-
-# Artist track cache (populated by populate-cache.js)
+# Artist track cache (populated by cache-tracks.js)
 server/data/artists.json
