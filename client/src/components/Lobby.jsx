@@ -45,11 +45,7 @@ export default function Lobby() {
       .then(res => res.json())
       .then(data => {
         setCategories(data);
-        // Select first category by default only if no selection exists
-        setSelectedCategories(prev => {
-          if (prev.length > 0) return prev;
-          return data.length > 0 ? [data[0].id] : [];
-        });
+        // Keep existing selection, don't auto-select
       })
       .catch(err => console.error('Failed to fetch categories:', err));
   };
@@ -342,43 +338,36 @@ export default function Lobby() {
                 </div>
               )}
 
-              {/* Single column list for better readability */}
-              <div className="max-h-40 overflow-y-auto bg-slate-900 rounded-lg border border-slate-700 divide-y divide-slate-800">
-                {categories.map((category, index) => (
-                  <label
-                    key={category.id}
-                    className={`flex items-center gap-2 px-3 py-2 cursor-pointer transition-colors group animate-fade-up ${
-                      selectedCategories.includes(category.id)
-                        ? 'bg-teal-600/20'
-                        : 'hover:bg-slate-800/60'
-                    }`}
-                    style={{ animationDelay: `${index * 30}ms` }}
-                  >
-                    <input
-                      type="checkbox"
-                      checked={selectedCategories.includes(category.id)}
-                      onChange={() => toggleCategory(category.id)}
-                      className="w-4 h-4 rounded border-slate-500 text-teal-500 focus:ring-teal-500 focus:ring-offset-slate-900 shrink-0"
-                    />
-                    <span className={`text-sm flex-1 ${
-                      selectedCategories.includes(category.id) ? 'text-teal-200' : 'text-slate-300'
-                    }`}>
+              {/* Grid of chips/tags */}
+              <div className="max-h-48 overflow-y-auto bg-slate-900 rounded-lg border border-slate-700 p-2">
+                <div className="flex flex-wrap gap-1.5">
+                  {categories.map((category, index) => (
+                    <button
+                      key={category.id}
+                      onClick={() => toggleCategory(category.id)}
+                      className={`group relative px-2.5 py-1 rounded-full text-xs font-medium transition-all animate-fade-up ${
+                        selectedCategories.includes(category.id)
+                          ? 'bg-teal-600 text-white ring-1 ring-teal-400'
+                          : 'bg-slate-800 text-slate-300 hover:bg-slate-700 hover:text-white'
+                      } ${category.imported ? 'pr-6' : ''}`}
+                      style={{ animationDelay: `${index * 20}ms` }}
+                    >
                       {category.name}
                       {category.imported && (
-                        <span className="ml-1.5 text-xs text-emerald-300/80">{t('lobby.imported')}</span>
+                        <span
+                          onClick={(e) => handleDeletePlaylist(category.id, e)}
+                          className="absolute right-1.5 top-1/2 -translate-y-1/2 opacity-60 hover:opacity-100 hover:text-rose-300 transition-opacity"
+                          title={t('buttons.delete')}
+                        >
+                          ×
+                        </span>
                       )}
-                    </span>
-                    {category.imported && (
-                      <button
-                        onClick={(e) => handleDeletePlaylist(category.id, e)}
-                        className="opacity-0 group-hover:opacity-100 text-rose-400 hover:text-rose-300 text-xs px-1 transition-opacity"
-                        title={t('buttons.delete')}
-                      >
-                        x
-                      </button>
-                    )}
-                  </label>
-                ))}
+                    </button>
+                  ))}
+                </div>
+                {categories.length === 0 && (
+                  <p className="text-xs text-slate-500 text-center py-2">{t('lobby.noCategories')}</p>
+                )}
               </div>
             </div>
           </div>
