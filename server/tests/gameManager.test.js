@@ -90,14 +90,14 @@ describe('gameManager', () => {
     // Answer artist in 3s -> 10 + 3 bonus
     vi.setSystemTime(new Date(startTime.getTime() + 3000));
     const artistResult = submitAnswer(room.code, 'player-2', { text: 'Drake' });
-    expect(artistResult.points).toBe(13);
+    expect(artistResult.points).toBe(15);
     expect(artistResult.artistCorrect).toBe(true);
     expect(artistResult.titleCorrect).toBe(false);
 
     // Answer title in 6s -> 15 + 2 bonus
     vi.setSystemTime(new Date(startTime.getTime() + 6000));
     const titleResult = submitAnswer(room.code, 'player-2', { text: 'Hotline Bling' });
-    expect(titleResult.points).toBe(30);
+    expect(titleResult.points).toBe(38);
     expect(titleResult.fullCorrect).toBe(true);
 
     vi.useRealTimers();

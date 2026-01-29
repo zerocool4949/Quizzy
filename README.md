@@ -40,10 +40,11 @@ npm test
 - Single input field - guess artist or title in any order
 - Type both together (e.g., "Drake Hotline Bling") for double credit
 - 3 lives per round (5 on Hard) - wrong guesses cost a life
-- 5 seconds to answer after clip ends
+- 10 seconds to answer after clip ends
 - Artist: 10 points + speed bonus
 - Title: 15 points + speed bonus
 - Combo: +5 bonus if both are found
+  - Speed bonus: +5 (<5s), +3 (<10s), +1 (<15s)
 
 ## Host Settings
 

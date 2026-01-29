@@ -66,7 +66,7 @@ export function getCurrentRound(code) {
   room.roundEnded = false;
   room.answers.clear();
 
-  const answerTime = 5;
+  const answerTime = room.answerMode === 'typed' ? 10 : 5;
   const startingLives = room.difficulty === 3 ? 5 : 3;
 
   return {
@@ -160,8 +160,8 @@ export function submitAnswer(code, playerId, payload) {
   const correctTitle = round.correctName;
 
   function getSpeedBonus(time) {
-    if (time < 5) return 3;
-    if (time < 10) return 2;
+    if (time < 5) return 5;
+    if (time < 10) return 3;
     if (time < 15) return 1;
     return 0;
   }

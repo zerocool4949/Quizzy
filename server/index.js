@@ -332,10 +332,9 @@ function sendNextRound(roomCode) {
       clipDuration: room.clipDuration || 15
     });
 
-    // Auto-end round after clip duration + answer time + buffer
-    // answerTime is 10s for typed mode, 5s for MCQ
+    // Auto-end round after clip duration + answer time (match client timer)
     const answerTime = room.answerMode === 'typed' ? 10 : 5;
-    const timeout = ((room.clipDuration || 15) + answerTime + 5) * 1000;
+    const timeout = ((room.clipDuration || 15) + answerTime) * 1000;
     const expectedRound = round.roundNumber - 1;
 
     setTimeout(() => {
