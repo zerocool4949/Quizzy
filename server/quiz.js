@@ -2,6 +2,7 @@
 
 import { getProvider } from './music.js';
 import { getTrackYear } from './spotify.js';
+import { cleanTitle } from './titleUtils.js';
 import { getArtistsForCategory } from './categories.js';
 
 // Simple concurrency limiter (prevents rate-limit spikes)
@@ -245,6 +246,7 @@ export async function getQuizTracks(
 
   for (let index = 0; index < enrichedRoundTracks.length; index++) {
     const correctTrack = enrichedRoundTracks[index];
+    const cleanedCorrectName = cleanTitle(correctTrack.name);
     const correctArtistLower = correctTrack.artist.toLowerCase();
 
     // Filter out the correct artist from decoy candidates
@@ -269,7 +271,11 @@ export async function getQuizTracks(
       );
 
       if (artistTrack) {
-        decoys.push({ id: artistTrack.id, name: artistTrack.name, artist: artistTrack.artist });
+        decoys.push({
+          id: artistTrack.id,
+          name: cleanTitle(artistTrack.name),
+          artist: artistTrack.artist
+        });
         usedArtists.add(artistName.toLowerCase());
       } else {
         // No track in pool - fetch one for this artist
@@ -279,7 +285,7 @@ export async function getQuizTracks(
             const artistTracks = await provider.getArtistTopTracks(artistId, 1);
             if (artistTracks.length > 0) {
               const t = artistTracks[0];
-              decoys.push({ id: t.id, name: t.name, artist: t.artist });
+              decoys.push({ id: t.id, name: cleanTitle(t.name), artist: t.artist });
               usedArtists.add(artistName.toLowerCase());
             }
           }
@@ -303,7 +309,7 @@ export async function getQuizTracks(
     }
 
     const options = [
-      { id: correctTrack.id, name: correctTrack.name, artist: correctTrack.artist },
+      { id: correctTrack.id, name: cleanedCorrectName, artist: correctTrack.artist },
       ...decoys
     ].sort(() => Math.random() - 0.5);
 
@@ -312,7 +318,7 @@ export async function getQuizTracks(
       previewUrl: correctTrack.previewUrl,
       albumArt: correctTrack.albumArt,
       correctId: correctTrack.id,
-      correctName: correctTrack.name,
+      correctName: cleanedCorrectName,
       correctArtist: correctTrack.artist,
       correctArtists: correctTrack.artists || [correctTrack.artist],
       correctYear: correctTrack.year || null,

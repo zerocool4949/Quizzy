@@ -2,6 +2,7 @@
 // Requires SPOTIFY_CLIENT_ID and SPOTIFY_CLIENT_SECRET in .env
 
 import dotenv from 'dotenv';
+import { cleanTitle } from './titleUtils.js';
 dotenv.config();
 
 let accessToken = null;
@@ -60,21 +61,6 @@ async function getAccessToken() {
   })();
 
   return tokenPromise;
-}
-
-// Clean up track titles by removing parenthetical content and common suffixes
-export function cleanTitle(title) {
-  if (!title) return '';
-
-  let cleaned = title
-    // Remove all parenthetical content: (Remastered), (Live), (feat. X), (Acoustique), etc.
-    .replace(/\s*\([^)]*\)/g, '')
-    // Remove all bracketed content: [Remastered], [Deluxe], etc.
-    .replace(/\s*\[[^\]]*\]/g, '')
-    // Remove everything after " - " (usually metadata like Remastered, Live, From Movie, etc.)
-    .replace(/\s+-\s+.*$/, '');
-
-  return cleaned.trim();
 }
 
 function isRemixTitle(title) {

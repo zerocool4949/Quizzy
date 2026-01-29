@@ -6,6 +6,7 @@
 import * as artistCache from './artistCache.js';
 import * as lastfm from './lastfm.js';
 import * as spotify from './spotify.js';
+import { cleanTitle } from './titleUtils.js';
 import * as deezer from './deezer.js';
 
 const CACHE_STALENESS_DAYS = 90;
@@ -111,7 +112,7 @@ async function fetchAndCacheTracks(artistName, limit) {
     const spotifyTracks = await spotify.getArtistTopTracks(spotifyId, limit * 2);
     if (spotifyTracks.length > 0) {
       const formatted = spotifyTracks.map(t => ({
-        name: spotify.cleanTitle(t.name),
+        name: cleanTitle(t.name),
         playcount: null,
         spotifyId: t.id?.replace('spotify-', '') || null
       }));
