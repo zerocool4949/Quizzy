@@ -25,7 +25,8 @@ npm test
 - **Fuzzy matching** - Typo tolerance, accent insensitive, partial matches
 - **Configurable** - Rounds, difficulty, music categories, import Spotify playlists
 - **Multi-artist support** - Songs with multiple artists display all names, accept any for typed mode
-- **Spotify + Deezer hybrid** - Spotify metadata (accurate info, album art, year) + Deezer previews
+- **Last.fm track ranking** - All-time top tracks by scrobbles (not just current popularity)
+- **Local cache** - Artist tracks cached locally with 90-day TTL, auto-refreshes on startup
 - **Multilanguage UI** - English and French with a language switcher (defaults to browser language, remembers choice)
 
 ## Game Modes
@@ -80,16 +81,18 @@ Edit `server/categories.json`:
 }
 ```
 
-### Spotify API (Required)
+### API Keys (Required)
 
 Add to `server/.env`:
 
 ```env
 SPOTIFY_CLIENT_ID=your_id
 SPOTIFY_CLIENT_SECRET=your_secret
+LASTFM_API_KEY=your_key
 ```
 
-Get credentials from [Spotify Developer Dashboard](https://developer.spotify.com/dashboard). The app uses Spotify for metadata and Deezer for audio previews.
+- **Spotify**: Get credentials from [Spotify Developer Dashboard](https://developer.spotify.com/dashboard) (used for playlist import and fallback)
+- **Last.fm**: Get a free API key from [Last.fm API](https://www.last.fm/api/account/create) (used for all-time top tracks ranking)
 
 ## Localization
 
@@ -101,7 +104,7 @@ Get credentials from [Spotify Developer Dashboard](https://developer.spotify.com
 
 - React + Vite + Tailwind CSS
 - Node.js + Express + Socket.io
-- Spotify API (metadata) + Deezer API (audio previews)
+- Last.fm API (track ranking) + Spotify API (fallback, playlists) + Deezer API (audio previews)
 - Docker
 
 ## Project Structure
@@ -121,10 +124,13 @@ quizzy/
 │   ├── roomManager.js     # Room CRUD, settings
 │   ├── answerMatcher.js   # Fuzzy matching for typed mode
 │   ├── quiz.js            # Track selection, decoys
-│   ├── spotify.js         # Spotify API
-│   ├── spotify-hybrid.js  # Spotify metadata + Deezer previews
-│   ├── deezer.js          # Deezer API (audio only)
-│   └── categories.json    # Music categories
+│   ├── cache-provider.js  # Cache-first music provider
+│   ├── artistCache.js     # Local cache persistence
+│   ├── lastfm.js          # Last.fm API (track ranking)
+│   ├── spotify.js         # Spotify API (fallback)
+│   ├── deezer.js          # Deezer API (audio previews)
+│   ├── categories.json    # Music categories
+│   └── data/artists.json  # Cached artist tracks
 ├── Dockerfile
 └── compose.yml
 ```

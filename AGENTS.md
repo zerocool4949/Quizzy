@@ -5,8 +5,13 @@
 - `client/src/context/` holds shared game state and socket wiring.
 - `client/src/locales/` contains translation JSON files; update `client/src/i18n.jsx` when adding a new language.
 - `server/` is the Express + Socket.io backend; game flow is in `server/gameManager.js`.
-- `server/quiz.js` handles quiz generation, artist sampling, and track fetching.
-- `server/spotify.js` wraps the Spotify API (token management, playlist import, track search).
+- `server/quiz.js` handles quiz generation, artist sampling, and track fetching via `music.js`.
+- `server/music.js` re-exports the active provider (`cache-provider.js`).
+- `server/cache-provider.js` is the main music provider (cache-first with Spotify fallback + Deezer previews).
+- `server/artistCache.js` handles local cache persistence (`server/data/artists.json`).
+- `server/lastfm.js` wraps the Last.fm API for all-time top tracks.
+- `server/spotify.js` wraps the Spotify API (token management, playlist import, fallback).
+- `server/deezer.js` wraps the Deezer API for audio previews.
 - `server/answerMatcher.js` provides fuzzy matching for typed answers (Levenshtein distance, normalization).
 - Shared config and deployment files are at repo root: `compose.yml`, `Dockerfile`, `.env.example`.
 
@@ -108,6 +113,7 @@ Quiz requests tracks for artist
 - **On server startup**: Background refresh for missing/stale artists
 - **On playlist import**: Foreground fetch for new artists (30s timeout)
 - **Auto-prune**: Deleted artists removed from cache
+- **Concurrency lock**: Duplicate fetches for the same artist are queued, not duplicated (see `inProgress` Set in `cache-warmer.js`)
 
 ### CLI Usage
 
