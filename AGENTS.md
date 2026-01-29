@@ -13,6 +13,7 @@
 - `server/spotify.js` wraps the Spotify API (token management, playlist import, fallback).
 - `server/deezer.js` wraps the Deezer API for audio previews.
 - `server/answerMatcher.js` provides fuzzy matching for typed answers (Levenshtein distance, normalization).
+- `server/titleUtils.js` provides shared title cleaning helpers.
 - Shared config and deployment files are at repo root: `compose.yml`, `Dockerfile`, `.env.example`.
 
 ## Build, Test, and Development Commands
@@ -48,7 +49,7 @@
 ## Key Implementation Details
 - **Playlist sampling**: Artists are sampled equally from each playlist (not proportionally by size) to ensure smaller playlists get fair representation. Sample size scales with round count (`rounds * 3` buffer, minimum 60). See `getMultiCategoryTracks` in `server/quiz.js`.
 - **Spotify token caching**: The Spotify access token is cached with a promise lock to prevent parallel fetches when concurrent requests arrive. See `getAccessToken` in `server/spotify.js`.
-- **Title cleaning**: Track titles are cleaned by removing parenthetical content `(...)`, bracketed content `[...]`, and everything after ` - ` (which typically contains metadata like "Remastered", "Live", "Acoustic", etc.). See `cleanTitle` in `server/spotify.js`.
+- **Title cleaning**: Track titles are cleaned by removing parenthetical content `(...)`, bracketed content `[...]`, and everything after ` - ` (which typically contains metadata like "Remastered", "Live", "Acoustic", etc.). Cleaning is applied at the output layer (`server/quiz.js`) to preserve original titles in the cache. See `cleanTitle` in `server/titleUtils.js`.
 - **Typed answer matching**: Uses Levenshtein distance with ~15% typo tolerance and word-level matching for multi-word answers. Accents and punctuation are normalized. See `server/answerMatcher.js`.
 - **Game logging**: Each game logs rounds to `server/logs/games.jsonl` (JSON lines format) when the game starts. Includes timestamp, roomId, playerCount, categories, and track details (artist, title, year). See `server/gameLogger.js`.
 - **Lobby settings persistence**: When returning to lobby after a game, settings (categories, difficulty, mode, rounds) are preserved via `roomSettings` from the game context. See `Lobby.jsx` state initialization.
