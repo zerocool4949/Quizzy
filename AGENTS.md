@@ -90,8 +90,7 @@ Quiz requests tracks for artist
 - `server/artistCache.js` - Cache persistence (get/save/isStale/prune)
 - `server/lastfm.js` - Last.fm API wrapper for all-time top tracks
 - `server/cache-provider.js` - Integration layer (wraps cache + Spotify + Deezer)
-- `server/cache-warmer.js` - Startup warming and auto-prune
-- `server/cache-tracks.js` - CLI tool for batch caching
+- `server/cache-warmer.js` - Startup warming, auto-prune, and CLI tool
 
 ### Cache Data Format
 
@@ -118,10 +117,10 @@ Quiz requests tracks for artist
 ### CLI Usage
 
 ```bash
-node server/cache-tracks.js                    # Cache all artists
-node server/cache-tracks.js --artist "Stromae" # Single artist
-node server/cache-tracks.js --refresh          # Force refresh all
-node server/cache-tracks.js --stats            # Show statistics
+node server/cache-warmer.js                    # Refresh missing/stale artists
+node server/cache-warmer.js --artist "Stromae" # Single artist
+node server/cache-warmer.js --refresh          # Force refresh all
+node server/cache-warmer.js --stats            # Show statistics
 ```
 
 ### Configuration

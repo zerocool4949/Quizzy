@@ -1,7 +1,17 @@
+#!/usr/bin/env node
 // Cache Warmer - Background refresh for missing/stale artists on startup
 // Reads artists from categories.json and imported-playlists.json
 // Non-blocking: queues refresh in background, doesn't delay server startup
 // Thread-safe: concurrent imports queue artists instead of duplicating work
+//
+// CLI Usage:
+//   node cache-warmer.js                    # Refresh missing/stale artists
+//   node cache-warmer.js --stats            # Show cache statistics
+//   node cache-warmer.js --artist "Stromae" # Refresh single artist
+//   node cache-warmer.js --refresh          # Force refresh all artists
+
+import dotenv from 'dotenv';
+dotenv.config();
 
 import { readFileSync, existsSync } from 'fs';
 import { fileURLToPath } from 'url';
@@ -226,4 +236,156 @@ export async function warmCache() {
 
     console.log(`[Cache Warmer] Background refresh complete: ${results.success} success, ${results.failed} failed`);
   }, 1000); // Small delay to let server finish starting
+}
+
+// ============ CLI Support ============
+
+function parseArgs() {
+  const args = process.argv.slice(2);
+  const options = {
+    artist: null,
+    refresh: false,
+    stats: false,
+    help: false
+  };
+
+  for (let i = 0; i < args.length; i++) {
+    switch (args[i]) {
+      case '--artist':
+        options.artist = args[++i];
+        break;
+      case '--refresh':
+        options.refresh = true;
+        break;
+      case '--stats':
+        options.stats = true;
+        break;
+      case '--help':
+      case '-h':
+        options.help = true;
+        break;
+    }
+  }
+
+  return options;
+}
+
+function showHelp() {
+  console.log(`
+Cache Warmer CLI
+================
+
+Manages the artist track cache (Last.fm with Spotify fallback).
+
+Usage:
+  node cache-warmer.js [options]
+
+Options:
+  --stats             Show cache statistics and exit
+  --artist "Name"     Refresh single artist
+  --refresh           Force refresh all artists (ignore staleness)
+  --help, -h          Show this help message
+
+Examples:
+  node cache-warmer.js                      # Refresh missing/stale only
+  node cache-warmer.js --stats              # Check cache status
+  node cache-warmer.js --artist "Stromae"   # Refresh one artist
+  node cache-warmer.js --refresh            # Force refresh everything
+`);
+}
+
+function showStats() {
+  console.log('Cache Statistics');
+  console.log('================\n');
+
+  const cacheStats = artistCache.getCacheStats();
+  console.log(`Total cached:  ${cacheStats.totalArtists}`);
+  console.log(`From Last.fm:  ${cacheStats.lastfmCount}`);
+  console.log(`From Spotify:  ${cacheStats.spotifyCount}`);
+
+  const status = getCacheStatus();
+  console.log(`\nIn categories: ${status.total}`);
+  console.log(`Fresh:         ${status.fresh}`);
+  console.log(`Stale:         ${status.stale}`);
+  console.log(`Missing:       ${status.missing}`);
+
+  console.log('\nAPI Configuration:');
+  console.log(`  Last.fm: ${lastfm.isConfigured() ? '✓ Configured' : '✗ Not configured (set LASTFM_API_KEY)'}`);
+}
+
+async function runCli() {
+  const options = parseArgs();
+
+  if (options.help) {
+    showHelp();
+    return;
+  }
+
+  if (options.stats) {
+    showStats();
+    return;
+  }
+
+  console.log('Cache Warmer');
+  console.log('============\n');
+
+  if (!lastfm.isConfigured()) {
+    console.warn('Warning: LASTFM_API_KEY not set, will use Spotify only\n');
+  }
+
+  // Single artist mode
+  if (options.artist) {
+    console.log(`Refreshing: ${options.artist}`);
+    const result = await fetchArtistTracks(options.artist);
+    if (result) {
+      console.log(`  ✓ ${result.count} tracks from ${result.source}`);
+    } else {
+      console.log(`  ✗ No tracks found`);
+    }
+    return;
+  }
+
+  // Prune deleted artists
+  const allArtists = getAllArtists();
+  const pruned = artistCache.pruneArtists(allArtists);
+  if (pruned.length > 0) {
+    console.log(`Pruned ${pruned.length} deleted artists\n`);
+  }
+
+  // Determine what to refresh
+  let toRefresh;
+  if (options.refresh) {
+    toRefresh = allArtists;
+    console.log(`Force refreshing all ${toRefresh.length} artists\n`);
+  } else {
+    const status = getCacheStatus();
+    toRefresh = [...status.missingArtists, ...status.staleArtists];
+    console.log(`Found ${allArtists.length} artists (${status.fresh} fresh, ${status.missing} missing, ${status.stale} stale)\n`);
+
+    if (toRefresh.length === 0) {
+      console.log('All artists are fresh!');
+      return;
+    }
+    console.log(`Refreshing ${toRefresh.length} artists...\n`);
+  }
+
+  // Refresh with progress
+  const results = await refreshArtists(toRefresh, {
+    onProgress: (p) => {
+      const status = p.success > 0 ? '✓' : '✗';
+      console.log(`  ${status} ${p.artist}`);
+    }
+  });
+
+  console.log('\n' + '='.repeat(30));
+  console.log(`Done: ${results.success} success, ${results.failed} failed`);
+}
+
+// Run CLI if executed directly
+const isMain = process.argv[1]?.includes('cache-warmer');
+if (isMain) {
+  runCli().catch(err => {
+    console.error('Error:', err.message);
+    process.exit(1);
+  });
 }
