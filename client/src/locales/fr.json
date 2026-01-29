@@ -62,6 +62,7 @@
     "import": "+ Importer",
     "imported": "importé",
     "noCategories": "Aucune catégorie disponible",
+    "selectCategoryWarning": "Veuillez sélectionner au moins une catégorie",
     "importPlaceholder": "URL de playlist Spotify...",
     "deleteConfirm": "Supprimer cette playlist importée ?",
     "waitingForHost": "En attente du démarrage par l'hôte..."

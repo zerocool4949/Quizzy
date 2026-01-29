@@ -141,8 +141,6 @@ export default function Lobby() {
   const toggleCategory = (categoryId) => {
     setSelectedCategories(prev => {
       if (prev.includes(categoryId)) {
-        // Don't allow deselecting if it's the only one
-        if (prev.length === 1) return prev;
         return prev.filter(id => id !== categoryId);
       }
       return [...prev, categoryId];
@@ -165,8 +163,14 @@ export default function Lobby() {
     return () => clearTimeout(timeout);
   }, [isHost, selectedCategories, answerMode, difficulty, rounds, updateSettings]);
 
+  const [startWarning, setStartWarning] = useState(false);
+
   const handleStartGame = () => {
-    if (selectedCategories.length === 0) return;
+    if (selectedCategories.length === 0) {
+      setStartWarning(true);
+      setTimeout(() => setStartWarning(false), 3000);
+      return;
+    }
     startGame();
   };
 
@@ -413,13 +417,20 @@ export default function Lobby() {
 
         <div className="space-y-3">
           {isHost ? (
-            <button
-              onClick={handleStartGame}
-              className="btn-primary w-full text-lg"
-              disabled={players.length < 1}
-            >
-              {t('buttons.startGame')}
-            </button>
+            <div>
+              {startWarning && (
+                <p className="text-rose-400 text-sm text-center mb-2 animate-pulse">
+                  {t('lobby.selectCategoryWarning')}
+                </p>
+              )}
+              <button
+                onClick={handleStartGame}
+                className="btn-primary w-full text-lg"
+                disabled={players.length < 1}
+              >
+                {t('buttons.startGame')}
+              </button>
+            </div>
           ) : null}
           <button onClick={leaveGame} className="btn-secondary w-full">
             {t('buttons.leaveRoom')}
