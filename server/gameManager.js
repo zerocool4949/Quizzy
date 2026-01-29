@@ -343,6 +343,10 @@ export function getGameResults(code) {
       id: p.id,
       name: p.name,
       score: p.score
+    })),
+    rounds: room.rounds.map(r => ({
+      artist: r.correctArtist,
+      title: r.correctName
     }))
   };
 }

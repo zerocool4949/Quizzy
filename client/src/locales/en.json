@@ -106,7 +106,9 @@
     "perfect": "Perfect!",
     "outOfLives": "Out of lives!",
     "waitingForPlayers": "Waiting for other players...",
-    "liveScores": "Live Scores"
+    "liveScores": "Live Scores",
+    "songsPlayed": "Songs Played",
+    "downloadList": "Download List"
   },
   "errors": {
     "roomNotFound": "Room not found",

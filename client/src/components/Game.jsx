@@ -278,6 +278,41 @@ export default function Game() {
             </div>
           </div>
 
+          {gameResults.rounds && gameResults.rounds.length > 0 && (
+            <div className="mb-8">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-lg font-semibold text-slate-300">{t('game.songsPlayed')}</h3>
+                <button
+                  onClick={() => {
+                    const text = gameResults.rounds
+                      .map((r, i) => `${i + 1}. ${r.artist} - ${r.title}`)
+                      .join('\n');
+                    const blob = new Blob([text], { type: 'text/plain' });
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = 'quizzy-songs.txt';
+                    a.click();
+                    URL.revokeObjectURL(url);
+                  }}
+                  className="text-sm text-teal-400 hover:text-teal-300 flex items-center gap-1"
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                  </svg>
+                  {t('game.downloadList')}
+                </button>
+              </div>
+              <div className="max-h-40 overflow-y-auto space-y-1 bg-slate-800/40 rounded-lg p-3">
+                {gameResults.rounds.map((round, index) => (
+                  <div key={index} className="text-sm text-slate-300">
+                    <span className="text-slate-500">{index + 1}.</span> {round.artist} - {round.title}
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
           <div className="space-y-3">
             {isHost && (
               <button onClick={playAgain} className="btn-primary w-full">

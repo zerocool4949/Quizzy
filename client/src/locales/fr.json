@@ -106,7 +106,9 @@
     "perfect": "Parfait !",
     "outOfLives": "Plus de vies !",
     "waitingForPlayers": "En attente des autres joueurs...",
-    "liveScores": "Scores en direct"
+    "liveScores": "Scores en direct",
+    "songsPlayed": "Titres joués",
+    "downloadList": "Télécharger la liste"
   },
   "errors": {
     "roomNotFound": "Salle introuvable",

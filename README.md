@@ -34,7 +34,7 @@ npm test
 ### Multiple Choice
 - 4 options per round
 - 5 seconds to answer after clip ends
-- 10 base points + speed bonus
+- 10 base points + speed bonus: +3 (<3s), +2 (<6s), +1 (<10s)
 
 ### Typed (Default)
 - Single input field - guess artist or title in any order
@@ -44,7 +44,7 @@ npm test
 - Artist: 10 points + speed bonus
 - Title: 15 points + speed bonus
 - Combo: +5 bonus if both are found
-  - Speed bonus: +5 (<5s), +3 (<10s), +1 (<15s)
+- Speed bonus: +5 (<5s), +3 (<10s), +1 (<15s)
 
 ## Host Settings
 
