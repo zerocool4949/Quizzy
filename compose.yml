@@ -12,6 +12,7 @@ services:
       - CLIENT_URL=${CLIENT_URL:-http://localhost:7111}
       - SPOTIFY_CLIENT_ID=${SPOTIFY_CLIENT_ID}
       - SPOTIFY_CLIENT_SECRET=${SPOTIFY_CLIENT_SECRET}
+      - LASTFM_API_KEY=${LASTFM_API_KEY}
     volumes:
       # Mount categories.json so you can edit it without rebuilding
       - ./server/categories.json:/app/server/categories.json:ro
@@ -19,6 +20,8 @@ services:
       - ./server/imported-playlists.json:/app/server/imported-playlists.json
       # Mount logs directory for game history
       - ./server/logs:/app/server/logs
+      # Mount artist cache for persistence
+      - ./server/data:/app/server/data
     healthcheck:
       test: ["CMD", "wget", "-q", "--spider", "http://localhost:7111/api/categories"]
       interval: 30s
