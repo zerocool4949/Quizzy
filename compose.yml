@@ -14,13 +14,11 @@ services:
       - SPOTIFY_CLIENT_SECRET=${SPOTIFY_CLIENT_SECRET}
       - LASTFM_API_KEY=${LASTFM_API_KEY}
     volumes:
-      # Mount categories.json so you can edit it without rebuilding
-      - ./server/categories.json:/app/server/categories.json:ro
-      # Mount imported playlists so they persist across rebuilds
+      # Imported playlists persist across rebuilds (install-specific)
       - ./server/imported-playlists.json:/app/server/imported-playlists.json
-      # Mount logs directory for game history
+      # Game logs
       - ./server/logs:/app/server/logs
-      # Mount artist cache for persistence
+      # Artist cache
       - ./server/data:/app/server/data
     healthcheck:
       test: ["CMD", "wget", "-q", "--spider", "http://localhost:7111/api/categories"]
