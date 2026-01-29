@@ -1,6 +1,7 @@
 // Cache Warmer - Background refresh for missing/stale artists on startup
 // Reads artists from categories.json and imported-playlists.json
 // Non-blocking: queues refresh in background, doesn't delay server startup
+// Thread-safe: concurrent imports queue artists instead of duplicating work
 
 import { readFileSync, existsSync } from 'fs';
 import { fileURLToPath } from 'url';
@@ -16,6 +17,10 @@ const __dirname = dirname(__filename);
 const CATEGORIES_PATH = join(__dirname, 'categories.json');
 const IMPORTED_PATH = join(__dirname, 'imported-playlists.json');
 const CACHE_STALENESS_DAYS = 90;
+
+// Concurrency control
+const inProgress = new Set();           // Artists currently being fetched
+const waiting = new Map();              // artist -> [resolve callbacks] for waiters
 
 // Load all artists from categories and imported playlists
 function getAllArtists() {
@@ -77,8 +82,8 @@ export function getCacheStatus() {
   };
 }
 
-// Fetch and cache tracks for a single artist
-async function fetchArtistTracks(artistName, limit = 10) {
+// Fetch and cache tracks for a single artist (internal, no lock)
+async function doFetchArtistTracks(artistName, limit = 10) {
   // Try Last.fm first
   if (lastfm.isConfigured()) {
     const tracks = await lastfm.getArtistTopTracks(artistName, limit);
@@ -109,6 +114,37 @@ async function fetchArtistTracks(artistName, limit = 10) {
   }
 
   return null;
+}
+
+// Fetch artist with lock - prevents duplicate concurrent fetches
+async function fetchArtistTracks(artistName, limit = 10) {
+  // If already in progress, wait for it to complete
+  if (inProgress.has(artistName)) {
+    console.log(`[Cache] Waiting for ${artistName} (already in progress)`);
+    return new Promise(resolve => {
+      const waiters = waiting.get(artistName) || [];
+      waiters.push(resolve);
+      waiting.set(artistName, waiters);
+    });
+  }
+
+  // Mark as in progress
+  inProgress.add(artistName);
+
+  try {
+    const result = await doFetchArtistTracks(artistName, limit);
+
+    // Notify all waiters
+    const waiters = waiting.get(artistName) || [];
+    for (const resolve of waiters) {
+      resolve(result);
+    }
+    waiting.delete(artistName);
+
+    return result;
+  } finally {
+    inProgress.delete(artistName);
+  }
 }
 
 // Refresh a list of artists (with rate limiting)
