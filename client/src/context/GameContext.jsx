@@ -12,6 +12,7 @@ const initialState = {
   roomCode: null,
   players: [],
   isHost: false,
+  isSpectator: false,
   playerName: '',
   gameState: 'idle', // idle, lobby, loading, countdown, playing, roundEnd, finished
   currentRound: null,
@@ -31,21 +32,39 @@ function gameReducer(state, action) {
     case 'SET_PLAYER_NAME':
       return { ...state, playerName: action.payload };
     case 'ROOM_CREATED':
+      return {
+        ...state,
+        roomCode: action.payload.code,
+        players: action.payload.players,
+        isHost: action.payload.isHost,
+        isSpectator: false,
+        gameState: 'lobby',
+        error: null,
+      };
     case 'ROOM_JOINED':
       return {
         ...state,
         roomCode: action.payload.code,
         players: action.payload.players,
         isHost: action.payload.isHost,
-        gameState: 'lobby',
+        isSpectator: action.payload.isSpectator || false,
+        gameState: action.payload.gameState === 'playing' ? 'playing' : 'lobby',
         error: null,
       };
     case 'PLAYER_JOINED':
-    case 'PLAYER_LEFT':
+    case 'PLAYER_LEFT': {
+      const currentPlayer = state.playerId ? action.payload.players.find(p => p.id === state.playerId) : null;
       return {
         ...state,
         players: action.payload.players,
-        isHost: state.playerId ? !!action.payload.players.find(p => p.id === state.playerId)?.isHost : state.isHost,
+        isHost: currentPlayer?.isHost ?? state.isHost,
+        isSpectator: currentPlayer?.role === 'spectator' ?? state.isSpectator,
+      };
+    }
+    case 'ROLE_SWITCHED':
+      return {
+        ...state,
+        isSpectator: action.payload.role === 'spectator',
       };
     case 'GAME_LOADING':
       return { ...state, gameState: 'loading', loadingProgress: action.payload };
@@ -100,7 +119,7 @@ function gameReducer(state, action) {
     case 'CLEAR_ERROR':
       return { ...state, error: null };
     case 'RESET':
-      return { ...initialState, playerName: state.playerName };
+      return { ...initialState, playerName: state.playerName, isSpectator: false };
     default:
       return state;
   }
@@ -124,9 +143,9 @@ export function GameProvider({ children }) {
       dispatch({ type: 'SET_PLAYER_ID', payload: socket.id });
       // Process any pending join request
       if (pendingJoinRef.current) {
-        const { code, playerName } = pendingJoinRef.current;
+        const { code, playerName, asSpectator } = pendingJoinRef.current;
         pendingJoinRef.current = null;
-        socket.emit('join-room', { code: code.toUpperCase(), playerName });
+        socket.emit('join-room', { code: code.toUpperCase(), playerName, asSpectator });
       }
     });
 
@@ -189,6 +208,14 @@ export function GameProvider({ children }) {
       dispatch({ type: 'SETTINGS_UPDATED', payload: data });
     });
 
+    socket.on('role-switched', (data) => {
+      dispatch({ type: 'ROLE_SWITCHED', payload: data });
+    });
+
+    socket.on('switch-role-error', (data) => {
+      dispatch({ type: 'ERROR', payload: data.message });
+    });
+
     return () => {
       socket.disconnect();
     };
@@ -208,14 +235,18 @@ export function GameProvider({ children }) {
     socketRef.current?.emit('create-room', { playerName });
   }, []);
 
-  const joinRoom = useCallback((code, playerName) => {
+  const joinRoom = useCallback((code, playerName, asSpectator = false) => {
     dispatch({ type: 'SET_PLAYER_NAME', payload: playerName });
     if (socketRef.current?.connected) {
-      socketRef.current.emit('join-room', { code: code.toUpperCase(), playerName });
+      socketRef.current.emit('join-room', { code: code.toUpperCase(), playerName, asSpectator });
     } else {
       // Queue the join request for when socket connects
-      pendingJoinRef.current = { code, playerName };
+      pendingJoinRef.current = { code, playerName, asSpectator };
     }
+  }, []);
+
+  const switchRole = useCallback(() => {
+    socketRef.current?.emit('switch-role');
   }, []);
 
   const updateSettings = useCallback((settings) => {
@@ -255,6 +286,7 @@ export function GameProvider({ children }) {
         ...state,
         createRoom,
         joinRoom,
+        switchRole,
         updateSettings,
         startGame,
         submitAnswer,

@@ -21,13 +21,16 @@
     "playAgain": "Rejouer",
     "submit": "Envoyer",
     "add": "Ajouter",
-    "delete": "Supprimer"
+    "delete": "Supprimer",
+    "switchToPlayer": "Devenir joueur",
+    "switchToSpectator": "Devenir spectateur"
   },
   "home": {
     "createRoomTitle": "Créer une salle",
     "joinRoomTitle": "Rejoindre une salle",
     "nicknamePlaceholder": "Votre pseudo",
     "roomCodePlaceholder": "Code de salle",
+    "joinAsSpectator": "Rejoindre en spectateur",
     "dismiss": "Fermer"
   },
   "lobby": {
@@ -36,6 +39,7 @@
     "copied": "Lien copié !",
     "players": "Joueurs ({count}/8)",
     "hostTag": "HÔTE",
+    "spectatorTag": "SPECTATEUR",
     "rounds": "Manches",
     "difficulty": "Difficulté",
     "modeLabel": "Mode :",
@@ -91,6 +95,7 @@
     "songEnded": "Extrait terminé",
     "clip": "extrait de {seconds}s",
     "question": "Quelle chanson est-ce ?",
+    "spectating": "Vous êtes spectateur de cette partie",
     "artistLabel": "Artiste",
     "titleLabel": "Titre",
     "status": {

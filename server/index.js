@@ -22,7 +22,8 @@ import {
   getRoundResults,
   nextRound,
   getGameResults,
-  resetRoom
+  resetRoom,
+  switchRole
 } from './gameManager.js';
 import { getCategoryList } from './music.js';
 import { importPlaylist, deleteImportedPlaylist } from './categories.js';
@@ -150,8 +151,8 @@ io.on('connection', (socket) => {
   });
 
   // Join existing room
-  socket.on('join-room', ({ code, playerName }) => {
-    const result = joinRoom(code, socket.id, playerName);
+  socket.on('join-room', ({ code, playerName, asSpectator = false }) => {
+    const result = joinRoom(code, socket.id, playerName, asSpectator);
 
     if (result.error) {
       socket.emit('join-error', { message: result.error });
@@ -161,10 +162,14 @@ io.on('connection', (socket) => {
     currentRoom = result.room.code;
     socket.join(result.room.code);
 
+    const player = result.room.players.find(p => p.id === socket.id);
+
     socket.emit('room-joined', {
       code: result.room.code,
       players: result.room.players,
-      isHost: false
+      isHost: false,
+      isSpectator: player?.role === 'spectator',
+      gameState: result.room.state
     });
 
     // Send current settings to the joining player
@@ -180,7 +185,44 @@ io.on('connection', (socket) => {
       players: result.room.players
     });
 
-    console.log(`${playerName} joined room ${code}`);
+    // If game is in progress and joining as spectator, send current round info
+    if (asSpectator && result.room.state === 'playing') {
+      const round = result.room.rounds[result.room.currentRound];
+      if (round) {
+        socket.emit('new-round', {
+          roundNumber: round.roundNumber,
+          totalRounds: result.room.totalRounds,
+          previewUrl: round.previewUrl,
+          answerMode: result.room.answerMode,
+          clipDuration: result.room.clipDuration,
+          answerTime: result.room.answerMode === 'typed' ? 10 : 5,
+          options: result.room.answerMode === 'mcq' ? round.options : undefined
+        });
+      }
+    }
+
+    console.log(`${playerName} joined room ${code}${asSpectator ? ' as spectator' : ''}`);
+  });
+
+  // Switch between player and spectator roles
+  socket.on('switch-role', () => {
+    if (!currentRoom) return;
+
+    const result = switchRole(currentRoom, socket.id);
+
+    if (result.error) {
+      socket.emit('switch-role-error', { message: result.error });
+      return;
+    }
+
+    socket.emit('role-switched', { role: result.newRole });
+
+    // Notify all players of updated player list
+    io.to(currentRoom).emit('player-joined', {
+      players: result.room.players
+    });
+
+    console.log(`Player ${socket.id} switched to ${result.newRole} in room ${currentRoom}`);
   });
 
   // Update game settings (categories, answer mode, difficulty, rounds)

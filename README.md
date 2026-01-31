@@ -20,6 +20,7 @@ npm test
 ## Features
 
 - **Multiplayer** - 6-character room codes, up to 8 players, shareable invite links
+- **Spectator mode** - Watch games without playing, join mid-game, switch roles in lobby
 - **Two game modes** - Multiple choice or typed answers
 - **Typed mode** - Single input, guess artist/title in any order, type both at once for bonus
 - **Fuzzy matching** - Typo tolerance, accent insensitive, partial matches

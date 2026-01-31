@@ -24,7 +24,8 @@ export function createRoom(hostId, hostName) {
         name: hostName,
         score: 0,
         streak: 0,
-        isHost: true
+        isHost: true,
+        role: 'player'
       }
     ],
     state: 'lobby', // lobby, playing, finished
@@ -45,20 +46,24 @@ export function createRoom(hostId, hostName) {
   return room;
 }
 
-export function joinRoom(code, playerId, playerName) {
+export function joinRoom(code, playerId, playerName, asSpectator = false) {
   const room = rooms.get(code.toUpperCase());
 
   if (!room) return { error: 'Room not found' };
-  if (room.state !== 'lobby') return { error: 'Game already in progress' };
+  if (room.state !== 'lobby' && !asSpectator) return { error: 'Game already in progress' };
   if (room.players.find(p => p.id === playerId)) return { error: 'Already in room' };
-  if (room.players.length >= 8) return { error: 'Room is full (max 8 players)' };
+
+  // Only count active players toward the 8-player limit
+  const activePlayers = room.players.filter(p => p.role === 'player').length;
+  if (!asSpectator && activePlayers >= 8) return { error: 'Room is full (max 8 players)' };
 
   room.players.push({
     id: playerId,
     name: playerName,
     score: 0,
     streak: 0,
-    isHost: false
+    isHost: false,
+    role: asSpectator ? 'spectator' : 'player'
   });
 
   return { room };
@@ -117,6 +122,28 @@ export function resetRoom(code) {
   });
 
   return room;
+}
+
+export function switchRole(code, playerId) {
+  const room = rooms.get(code?.toUpperCase());
+  if (!room || room.state !== 'lobby') return { error: 'Cannot switch role during game' };
+
+  const player = room.players.find(p => p.id === playerId);
+  if (!player) return { error: 'Player not found' };
+
+  // Cannot switch host to spectator
+  if (player.isHost && player.role === 'player') {
+    return { error: 'Host cannot become spectator' };
+  }
+
+  // Check player limit when switching to player
+  if (player.role === 'spectator') {
+    const activePlayers = room.players.filter(p => p.role === 'player').length;
+    if (activePlayers >= 8) return { error: 'Room is full (max 8 players)' };
+  }
+
+  player.role = player.role === 'player' ? 'spectator' : 'player';
+  return { room, newRole: player.role };
 }
 
 export function deleteRoom(code) {

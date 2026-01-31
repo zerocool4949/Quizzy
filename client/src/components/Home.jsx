@@ -9,6 +9,7 @@ export default function Home() {
   const [mode, setMode] = useState(urlCode ? 'join' : null); // null, 'create', 'join'
   const [playerName, setPlayerName] = useState('');
   const [roomCode, setRoomCode] = useState(urlCode?.toUpperCase() || '');
+  const [joinAsSpectator, setJoinAsSpectator] = useState(false);
   const { createRoom, joinRoom, error, clearError } = useGame();
   const { t, tError } = useI18n();
 
@@ -30,7 +31,7 @@ export default function Home() {
   const handleJoin = (e) => {
     e.preventDefault();
     if (playerName.trim() && roomCode.trim()) {
-      joinRoom(roomCode.trim(), playerName.trim());
+      joinRoom(roomCode.trim(), playerName.trim(), joinAsSpectator);
     }
   };
 
@@ -109,6 +110,15 @@ export default function Home() {
             className="input text-center text-2xl tracking-widest"
             maxLength={6}
           />
+          <label className="flex items-center gap-2 text-sm text-slate-300 cursor-pointer">
+            <input
+              type="checkbox"
+              checked={joinAsSpectator}
+              onChange={(e) => setJoinAsSpectator(e.target.checked)}
+              className="w-4 h-4 rounded border-slate-600 bg-slate-800 text-teal-500 focus:ring-teal-500 focus:ring-offset-slate-900"
+            />
+            {t('home.joinAsSpectator')}
+          </label>
           <button
             type="submit"
             className="btn-primary w-full"

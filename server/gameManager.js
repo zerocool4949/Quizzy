@@ -9,16 +9,18 @@ import {
   leaveRoom,
   getRoom,
   updateRoomSettings,
-  resetRoom
+  resetRoom,
+  switchRole
 } from './roomManager.js';
 
 // Re-export room management functions
-export { createRoom, joinRoom, leaveRoom, getRoom, updateRoomSettings, resetRoom };
+export { createRoom, joinRoom, leaveRoom, getRoom, updateRoomSettings, resetRoom, switchRole };
 
 export async function startGame(code, onProgress = null) {
   const room = getRoom(code);
   if (!room || room.state !== 'lobby') return { error: 'Cannot start game' };
-  if (room.players.length < 1) return { error: 'Need at least 1 player' };
+  const activePlayers = room.players.filter(p => p.role === 'player');
+  if (activePlayers.length < 1) return { error: 'Need at least 1 player' };
 
   try {
     const excludeTrackIds = room.usedTrackIds ? Array.from(room.usedTrackIds) : [];
@@ -88,6 +90,9 @@ export function submitAnswer(code, playerId, payload) {
   const round = room.rounds[room.currentRound];
   const player = room.players.find(p => p.id === playerId);
   if (!round || !player) return null;
+
+  // Spectators cannot submit answers
+  if (player.role === 'spectator') return null;
 
   const timeTaken = (Date.now() - room.roundStartTime) / 1000;
 
@@ -270,7 +275,9 @@ export function submitAnswer(code, playerId, payload) {
 export function allPlayersAnswered(code) {
   const room = getRoom(code);
   if (!room) return false;
-  return room.players.every(p => room.answers.get(p.id)?.finished);
+  // Only check active players, not spectators
+  const activePlayers = room.players.filter(p => p.role === 'player');
+  return activePlayers.every(p => room.answers.get(p.id)?.finished);
 }
 
 export function canEndRound(code) {
@@ -287,13 +294,16 @@ export function getRoundResults(code) {
 
   const round = room.rounds[room.currentRound];
 
+  // Only include active players in results
+  const activePlayers = room.players.filter(p => p.role === 'player');
+
   return {
     correctId: round.correctId,
     correctName: round.correctName,
     correctArtist: round.correctArtist,
     correctYear: round.correctYear,
     albumArt: round.albumArt,
-    playerResults: room.players
+    playerResults: activePlayers
       .map(p => {
         const answer = room.answers.get(p.id);
         const isCorrectTyped = answer?.mode === 'typed' ? !!(answer.artistCorrect && answer.titleCorrect) : false;
@@ -329,7 +339,9 @@ export function getGameResults(code) {
   const room = getRoom(code);
   if (!room) return null;
 
-  const sortedPlayers = [...room.players].sort((a, b) => b.score - a.score);
+  // Only include active players in standings
+  const activePlayers = room.players.filter(p => p.role === 'player');
+  const sortedPlayers = [...activePlayers].sort((a, b) => b.score - a.score);
   const winner = sortedPlayers[0];
 
   return {

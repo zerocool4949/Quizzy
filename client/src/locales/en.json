@@ -21,13 +21,16 @@
     "playAgain": "Play Again",
     "submit": "Submit",
     "add": "Add",
-    "delete": "Delete"
+    "delete": "Delete",
+    "switchToPlayer": "Switch to Player",
+    "switchToSpectator": "Switch to Spectator"
   },
   "home": {
     "createRoomTitle": "Create a Room",
     "joinRoomTitle": "Join a Room",
     "nicknamePlaceholder": "Your nickname",
     "roomCodePlaceholder": "Room code",
+    "joinAsSpectator": "Join as spectator",
     "dismiss": "Dismiss"
   },
   "lobby": {
@@ -36,6 +39,7 @@
     "copied": "Link copied!",
     "players": "Players ({count}/8)",
     "hostTag": "HOST",
+    "spectatorTag": "SPECTATOR",
     "rounds": "Rounds",
     "difficulty": "Difficulty",
     "modeLabel": "Mode:",
@@ -91,6 +95,7 @@
     "songEnded": "Song ended",
     "clip": "{seconds}s clip",
     "question": "What song is this?",
+    "spectating": "You are spectating this game",
     "artistLabel": "Artist",
     "titleLabel": "Title",
     "status": {

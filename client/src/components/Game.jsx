@@ -17,6 +17,7 @@ export default function Game() {
     playAgain,
     leaveGame,
     isHost,
+    isSpectator,
     players,
   } = useGame();
   const { t, language } = useI18n();
@@ -362,7 +363,7 @@ export default function Game() {
             </div>
           </div>
 
-          {answerResult && (
+          {answerResult && !isSpectator && (
             <div
               className={`text-center p-4 rounded-xl mb-6 ${
                 answerResult.points > 0 ? 'bg-emerald-600/20' : 'bg-rose-600/20'
@@ -515,8 +516,15 @@ export default function Game() {
 
           <p className="text-center text-slate-300 mb-4">{t('game.question')}</p>
 
+          {/* Spectator indicator */}
+          {isSpectator && (
+            <div className="text-center p-4 rounded-xl bg-slate-800/60 border border-slate-600">
+              <p className="text-slate-300">{t('game.spectating')}</p>
+            </div>
+          )}
+
           {/* MCQ Mode */}
-          {currentRound?.answerMode !== 'typed' && (
+          {!isSpectator && currentRound?.answerMode !== 'typed' && (
             <div className="grid grid-cols-1 gap-3">
               {currentRound?.options?.map((option) => {
                 const isSelected = myAnswer === option.id;
@@ -546,7 +554,7 @@ export default function Game() {
           )}
 
           {/* Typed Mode */}
-          {currentRound?.answerMode === 'typed' && (
+          {!isSpectator && currentRound?.answerMode === 'typed' && (
             <div className="space-y-4">
               {/* Status indicators for artist and title */}
               <div className="flex justify-center gap-4 mb-2">

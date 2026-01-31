@@ -56,6 +56,8 @@
 - **Game logging**: Each game logs rounds to `server/logs/games.jsonl` (JSON lines format) when the game starts. Includes timestamp, roomId, playerCount, categories, and track details (artist, title, year). File is ignored by git. See `server/gameLogger.js`.
 - **Lobby settings persistence**: When returning to lobby after a game, settings (categories, difficulty, mode, rounds) are preserved via `roomSettings` from the game context. See `Lobby.jsx` state initialization.
 - **Direct link join handling**: Join requests via direct links (`/join/:code`) are queued in `pendingJoinRef` if the socket isn't connected yet, then processed on the `connect` event. This prevents race conditions where users submit the join form before socket.io finishes connecting. See `GameContext.jsx`.
+- **Spectator mode**: Players can join as spectators (watch but not play). Spectators have `role: 'spectator'` in player objects, don't count toward the 8-player limit, can join mid-game, and can switch to player role in lobby (host cannot become spectator). See `switchRole` in `server/roomManager.js` and `isSpectator` state in `GameContext.jsx`.
+- **Answer normalization**: Leading articles ("the", "a", "an", "les", "la", "le", "l") are stripped from both user input and target text during matching, so "beatles" matches "The Beatles". See `normalize` in `server/answerMatcher.js`.
 
 ## Socket & Real-time Architecture
 - `client/src/context/GameContext.jsx` is the central hub for all socket.io communication and game state management.

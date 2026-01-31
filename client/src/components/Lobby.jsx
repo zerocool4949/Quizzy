@@ -7,7 +7,7 @@ import { useI18n } from '../i18n';
 const API_URL = import.meta.env.VITE_SOCKET_URL || (import.meta.env.PROD ? '' : 'http://localhost:3001');
 
 export default function Lobby() {
-  const { roomCode, players, isHost, startGame, leaveGame, gameState, updateSettings, roomSettings } = useGame();
+  const { roomCode, players, isHost, isSpectator, switchRole, startGame, leaveGame, gameState, updateSettings, roomSettings } = useGame();
   const [categories, setCategories] = useState([]);
   const [selectedCategories, setSelectedCategories] = useState(roomSettings?.categoryIds || []);
   const [answerMode, setAnswerMode] = useState(roomSettings?.answerMode || 'typed');
@@ -209,7 +209,7 @@ export default function Lobby() {
 
         <div className="mb-6">
           <h3 className="text-lg font-semibold mb-3 text-slate-300">
-            {t('lobby.players', { count: players.length })}
+            {t('lobby.players', { count: players.filter(p => p.role !== 'spectator').length })}
           </h3>
           <div className="space-y-2">
             {players.map((player) => (
@@ -218,9 +218,14 @@ export default function Lobby() {
                 className="flex items-center justify-between bg-slate-800/60 rounded-lg px-4 py-3"
               >
                 <span className="font-medium">{player.name}</span>
-                {player.isHost && (
-                  <span className="text-xs bg-teal-600/40 px-2 py-1 rounded-full">{t('lobby.hostTag')}</span>
-                )}
+                <div className="flex items-center gap-2">
+                  {player.role === 'spectator' && (
+                    <span className="text-xs bg-slate-600/40 px-2 py-1 rounded-full text-slate-300">{t('lobby.spectatorTag')}</span>
+                  )}
+                  {player.isHost && (
+                    <span className="text-xs bg-teal-600/40 px-2 py-1 rounded-full">{t('lobby.hostTag')}</span>
+                  )}
+                </div>
               </div>
             ))}
           </div>
@@ -432,6 +437,14 @@ export default function Lobby() {
               </button>
             </div>
           ) : null}
+          {!isHost && (
+            <button
+              onClick={switchRole}
+              className="w-full px-4 py-2 rounded-xl text-sm bg-slate-800/60 border border-slate-700 hover:bg-slate-700/60 transition-colors"
+            >
+              {isSpectator ? t('buttons.switchToPlayer') : t('buttons.switchToSpectator')}
+            </button>
+          )}
           <button onClick={leaveGame} className="btn-secondary w-full">
             {t('buttons.leaveRoom')}
           </button>

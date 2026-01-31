@@ -7,7 +7,8 @@ export function normalize(text) {
     .replace(/[\u0300-\u036f]/g, '') // remove accents
     .replace(/[^a-z0-9\s]/g, ' ') // punctuation -> space
     .replace(/\s+/g, ' ')
-    .trim();
+    .trim()
+    .replace(/^(the|a|an|les|la|le|l)\s+/i, ''); // strip leading articles
 }
 
 // Levenshtein distance for typo tolerance
