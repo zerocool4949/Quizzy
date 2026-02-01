@@ -1,21 +1,21 @@
 {
   "Pirates des Caraïbes": {
-    "tracks": ["He's a Pirate", "The Medallion Calls", "Jack Sparrow"],
+    "tracks": ["He's a Pirate"],
     "composer": "Hans Zimmer",
     "year": 2003
   },
   "Jurassic Park": {
-    "tracks": ["Theme from Jurassic Park", "Welcome to Jurassic Park"],
+    "tracks": ["Theme from Jurassic Park"],
     "composer": "John Williams",
     "year": 1993
   },
   "Titanic": {
-    "tracks": ["My Heart Will Go On", "Hymn to the Sea"],
+    "tracks": ["My Heart Will Go On"],
     "composer": "James Horner",
     "year": 1997
   },
   "Le Seigneur des Anneaux": {
-    "tracks": ["Concerning Hobbits", "The Fellowship"],
+    "tracks": ["Concerning Hobbits"],
     "composer": "Howard Shore",
     "year": 2001
   },
@@ -25,7 +25,7 @@
     "year": 2001
   },
   "Star Wars": {
-    "tracks": ["Main Title", "Imperial March"],
+    "tracks": ["Main Title"],
     "composer": "John Williams",
     "year": 1977
   },
@@ -45,7 +45,7 @@
     "year": 2010
   },
   "Interstellar": {
-    "tracks": ["Cornfield Chase", "No Time for Caution"],
+    "tracks": ["Cornfield Chase"],
     "composer": "Hans Zimmer",
     "year": 2014
   },
@@ -55,7 +55,7 @@
     "year": 2000
   },
   "Le Roi Lion": {
-    "tracks": ["Circle of Life", "Can You Feel the Love Tonight"],
+    "tracks": ["Circle of Life"],
     "composer": "Hans Zimmer",
     "year": 1994
   },
@@ -70,7 +70,7 @@
     "year": 2008
   },
   "Matrix": {
-    "tracks": ["Clubbed to Death"],
+    "tracks": [{ "name": "Clubbed to Death", "search": "Rob Dougan Clubbed to Death Matrix" }],
     "composer": "Don Davis",
     "year": 1999
   },
@@ -105,12 +105,12 @@
     "year": 1996
   },
   "Top Gun": {
-    "tracks": ["Danger Zone", "Take My Breath Away"],
+    "tracks": [{ "name": "Danger Zone", "search": "Kenny Loggins Danger Zone" }],
     "composer": "Harold Faltermeyer",
     "year": 1986
   },
   "Shrek": {
-    "tracks": ["All Star"],
+    "tracks": [{ "name": "All Star", "search": "Smash Mouth All Star" }],
     "composer": "Harry Gregson-Williams",
     "year": 2001
   },
@@ -130,12 +130,12 @@
     "year": 1972
   },
   "Pulp Fiction": {
-    "tracks": ["Misirlou"],
+    "tracks": [{ "name": "Misirlou", "search": "Dick Dale Misirlou" }],
     "composer": "Various",
     "year": 1994
   },
   "Fight Club": {
-    "tracks": ["Where Is My Mind"],
+    "tracks": [{ "name": "Where Is My Mind", "search": "Pixies Where Is My Mind" }],
     "composer": "Dust Brothers",
     "year": 1999
   },
@@ -185,17 +185,17 @@
     "year": 2016
   },
   "Friends": {
-    "tracks": ["I'll Be There for You"],
+    "tracks": [{ "name": "I'll Be There for You", "search": "The Rembrandts I'll Be There for You" }],
     "composer": "The Rembrandts",
     "year": 1994
   },
   "Scrubs": {
-    "tracks": ["Superman"],
+    "tracks": [{ "name": "Superman", "search": "Lazlo Bane Superman Scrubs" }],
     "composer": "Lazlo Bane",
     "year": 2001
   },
   "Malcolm": {
-    "tracks": ["Boss of Me"],
+    "tracks": [{ "name": "Boss of Me", "search": "They Might Be Giants Boss of Me" }],
     "composer": "They Might Be Giants",
     "year": 2000
   },
@@ -210,7 +210,7 @@
     "year": 2013
   },
   "Arcane": {
-    "tracks": ["Enemy"],
+    "tracks": [{ "name": "Enemy", "search": "Imagine Dragons Enemy Arcane" }],
     "composer": "Imagine Dragons",
     "year": 2021
   },
@@ -229,63 +229,58 @@
     "composer": "Yann Tiersen",
     "year": 2001
   },
-    "La La Land": {
+  "La La Land": {
     "tracks": ["City of Stars"],
     "composer": "Justin Hurwitz",
     "year": 2016
   },
-    "Whiplash": {
+  "Whiplash": {
     "tracks": ["Whiplash"],
     "composer": "Hank Levy",
     "year": 2014
   },
-    "Le Voyage de Chihiro": {
+  "Le Voyage de Chihiro": {
     "tracks": ["One Summer's Day"],
     "composer": "Joe Hisaishi",
     "year": 2001
   },
-    "La Panthère rose": {
+  "La Panthère rose": {
     "tracks": ["The Pink Panther Theme"],
     "composer": "Henry Mancini",
     "year": 1963
   },
-    "Ghostbusters": {
-    "tracks": ["Ghostbusters"],
+  "Ghostbusters": {
+    "tracks": [{ "name": "Ghostbusters", "search": "Ray Parker Jr Ghostbusters" }],
     "composer": "Ray Parker Jr.",
     "year": 1984
   },
-    "Il était une fois dans l'Ouest": {
+  "Il était une fois dans l'Ouest": {
     "tracks": ["The Man with the Harmonica"],
     "composer": "Ennio Morricone",
     "year": 1968
   },
-    "Kill Bill": {
+  "Kill Bill": {
     "tracks": ["Battle Without Honor or Humanity"],
-    "composer": "Tomoyasu Hotei",
+    "composer": "Hotei",
     "year": 2003
   },
-    "Requiem for a Dream": {
+  "Requiem for a Dream": {
     "tracks": ["Lux Aeterna"],
     "composer": "Clint Mansell",
     "year": 2000
   },
-    "Iron Man": {
-    "tracks": ["Iron Man"],
-    "composer": "Ramin Djawadi",
-    "year": 2008
-  },
-    "Wall-E": {
+  "Wall-E": {
     "tracks": ["Define Dancing"],
     "composer": "Thomas Newman",
     "year": 2008
   },
   "Toy Story": {
-    "tracks": ["You've Got a Friend in Me"],
+    "tracks": [{ "name": "You've Got a Friend in Me", "search": "Randy Newman You've Got a Friend in Me" }],
     "composer": "Randy Newman",
     "year": 1995
   },
   "Coco": {
-    "tracks": ["Remember Me (Ernesto de la Cruz)"],
+    "tracks": ["Remember Me"],
     "composer": "Kristen Anderson-Lopez & Robert Lopez",
     "year": 2017
   },
@@ -309,5 +304,4 @@
     "composer": "Alan Menken",
     "year": 1991
   }
-
 }

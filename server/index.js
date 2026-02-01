@@ -30,11 +30,18 @@ import { importPlaylist, deleteImportedPlaylist } from './categories.js';
 import { getPlaylist } from './spotify.js';
 import { warmCache, refreshArtists } from './cache-warmer.js';
 import * as artistCache from './artistCache.js';
+import { warmMovieClips } from './audioCache.js';
+import { loadMovies } from './movieQuiz.js';
 
 dotenv.config();
 
 // Warm cache on startup (non-blocking)
 warmCache().catch(err => console.error('[Cache Warmer] Error:', err.message));
+warmMovieClips(loadMovies())
+  .then((stats) => {
+    console.log(`[Movie Clips] Ready. total=${stats.total} cached=${stats.cached} downloaded=${stats.downloaded} failed=${stats.failed}`);
+  })
+  .catch(err => console.error('[Movie Clips] Error:', err.message));
 
 const app = express();
 const server = createServer(app);
@@ -47,6 +54,7 @@ const io = new Server(server, {
 
 app.use(cors());
 app.use(express.json());
+app.use('/audio', express.static(path.join(__dirname, 'data', 'audio')));
 
 // Get available categories from categories.json
 app.get('/api/categories', (_req, res) => {
@@ -195,7 +203,7 @@ io.on('connection', (socket) => {
           previewUrl: round.previewUrl,
           answerMode: result.room.answerMode,
           clipDuration: result.room.clipDuration,
-          answerTime: result.room.answerMode === 'typed' ? 10 : 5,
+          answerTime: (result.room.answerMode === 'typed' || result.room.answerMode === 'movie') ? 10 : 5,
           options: result.room.answerMode === 'mcq' ? round.options : undefined
         });
       }
@@ -375,7 +383,7 @@ function sendNextRound(roomCode) {
     });
 
     // Auto-end round after clip duration + answer time (match client timer)
-    const answerTime = room.answerMode === 'typed' ? 10 : 5;
+    const answerTime = (room.answerMode === 'typed' || room.answerMode === 'movie') ? 10 : 5;
     const timeout = ((room.clipDuration || 15) + answerTime) * 1000;
     const expectedRound = round.roundNumber - 1;
 

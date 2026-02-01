@@ -3,13 +3,13 @@
 import { readFileSync } from 'fs';
 import { dirname, join } from 'path';
 import { fileURLToPath } from 'url';
-import * as deezer from './deezer.js';
+import { ensureMovieClip, getClipUrl } from './audioCache.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
 let moviesCache = null;
 
-function loadMovies() {
+export function loadMovies() {
   if (moviesCache) return moviesCache;
 
   try {
@@ -36,30 +36,19 @@ function movieId(name) {
   return name.toLowerCase().replace(/[^a-z0-9]/g, '-');
 }
 
-// Search Deezer for a soundtrack track
-async function findTrackPreview(composer, trackName, movieName) {
-  // Try composer + track name first (most accurate)
-  let query = `${composer} ${trackName}`;
-  let results = await deezer.searchTracks(query, 10);
-
-  // Filter for results that look like soundtrack/instrumental
-  let match = results.find(t =>
-    t.artist.toLowerCase().includes(composer.toLowerCase()) ||
-    t.name.toLowerCase().includes(trackName.toLowerCase())
-  );
-
-  if (match) return match;
-
-  // Try with movie name in query
-  query = `${trackName} ${movieName} soundtrack`;
-  results = await deezer.searchTracks(query, 10);
-  match = results[0];
-
-  if (match) return match;
-
-  // Last resort: just track name
-  results = await deezer.searchTracks(trackName, 5);
-  return results[0] || null;
+function normalizeTrack(track) {
+  if (typeof track === 'string') {
+    return { name: track, key: track };
+  }
+  if (!track || typeof track !== 'object') {
+    return { name: '', key: '' };
+  }
+  const name = track.name || track.title || '';
+  return {
+    name,
+    key: track.key || name,
+    search: track.search
+  };
 }
 
 export async function getMovieQuizTracks(count = 10, onProgress = null) {
@@ -75,7 +64,6 @@ export async function getMovieQuizTracks(count = 10, onProgress = null) {
   }
 
   const rounds = [];
-  const usedTracks = new Set();
 
   // Shuffle movies and cycle through them
   const shuffledMovies = shuffle([...movieNames]);
@@ -91,60 +79,51 @@ export async function getMovieQuizTracks(count = 10, onProgress = null) {
     movieIndex++;
 
     const movie = movies[movieName];
-    const availableTracks = movie.tracks.filter(t => !usedTracks.has(`${movieName}:${t}`));
-
-    // If no unused tracks, pick any track
-    const trackName = availableTracks.length > 0
-      ? availableTracks[Math.floor(Math.random() * availableTracks.length)]
-      : movie.tracks[Math.floor(Math.random() * movie.tracks.length)];
-
-    usedTracks.add(`${movieName}:${trackName}`);
-
-    // Find the track on Deezer
-    const track = await findTrackPreview(movie.composer, trackName, movieName);
-
-    console.log(`[MovieQuiz] Searching: "${trackName}" from "${movieName}" (${movie.composer})`);
-    if (track) {
-      console.log(`[MovieQuiz] Found: "${track.name}" by "${track.artist}"`);
+    const tracks = Array.isArray(movie.tracks) ? movie.tracks : [];
+    const normalizedTracks = tracks
+      .map(normalizeTrack)
+      .filter(t => t.name && t.key);
+    if (normalizedTracks.length === 0) {
+      console.log(`[MovieQuiz] No tracks configured for: ${movieName}`);
+      i--;
+      continue;
     }
 
-    if (!track || !track.previewUrl) {
-      console.log(`[MovieQuiz] Could not find preview for: ${trackName} (${movieName})`);
+    const track = normalizedTracks[0];
+
+    if (!track) {
+      i--;
+      continue;
+    }
+
+
+    const searchQuery = track.search || `${movie.composer} ${track.name} ${movieName} soundtrack`;
+
+    console.log(`[MovieQuiz] Clip: "${track.name}" from "${movieName}" (${movie.composer})`);
+
+    try {
+      await ensureMovieClip(movieName, track.key, searchQuery);
+    } catch (error) {
+      console.log(`[MovieQuiz] Could not cache clip for: ${track.name} (${movieName})`);
       // Skip this round if no preview found
       i--;
       continue;
     }
 
-    // Build decoy options (other movies)
-    const decoyMovies = movieNames.filter(m => m !== movieName);
-    shuffle(decoyMovies);
-    const decoys = decoyMovies.slice(0, 3).map(m => ({
-      id: movieId(m),
-      name: m
-    }));
-
-    // Build options array with correct answer in random position
-    const options = [
-      { id: movieId(movieName), name: movieName },
-      ...decoys
-    ];
-    shuffle(options);
-
     rounds.push({
       roundNumber: i + 1,
-      previewUrl: track.previewUrl,
-      albumArt: track.albumArt || '',
+      previewUrl: getClipUrl(movieName, track.key),
+      albumArt: '',
       correctId: movieId(movieName),
       correctMovie: movieName,
-      correctTrack: trackName,
+      correctTrack: track.name,
       correctComposer: movie.composer,
-      correctYear: movie.year,
-      options
+      correctYear: movie.year
     });
   }
 
   if (rounds.length === 0) {
-    throw new Error('Could not generate any valid rounds. Check Deezer availability.');
+    throw new Error('Could not generate any valid rounds. Check yt-dlp/ffmpeg availability.');
   }
 
   // Re-number rounds in case some were skipped

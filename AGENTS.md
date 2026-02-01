@@ -14,6 +14,7 @@
 - `server/lastfm.js` wraps the Last.fm API for all-time top tracks.
 - `server/spotify.js` wraps the Spotify API (token management, playlist import, fallback).
 - `server/deezer.js` wraps the Deezer API for audio previews.
+- `server/audioCache.js` downloads/serves cached movie soundtrack clips (yt-dlp + ffmpeg) and prewarms on startup.
 - `server/answerMatcher.js` provides fuzzy matching for typed answers (Levenshtein distance, normalization).
 - `server/titleUtils.js` provides shared title cleaning helpers.
 - Shared config and deployment files are at repo root: `compose.yml`, `Dockerfile`, `.env.example`.
@@ -56,6 +57,7 @@
 - **Typed scoring**: Speed bonus tiers are +5 (<5s), +3 (<10s), +1 (<15s). Artist base 10, title base 15, combo +5. See `submitAnswer` in `server/gameManager.js`.
 - **Round timing**: Round ends at `clipDuration + answerTime` (answerTime is 10s for typed/movie, 5s for MCQ). See `getCurrentRound` in `server/gameManager.js` and `sendNextRound` in `server/index.js`.
 - **Movie soundtrack mode**: Uses typed input (not MCQ) to guess the movie/series name. Tracks are loaded from `server/movies.json` and searched on Deezer by `composer + trackName`. Players get 3 lives. See `server/movieQuiz.js` and movie handling in `server/gameManager.js`.
+- **Movie clip cache**: Movie mode uses local MP3 clips cached in `server/data/audio/`, served from `/audio`. Clips are prewarmed on server start via `audioCache.js`. Movies in `server/movies.json` use either a plain string (`"Track Name"`) or object with search override (`{ "name": "Track", "search": "Artist Track" }`). Clip selection uses 20s length and starts at ~30% of song duration but never before 20s. Configure via `MOVIE_CLIP_SECONDS`, `MOVIE_CLIP_START_PERCENT`, `MOVIE_CLIP_CONCURRENCY`, and `SERVER_URL`. Requires `yt-dlp` and `ffmpeg` (installed in Dockerfile).
 - **Game logging**: Each game logs rounds to `server/logs/games.jsonl` (JSON lines format) when the game starts. Includes timestamp, roomId, playerCount, categories, and track details (artist, title, year). File is ignored by git. See `server/gameLogger.js`.
 - **Lobby settings persistence**: When returning to lobby after a game, settings (categories, difficulty, mode, rounds) are preserved via `roomSettings` from the game context. See `Lobby.jsx` state initialization.
 - **Direct link join handling**: Join requests via direct links (`/join/:code`) are queued in `pendingJoinRef` if the socket isn't connected yet, then processed on the `connect` event. This prevents race conditions where users submit the join form before socket.io finishes connecting. See `GameContext.jsx`.
@@ -125,10 +127,16 @@ Quiz requests tracks for artist
 ### CLI Usage
 
 ```bash
+# Music cache (Last.fm/Spotify)
 node server/cache-warmer.js                    # Refresh missing/stale artists
 node server/cache-warmer.js --artist "Stromae" # Single artist
 node server/cache-warmer.js --refresh          # Force refresh all
 node server/cache-warmer.js --stats            # Show statistics
+
+# Movie audio cache (YouTube)
+node server/audioCache.js --warm               # Download missing clips (default)
+node server/audioCache.js --prune              # Remove clips not in movies.json
+node server/audioCache.js --stats              # Show cache statistics
 ```
 
 ### Configuration

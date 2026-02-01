@@ -53,6 +53,7 @@ npm test
 - 3 lives per round
 - 15 base points + speed bonus
 - Uses curated movie list from `server/movies.json`
+- Audio clips downloaded from YouTube (requires `yt-dlp` and `ffmpeg`)
 - No category or difficulty selection (uses built-in movie list)
 
 ## Host Settings
@@ -115,6 +116,7 @@ LASTFM_API_KEY=your_key
 - React + Vite + Tailwind CSS
 - Node.js + Express + Socket.io
 - Last.fm API (track ranking) + Spotify API (fallback, playlists) + Deezer API (audio previews)
+- yt-dlp + ffmpeg (movie soundtrack clips)
 - Docker
 
 ## Project Structure
@@ -136,6 +138,7 @@ quizzy/
 │   ├── quiz.js            # Track selection, decoys
 │   ├── movieQuiz.js       # Movie soundtrack quiz generator
 │   ├── movies.json        # Movie soundtrack list
+│   ├── audioCache.js      # Movie clip downloader (yt-dlp)
 │   ├── cache-provider.js  # Cache-first music provider
 │   ├── artistCache.js     # Local cache persistence
 │   ├── lastfm.js          # Last.fm API (track ranking)
@@ -147,9 +150,23 @@ quizzy/
 └── compose.yml
 ```
 
+## Cache Management
+
+```bash
+# Music cache (Last.fm/Spotify artists)
+node server/cache-warmer.js --stats            # Show statistics
+node server/cache-warmer.js                    # Refresh missing/stale artists
+node server/cache-warmer.js --refresh          # Force refresh all
+
+# Movie audio cache (YouTube clips)
+node server/audioCache.js --stats              # Show statistics
+node server/audioCache.js --warm               # Download missing clips
+node server/audioCache.js --prune              # Remove unused clips
+```
+
 ## Notes
 
-- Clip duration: 15 seconds
+- Clip duration: 15 seconds (music), 20 seconds (movies)
 - Each artist appears once per quiz
 - Release year shown on round reveal (from Spotify metadata)
 - Fuzzy matching: ~15% typo tolerance, must type 70%+ of answer, spaces optional
@@ -157,6 +174,7 @@ quizzy/
 - Loading screen shows track fetching progress
 - Non-host players see live settings updates in lobby
 - Rooms avoid repeating the same song across consecutive games when possible
+- Movie clips are cached in `server/data/audio/` and prewarmed on server start
 
 ---
 

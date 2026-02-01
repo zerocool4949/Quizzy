@@ -26,5 +26,8 @@ npm-debug.log*
 # Artist track cache (populated by cache-tracks.js)
 server/data/artists.json
 
+# Movie audio cache
+server/data/audio
+
 # Game logs
 server/logs/games.jsonl

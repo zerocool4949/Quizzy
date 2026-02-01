@@ -21,6 +21,9 @@ RUN npm run build --workspace=client
 FROM node:20-alpine AS production
 WORKDIR /app
 
+# System deps for movie clip cache
+RUN apk add --no-cache ffmpeg yt-dlp
+
 # Copy package files
 COPY package*.json ./
 COPY server/package.json ./server/

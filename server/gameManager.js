@@ -26,8 +26,11 @@ export async function startGame(code, onProgress = null) {
     // Movie mode uses separate quiz generator
     if (room.answerMode === 'movie') {
       const { getMovieQuizTracks } = await import('./movieQuiz.js');
+      const { getMovieClipSeconds } = await import('./audioCache.js');
+      room.clipDuration = getMovieClipSeconds();
       room.rounds = await getMovieQuizTracks(room.totalRounds, onProgress);
     } else {
+      room.clipDuration = 15;
       const excludeTrackIds = room.usedTrackIds ? Array.from(room.usedTrackIds) : [];
       room.rounds = await getQuizTracks(
         room.categoryIds,
@@ -85,7 +88,7 @@ export function getCurrentRound(code) {
     clipDuration: room.clipDuration,
     answerTime,
     startingLives,
-    options: (room.answerMode === 'mcq' || room.answerMode === 'movie') ? round.options : undefined
+    options: room.answerMode === 'mcq' ? round.options : undefined
   };
 }
 
