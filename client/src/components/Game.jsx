@@ -33,6 +33,7 @@ export default function Game() {
   const [typedInput, setTypedInput] = useState('');
   const [artistCorrect, setArtistCorrect] = useState(false);
   const [titleCorrect, setTitleCorrect] = useState(false);
+  const [movieCorrect, setMovieCorrect] = useState(false);
   const [lives, setLives] = useState(null);
   const [totalPoints, setTotalPoints] = useState(0);
   const [volume, setVolume] = useState(() => {
@@ -76,6 +77,7 @@ export default function Game() {
       setTypedInput('');
       setArtistCorrect(false);
       setTitleCorrect(false);
+      setMovieCorrect(false);
       setLives(currentRound?.startingLives ?? null);
       setTotalPoints(0);
     }
@@ -98,6 +100,19 @@ export default function Game() {
         setTotalPoints(answerResult.points);
       }
       // Clear input for next guess
+      setTypedInput('');
+    }
+    // Handle movie typed answer results
+    if (answerResult?.mode === 'movie') {
+      if (typeof answerResult.livesLeft === 'number') {
+        setLives(answerResult.livesLeft);
+      }
+      if (typeof answerResult.movieCorrect === 'boolean') {
+        setMovieCorrect(answerResult.movieCorrect);
+      }
+      if (typeof answerResult.points === 'number') {
+        setTotalPoints(answerResult.points);
+      }
       setTypedInput('');
     }
   }, [answerResult]);
@@ -282,17 +297,22 @@ export default function Game() {
           {gameResults.rounds && gameResults.rounds.length > 0 && (
             <div className="mb-8">
               <div className="flex items-center justify-between mb-4">
-                <h3 className="text-lg font-semibold text-slate-300">{t('game.songsPlayed')}</h3>
+                <h3 className="text-lg font-semibold text-slate-300">
+                  {gameResults.rounds[0]?.movie ? t('game.moviesPlayed') : t('game.songsPlayed')}
+                </h3>
                 <button
                   onClick={() => {
+                    const isMovieMode = gameResults.rounds[0]?.movie;
                     const text = gameResults.rounds
-                      .map((r, i) => `${i + 1}. ${r.artist} - ${r.title}`)
+                      .map((r, i) => isMovieMode
+                        ? `${i + 1}. ${r.movie} - ${r.track}`
+                        : `${i + 1}. ${r.artist} - ${r.title}`)
                       .join('\n');
                     const blob = new Blob([text], { type: 'text/plain' });
                     const url = URL.createObjectURL(blob);
                     const a = document.createElement('a');
                     a.href = url;
-                    a.download = 'quizzy-songs.txt';
+                    a.download = isMovieMode ? 'quizzy-movies.txt' : 'quizzy-songs.txt';
                     a.click();
                     URL.revokeObjectURL(url);
                   }}
@@ -307,7 +327,8 @@ export default function Game() {
               <div className="max-h-40 overflow-y-auto space-y-1 bg-slate-800/40 rounded-lg p-3">
                 {gameResults.rounds.map((round, index) => (
                   <div key={index} className="text-sm text-slate-300">
-                    <span className="text-slate-500">{index + 1}.</span> {round.artist} - {round.title}
+                    <span className="text-slate-500">{index + 1}.</span>{' '}
+                    {round.movie ? `${round.movie} - ${round.track}` : `${round.artist} - ${round.title}`}
                   </div>
                 ))}
               </div>
@@ -352,8 +373,20 @@ export default function Game() {
                 )}
               </div>
               <div className="text-center">
-                <p className="text-2xl sm:text-3xl font-bold text-teal-200">{roundResults.correctName}</p>
-                <p className="text-slate-300">{roundResults.correctArtist}</p>
+                {roundResults.correctMovie ? (
+                  <>
+                    <p className="text-2xl sm:text-3xl font-bold text-amber-200">{roundResults.correctMovie}</p>
+                    <p className="text-slate-300">{roundResults.correctTrack}</p>
+                    {roundResults.correctComposer && (
+                      <p className="text-slate-400 text-sm">{t('game.composedBy', { composer: roundResults.correctComposer })}</p>
+                    )}
+                  </>
+                ) : (
+                  <>
+                    <p className="text-2xl sm:text-3xl font-bold text-teal-200">{roundResults.correctName}</p>
+                    <p className="text-slate-300">{roundResults.correctArtist}</p>
+                  </>
+                )}
                 {roundResults.correctYear && (
                   <span className="inline-flex mt-3 px-2.5 py-1 rounded-full text-xs text-slate-300 bg-slate-800/70 border border-slate-700">
                     {roundResults.correctYear}
@@ -514,7 +547,9 @@ export default function Game() {
             </div>
           </div>
 
-          <p className="text-center text-slate-300 mb-4">{t('game.question')}</p>
+          <p className="text-center text-slate-300 mb-4">
+            {currentRound?.answerMode === 'movie' ? t('game.movieQuestion') : t('game.question')}
+          </p>
 
           {/* Spectator indicator */}
           {isSpectator && (
@@ -524,7 +559,7 @@ export default function Game() {
           )}
 
           {/* MCQ Mode */}
-          {!isSpectator && currentRound?.answerMode !== 'typed' && (
+          {!isSpectator && currentRound?.answerMode === 'mcq' && (
             <div className="grid grid-cols-1 gap-3">
               {currentRound?.options?.map((option) => {
                 const isSelected = myAnswer === option.id;
@@ -546,10 +581,103 @@ export default function Game() {
                     } ${myAnswer && !isSelected ? 'opacity-50' : ''}`}
                   >
                     <p className="font-semibold">{option.name}</p>
-                    <p className="text-sm text-slate-300">{option.artist}</p>
+                    {option.artist && <p className="text-sm text-slate-300">{option.artist}</p>}
                   </button>
                 );
               })}
+            </div>
+          )}
+
+          {/* Movie Typed Mode */}
+          {!isSpectator && currentRound?.answerMode === 'movie' && (
+            <div className="space-y-4">
+              {/* Status indicator for movie */}
+              <div className="flex justify-center mb-2">
+                <div className={`px-4 py-2 rounded-full text-sm ${
+                  movieCorrect ? 'bg-emerald-600/30 text-emerald-300' : 'bg-slate-800 text-slate-400'
+                }`}>
+                  {t('game.movieLabel')} {movieCorrect ? t('game.status.ok') : t('game.status.pending')}
+                </div>
+              </div>
+
+              {/* Lives display */}
+              {!movieCorrect && lives > 0 && (
+                <div className="flex justify-center gap-2 mb-2">
+                  {Array.from({ length: Math.max(lives, 0) }).map((_, i) => (
+                    <svg
+                      key={i}
+                      className="w-6 h-6 text-rose-400"
+                      fill="currentColor"
+                      viewBox="0 0 20 20"
+                    >
+                      <path
+                        fillRule="evenodd"
+                        d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z"
+                        clipRule="evenodd"
+                      />
+                    </svg>
+                  ))}
+                </div>
+              )}
+
+              {/* Points earned so far */}
+              {totalPoints > 0 && (
+                <div className="text-center text-emerald-300 text-sm">
+                  {t('game.pointsPlus', { points: totalPoints })}
+                </div>
+              )}
+
+              {/* Input for movie name */}
+              {!movieCorrect && lives > 0 && (
+                <div>
+                  <label className="block text-sm text-slate-400 mb-2">
+                    {t('game.typeMovieName')}
+                  </label>
+                  <form
+                    onSubmit={(e) => {
+                      e.preventDefault();
+                      if (!typedInput.trim()) return;
+                      submitTypedAnswer(null, typedInput.trim());
+                    }}
+                    className="flex gap-2"
+                  >
+                    <input
+                      type="text"
+                      value={typedInput}
+                      onChange={(e) => setTypedInput(e.target.value)}
+                      placeholder={t('game.typeYourAnswer')}
+                      className="flex-1 bg-slate-800 border border-slate-700 rounded-xl px-4 py-3 focus:outline-none focus:border-amber-400"
+                      autoFocus
+                    />
+                    <button
+                      type="submit"
+                      disabled={!typedInput.trim()}
+                      className="bg-amber-600 hover:bg-amber-500 text-white font-semibold px-6 py-3 rounded-xl transition-colors disabled:opacity-50"
+                    >
+                      {t('buttons.submit')}
+                    </button>
+                  </form>
+                </div>
+              )}
+
+              {/* Correct */}
+              {movieCorrect && (
+                <div className="text-center">
+                  <div className="p-4 rounded-xl bg-emerald-600/20">
+                    <p className="text-lg font-bold">{t('game.correct')}</p>
+                    <p className="text-emerald-300">{t('game.pointsPlus', { points: totalPoints })}</p>
+                  </div>
+                </div>
+              )}
+
+              {/* Out of lives */}
+              {lives === 0 && !movieCorrect && (
+                <div className="text-center">
+                  <div className="p-4 rounded-xl bg-rose-600/20">
+                    <p className="text-lg font-bold">{t('game.outOfLives')}</p>
+                  </div>
+                </div>
+              )}
             </div>
           )}
 

@@ -23,15 +23,21 @@ export async function startGame(code, onProgress = null) {
   if (activePlayers.length < 1) return { error: 'Need at least 1 player' };
 
   try {
-    const excludeTrackIds = room.usedTrackIds ? Array.from(room.usedTrackIds) : [];
-    room.rounds = await getQuizTracks(
-      room.categoryIds,
-      room.totalRounds,
-      room.difficulty,
-      room.musicProvider,
-      onProgress,
-      excludeTrackIds
-    );
+    // Movie mode uses separate quiz generator
+    if (room.answerMode === 'movie') {
+      const { getMovieQuizTracks } = await import('./movieQuiz.js');
+      room.rounds = await getMovieQuizTracks(room.totalRounds, onProgress);
+    } else {
+      const excludeTrackIds = room.usedTrackIds ? Array.from(room.usedTrackIds) : [];
+      room.rounds = await getQuizTracks(
+        room.categoryIds,
+        room.totalRounds,
+        room.difficulty,
+        room.musicProvider,
+        onProgress,
+        excludeTrackIds
+      );
+    }
     room.state = 'playing';
     room.currentRound = 0;
 
@@ -68,7 +74,7 @@ export function getCurrentRound(code) {
   room.roundEnded = false;
   room.answers.clear();
 
-  const answerTime = room.answerMode === 'typed' ? 10 : 5;
+  const answerTime = (room.answerMode === 'typed' || room.answerMode === 'movie') ? 10 : 5;
   const startingLives = room.difficulty === 3 ? 5 : 3;
 
   return {
@@ -79,7 +85,7 @@ export function getCurrentRound(code) {
     clipDuration: room.clipDuration,
     answerTime,
     startingLives,
-    options: room.answerMode === 'mcq' ? round.options : undefined
+    options: (room.answerMode === 'mcq' || room.answerMode === 'movie') ? round.options : undefined
   };
 }
 
@@ -97,7 +103,7 @@ export function submitAnswer(code, playerId, payload) {
   const timeTaken = (Date.now() - room.roundStartTime) / 1000;
 
   // MCQ MODE
-  if (room.answerMode !== 'typed') {
+  if (room.answerMode === 'mcq') {
     const answerId = payload?.answerId ?? payload;
     if (room.answers.has(playerId)) return null;
 
@@ -135,6 +141,79 @@ export function submitAnswer(code, playerId, payload) {
       speedBonus,
       totalScore: player.score,
       streak: player.streak
+    };
+  }
+
+  // MOVIE TYPED MODE
+  if (room.answerMode === 'movie') {
+    const text = payload?.text;
+    if (!text) return null;
+
+    let existing = room.answers.get(playerId);
+
+    if (!existing) {
+      existing = {
+        mode: 'movie',
+        finished: false,
+        lives: 3,
+        movieCorrect: false,
+        points: 0
+      };
+      room.answers.set(playerId, existing);
+    }
+
+    if (existing.finished) return null;
+
+    const correctMovie = round.correctMovie;
+
+    function getSpeedBonus(time) {
+      if (time < 5) return 5;
+      if (time < 10) return 3;
+      if (time < 15) return 1;
+      return 0;
+    }
+
+    const matchesMovie = looselyMatches(text, correctMovie);
+
+    // Wrong guess - lose a life
+    if (!matchesMovie) {
+      existing.lives--;
+      if (existing.lives <= 0) {
+        player.streak = 0;
+        existing.finished = true;
+      }
+      room.answers.set(playerId, existing);
+
+      return {
+        mode: 'movie',
+        isCorrect: false,
+        movieCorrect: false,
+        points: 0,
+        totalScore: player.score,
+        streak: player.streak,
+        livesLeft: existing.lives
+      };
+    }
+
+    // Correct!
+    const speedBonus = getSpeedBonus(timeTaken);
+    const pointsAwarded = 15 + speedBonus;
+    player.score += pointsAwarded;
+    player.streak++;
+    existing.movieCorrect = true;
+    existing.points = pointsAwarded;
+    existing.finished = true;
+    room.answers.set(playerId, existing);
+
+    return {
+      mode: 'movie',
+      isCorrect: true,
+      movieCorrect: true,
+      points: pointsAwarded,
+      speedBonus,
+      totalScore: player.score,
+      streak: player.streak,
+      livesLeft: existing.lives
     };
   }
 
@@ -297,28 +376,47 @@ export function getRoundResults(code) {
   // Only include active players in results
   const activePlayers = room.players.filter(p => p.role === 'player');
 
-  return {
+  // Base result with common fields
+  const result = {
     correctId: round.correctId,
-    correctName: round.correctName,
-    correctArtist: round.correctArtist,
-    correctYear: round.correctYear,
     albumArt: round.albumArt,
     playerResults: activePlayers
       .map(p => {
         const answer = room.answers.get(p.id);
-        const isCorrectTyped = answer?.mode === 'typed' ? !!(answer.artistCorrect && answer.titleCorrect) : false;
+        let isCorrect = false;
+        if (answer?.mode === 'mcq') {
+          isCorrect = answer?.isCorrect || false;
+        } else if (answer?.mode === 'movie') {
+          isCorrect = answer?.movieCorrect || false;
+        } else if (answer?.mode === 'typed') {
+          isCorrect = !!(answer?.artistCorrect && answer?.titleCorrect);
+        }
 
         return {
           id: p.id,
           name: p.name,
           score: p.score,
           roundPoints: answer?.points || 0,
-          isCorrect: answer?.mode === 'mcq' ? (answer?.isCorrect || false) : isCorrectTyped,
+          isCorrect,
           streak: p.streak
         };
       })
       .sort((a, b) => b.score - a.score)
   };
+
+  // Add mode-specific fields
+  if (room.answerMode === 'movie') {
+    result.correctMovie = round.correctMovie;
+    result.correctTrack = round.correctTrack;
+    result.correctComposer = round.correctComposer;
+    result.correctYear = round.correctYear;
+  } else {
+    result.correctName = round.correctName;
+    result.correctArtist = round.correctArtist;
+    result.correctYear = round.correctYear;
+  }
+
+  return result;
 }
 
 export function nextRound(code) {
@@ -356,10 +454,19 @@ export function getGameResults(code) {
       name: p.name,
       score: p.score
     })),
-    rounds: room.rounds.map(r => ({
-      artist: r.correctArtist,
-      title: r.correctName
-    }))
+    rounds: room.rounds.map(r => {
+      if (room.answerMode === 'movie') {
+        return {
+          movie: r.correctMovie,
+          track: r.correctTrack,
+          composer: r.correctComposer
+        };
+      }
+      return {
+        artist: r.correctArtist,
+        title: r.correctName
+      };
+    })
   };
 }
 

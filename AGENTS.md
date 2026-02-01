@@ -6,6 +6,8 @@
 - `client/src/locales/` contains translation JSON files; update `client/src/i18n.jsx` when adding a new language.
 - `server/` is the Express + Socket.io backend; game flow is in `server/gameManager.js`.
 - `server/quiz.js` handles quiz generation, artist sampling, and track fetching via `music.js`.
+- `server/movieQuiz.js` handles movie soundtrack quiz generation (separate from music quiz).
+- `server/movies.json` contains the curated list of movies/series with their soundtrack tracks.
 - `server/music.js` re-exports the active provider (`cache-provider.js`).
 - `server/cache-provider.js` is the main music provider (cache-first with Spotify fallback + Deezer previews).
 - `server/artistCache.js` handles local cache persistence (`server/data/artists.json`).
@@ -52,7 +54,8 @@
 - **Title cleaning**: Track titles are cleaned by removing parenthetical content `(...)`, bracketed content `[...]`, and everything after ` - ` (which typically contains metadata like "Remastered", "Live", "Acoustic", etc.). Cache stores original titles; cleaning is applied at Deezer search (`server/cache-provider.js`) and output (`server/quiz.js`). See `cleanTitle` in `server/titleUtils.js`.
 - **Typed answer matching**: Uses Levenshtein distance with ~15% typo tolerance and word-level matching for multi-word answers. Accents and punctuation are normalized. See `server/answerMatcher.js`.
 - **Typed scoring**: Speed bonus tiers are +5 (<5s), +3 (<10s), +1 (<15s). Artist base 10, title base 15, combo +5. See `submitAnswer` in `server/gameManager.js`.
-- **Round timing**: Round ends at `clipDuration + answerTime` (answerTime is 10s for typed, 5s for MCQ). See `getCurrentRound` in `server/gameManager.js` and `sendNextRound` in `server/index.js`.
+- **Round timing**: Round ends at `clipDuration + answerTime` (answerTime is 10s for typed/movie, 5s for MCQ). See `getCurrentRound` in `server/gameManager.js` and `sendNextRound` in `server/index.js`.
+- **Movie soundtrack mode**: Uses typed input (not MCQ) to guess the movie/series name. Tracks are loaded from `server/movies.json` and searched on Deezer by `composer + trackName`. Players get 3 lives. See `server/movieQuiz.js` and movie handling in `server/gameManager.js`.
 - **Game logging**: Each game logs rounds to `server/logs/games.jsonl` (JSON lines format) when the game starts. Includes timestamp, roomId, playerCount, categories, and track details (artist, title, year). File is ignored by git. See `server/gameLogger.js`.
 - **Lobby settings persistence**: When returning to lobby after a game, settings (categories, difficulty, mode, rounds) are preserved via `roomSettings` from the game context. See `Lobby.jsx` state initialization.
 - **Direct link join handling**: Join requests via direct links (`/join/:code`) are queued in `pendingJoinRef` if the socket isn't connected yet, then processed on the `connect` event. This prevents race conditions where users submit the join form before socket.io finishes connecting. See `GameContext.jsx`.

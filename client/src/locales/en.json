@@ -46,8 +46,10 @@
     "categoriesLabel": "Categories",
     "mode": {
       "typed": "Type Answer",
-      "mcq": "Multiple Choice"
+      "mcq": "Multiple Choice",
+      "movie": "Movie Soundtrack"
     },
+    "movieModeDescription": "Guess the movie from its soundtrack!",
     "difficultyLabel": {
       "easy": "Easy",
       "medium": "Medium",
@@ -95,9 +97,15 @@
     "songEnded": "Song ended",
     "clip": "{seconds}s clip",
     "question": "What song is this?",
+    "movieQuestion": "Which movie is this soundtrack from?",
+    "composedBy": "Composed by {composer}",
+    "moviesPlayed": "Movies Played",
     "spectating": "You are spectating this game",
     "artistLabel": "Artist",
     "titleLabel": "Title",
+    "movieLabel": "Movie",
+    "typeMovieName": "Type the movie or series name",
+    "correct": "Correct!",
     "status": {
       "ok": "OK",
       "pending": "?"

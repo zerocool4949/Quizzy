@@ -21,7 +21,7 @@ npm test
 
 - **Multiplayer** - 6-character room codes, up to 8 players, shareable invite links
 - **Spectator mode** - Watch games without playing, join mid-game, switch roles in lobby
-- **Two game modes** - Multiple choice or typed answers
+- **Three game modes** - Multiple choice, typed answers, or movie soundtrack
 - **Typed mode** - Single input, guess artist/title in any order, type both at once for bonus
 - **Fuzzy matching** - Typo tolerance, accent insensitive, partial matches
 - **Configurable** - Rounds, difficulty, music categories, import Spotify playlists
@@ -46,6 +46,14 @@ npm test
 - Title: 15 points + speed bonus
 - Combo: +5 bonus if both are found
 - Speed bonus: +5 (<5s), +3 (<10s), +1 (<15s)
+
+### Movie Soundtrack
+- Guess which movie or TV show a soundtrack belongs to
+- Type the movie/series name (fuzzy matching)
+- 3 lives per round
+- 15 base points + speed bonus
+- Uses curated movie list from `server/movies.json`
+- No category or difficulty selection (uses built-in movie list)
 
 ## Host Settings
 
@@ -126,6 +134,8 @@ quizzy/
 │   ├── roomManager.js     # Room CRUD, settings
 │   ├── answerMatcher.js   # Fuzzy matching for typed mode
 │   ├── quiz.js            # Track selection, decoys
+│   ├── movieQuiz.js       # Movie soundtrack quiz generator
+│   ├── movies.json        # Movie soundtrack list
 │   ├── cache-provider.js  # Cache-first music provider
 │   ├── artistCache.js     # Local cache persistence
 │   ├── lastfm.js          # Last.fm API (track ranking)

@@ -1,0 +1,232 @@
+{
+  "Pirates des Caraïbes": {
+    "tracks": ["He's a Pirate", "The Medallion Calls", "Jack Sparrow"],
+    "composer": "Hans Zimmer",
+    "year": 2003
+  },
+  "Jurassic Park": {
+    "tracks": ["Theme from Jurassic Park", "Welcome to Jurassic Park"],
+    "composer": "John Williams",
+    "year": 1993
+  },
+  "Titanic": {
+    "tracks": ["My Heart Will Go On", "Hymn to the Sea"],
+    "composer": "James Horner",
+    "year": 1997
+  },
+  "Le Seigneur des Anneaux": {
+    "tracks": ["Concerning Hobbits", "The Fellowship"],
+    "composer": "Howard Shore",
+    "year": 2001
+  },
+  "Harry Potter": {
+    "tracks": ["Hedwig's Theme"],
+    "composer": "John Williams",
+    "year": 2001
+  },
+  "Star Wars": {
+    "tracks": ["Main Title", "Imperial March"],
+    "composer": "John Williams",
+    "year": 1977
+  },
+  "Retour vers le futur": {
+    "tracks": ["Back to the Future Theme"],
+    "composer": "Alan Silvestri",
+    "year": 1985
+  },
+  "Forrest Gump": {
+    "tracks": ["Feather Theme"],
+    "composer": "Alan Silvestri",
+    "year": 1994
+  },
+  "Inception": {
+    "tracks": ["Time"],
+    "composer": "Hans Zimmer",
+    "year": 2010
+  },
+  "Interstellar": {
+    "tracks": ["Cornfield Chase", "No Time for Caution"],
+    "composer": "Hans Zimmer",
+    "year": 2014
+  },
+  "Gladiator": {
+    "tracks": ["Now We Are Free"],
+    "composer": "Hans Zimmer",
+    "year": 2000
+  },
+  "Le Roi Lion": {
+    "tracks": ["Circle of Life", "Can You Feel the Love Tonight"],
+    "composer": "Hans Zimmer",
+    "year": 1994
+  },
+  "Avengers": {
+    "tracks": ["The Avengers Theme"],
+    "composer": "Alan Silvestri",
+    "year": 2012
+  },
+  "Batman": {
+    "tracks": ["Why So Serious"],
+    "composer": "Hans Zimmer",
+    "year": 2008
+  },
+  "Matrix": {
+    "tracks": ["Clubbed to Death"],
+    "composer": "Don Davis",
+    "year": 1999
+  },
+  "Rocky": {
+    "tracks": ["Gonna Fly Now"],
+    "composer": "Bill Conti",
+    "year": 1976
+  },
+  "Indiana Jones": {
+    "tracks": ["Raiders March"],
+    "composer": "John Williams",
+    "year": 1981
+  },
+  "E.T": {
+    "tracks": ["Flying Theme"],
+    "composer": "John Williams",
+    "year": 1982
+  },
+  "Terminator": {
+    "tracks": ["Main Theme"],
+    "composer": "Brad Fiedel",
+    "year": 1991
+  },
+  "Avatar": {
+    "tracks": ["I See You"],
+    "composer": "James Horner",
+    "year": 2009
+  },
+  "Les Dents de la mer": {
+    "tracks": ["Main Theme"],
+    "composer": "John Williams",
+    "year": 1975
+  },
+  "Mission Impossible": {
+    "tracks": ["Mission Impossible Theme"],
+    "composer": "Lalo Schifrin",
+    "year": 1996
+  },
+  "Top Gun": {
+    "tracks": ["Danger Zone", "Take My Breath Away"],
+    "composer": "Harold Faltermeyer",
+    "year": 1986
+  },
+  "Shrek": {
+    "tracks": ["All Star"],
+    "composer": "Harry Gregson-Williams",
+    "year": 2001
+  },
+  "Mad Max": {
+    "tracks": ["Brothers in Arms"],
+    "composer": "Junkie XL",
+    "year": 2015
+  },
+  "La Liste de Schindler": {
+    "tracks": ["Theme from Schindler's List"],
+    "composer": "John Williams",
+    "year": 1993
+  },
+  "Le Parrain": {
+    "tracks": ["The Godfather Waltz"],
+    "composer": "Nino Rota",
+    "year": 1972
+  },
+  "Pulp Fiction": {
+    "tracks": ["Misirlou"],
+    "composer": "Various",
+    "year": 1994
+  },
+  "Fight Club": {
+    "tracks": ["Where Is My Mind"],
+    "composer": "Dust Brothers",
+    "year": 1999
+  },
+  "Le Cinquième Élément": {
+    "tracks": ["The Diva Dance"],
+    "composer": "Éric Serra",
+    "year": 1997
+  },
+  "La Casa de Papel": {
+    "tracks": ["Bella Ciao"],
+    "composer": "Various",
+    "year": 2017
+  },
+  "Breaking Bad": {
+    "tracks": ["Main Theme"],
+    "composer": "Dave Porter",
+    "year": 2008
+  },
+  "Game of Thrones": {
+    "tracks": ["Main Title"],
+    "composer": "Ramin Djawadi",
+    "year": 2011
+  },
+  "The Last of Us": {
+    "tracks": ["The Last of Us Theme"],
+    "composer": "Gustavo Santaolalla",
+    "year": 2023
+  },
+  "Stranger Things": {
+    "tracks": ["Main Theme"],
+    "composer": "Kyle Dixon & Michael Stein",
+    "year": 2016
+  },
+  "The Walking Dead": {
+    "tracks": ["Main Theme"],
+    "composer": "Bear McCreary",
+    "year": 2010
+  },
+  "The Boys": {
+    "tracks": ["Main Theme"],
+    "composer": "Christopher Lennertz",
+    "year": 2019
+  },
+  "Westworld": {
+    "tracks": ["Main Theme"],
+    "composer": "Ramin Djawadi",
+    "year": 2016
+  },
+  "Friends": {
+    "tracks": ["I'll Be There for You"],
+    "composer": "The Rembrandts",
+    "year": 1994
+  },
+  "Scrubs": {
+    "tracks": ["Superman"],
+    "composer": "Lazlo Bane",
+    "year": 2001
+  },
+  "Malcolm": {
+    "tracks": ["Boss of Me"],
+    "composer": "They Might Be Giants",
+    "year": 2000
+  },
+  "Futurama": {
+    "tracks": ["Main Theme"],
+    "composer": "Christopher Tyng",
+    "year": 1999
+  },
+  "Rick et Morty": {
+    "tracks": ["Main Theme"],
+    "composer": "Ryan Elder",
+    "year": 2013
+  },
+  "Arcane": {
+    "tracks": ["Enemy"],
+    "composer": "Imagine Dragons",
+    "year": 2021
+  },
+  "Severance": {
+    "tracks": ["Main Theme"],
+    "composer": "Theodore Shapiro",
+    "year": 2022
+  },
+  "Succession": {
+    "tracks": ["Main Title Theme"],
+    "composer": "Nicholas Britell",
+    "year": 2018
+  }
+}

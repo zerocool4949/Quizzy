@@ -31,7 +31,7 @@ export function createRoom(hostId, hostName) {
     state: 'lobby', // lobby, playing, finished
     categoryIds: ['top-hits'],
     clipDuration: 15,
-    answerMode: 'typed', // 'mcq' | 'typed'
+    answerMode: 'typed', // 'mcq' | 'typed' | 'movie'
     difficulty: 1, // 1=easy, 2=medium, 3=hard
     musicProvider: 'spotify',
     rounds: [],
