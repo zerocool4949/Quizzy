@@ -132,9 +132,6 @@ export default function Home() {
         </form>
       )}
 
-      <div className="mt-8 text-center text-slate-400 text-sm animate-fade-up">
-        <p className="mt-1">{t('app.createdBy')}</p>
-      </div>
     </div>
   );
 }

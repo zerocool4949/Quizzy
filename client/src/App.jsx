@@ -2,6 +2,7 @@ import { Routes, Route } from 'react-router-dom'
 import Home from './components/Home'
 import Lobby from './components/Lobby'
 import Game from './components/Game'
+import Footer from './components/Footer'
 
 export default function App() {
   return (
@@ -12,6 +13,7 @@ export default function App() {
         <Route path="/lobby/:code" element={<Lobby />} />
         <Route path="/game/:code" element={<Game />} />
       </Routes>
+      <Footer />
     </div>
   )
 }

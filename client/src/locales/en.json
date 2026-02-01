@@ -2,7 +2,8 @@
   "app": {
     "title": "Quizzy",
     "tagline": "The multiplayer music quiz game",
-    "createdBy": "Created by Raph"
+    "createdBy": "Created by Raph",
+    "contributorsLabel": "Contributors:"
   },
   "language": {
     "label": "Language",
