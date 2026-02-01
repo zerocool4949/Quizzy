@@ -94,11 +94,6 @@
     "composer": "Brad Fiedel",
     "year": 1991
   },
-  "Avatar": {
-    "tracks": ["I See You"],
-    "composer": "James Horner",
-    "year": 2009
-  },
   "Les Dents de la mer": {
     "tracks": ["Main Theme"],
     "composer": "John Williams",
@@ -228,5 +223,91 @@
     "tracks": ["Main Title Theme"],
     "composer": "Nicholas Britell",
     "year": 2018
+  },
+  "Le Fabuleux Destin d'Amélie Poulain": {
+    "tracks": ["Comptine d'un autre été : L'après-midi"],
+    "composer": "Yann Tiersen",
+    "year": 2001
+  },
+    "La La Land": {
+    "tracks": ["City of Stars"],
+    "composer": "Justin Hurwitz",
+    "year": 2016
+  },
+    "Whiplash": {
+    "tracks": ["Whiplash"],
+    "composer": "Hank Levy",
+    "year": 2014
+  },
+    "Le Voyage de Chihiro": {
+    "tracks": ["One Summer's Day"],
+    "composer": "Joe Hisaishi",
+    "year": 2001
+  },
+    "La Panthère rose": {
+    "tracks": ["The Pink Panther Theme"],
+    "composer": "Henry Mancini",
+    "year": 1963
+  },
+    "Ghostbusters": {
+    "tracks": ["Ghostbusters"],
+    "composer": "Ray Parker Jr.",
+    "year": 1984
+  },
+    "Il était une fois dans l'Ouest": {
+    "tracks": ["The Man with the Harmonica"],
+    "composer": "Ennio Morricone",
+    "year": 1968
+  },
+    "Kill Bill": {
+    "tracks": ["Battle Without Honor or Humanity"],
+    "composer": "Tomoyasu Hotei",
+    "year": 2003
+  },
+    "Requiem for a Dream": {
+    "tracks": ["Lux Aeterna"],
+    "composer": "Clint Mansell",
+    "year": 2000
+  },
+    "Iron Man": {
+    "tracks": ["Iron Man"],
+    "composer": "Ramin Djawadi",
+    "year": 2008
+  },
+    "Wall-E": {
+    "tracks": ["Define Dancing"],
+    "composer": "Thomas Newman",
+    "year": 2008
+  },
+  "Toy Story": {
+    "tracks": ["You've Got a Friend in Me"],
+    "composer": "Randy Newman",
+    "year": 1995
+  },
+  "Coco": {
+    "tracks": ["Remember Me (Ernesto de la Cruz)"],
+    "composer": "Kristen Anderson-Lopez & Robert Lopez",
+    "year": 2017
+  },
+  "La Reine des neiges": {
+    "tracks": ["Let It Go"],
+    "composer": "Kristen Anderson-Lopez & Robert Lopez",
+    "year": 2013
+  },
+  "Aladdin": {
+    "tracks": ["A Whole New World"],
+    "composer": "Alan Menken",
+    "year": 1992
+  },
+  "La Petite Sirène": {
+    "tracks": ["Under the Sea"],
+    "composer": "Alan Menken",
+    "year": 1989
+  },
+  "La Belle et la Bête": {
+    "tracks": ["Beauty and the Beast"],
+    "composer": "Alan Menken",
+    "year": 1991
   }
+
 }
