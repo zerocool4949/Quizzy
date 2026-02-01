@@ -3,6 +3,7 @@ import { useParams } from 'react-router-dom';
 import { useGame } from '../context/GameContext';
 import LanguageSwitcher from './LanguageSwitcher';
 import { useI18n } from '../i18n';
+import Footer from './Footer';
 
 export default function Home() {
   const { code: urlCode } = useParams();
@@ -132,6 +133,7 @@ export default function Home() {
         </form>
       )}
 
+      <Footer />
     </div>
   );
 }
