@@ -28,7 +28,8 @@ export async function startGame(code, onProgress = null) {
       const { getMovieQuizTracks } = await import('./movieQuiz.js');
       const { getMovieClipSeconds } = await import('./audioCache.js');
       room.clipDuration = getMovieClipSeconds();
-      room.rounds = await getMovieQuizTracks(room.totalRounds, onProgress);
+      const excludeMovieIds = room.usedMovieIds ? Array.from(room.usedMovieIds) : [];
+      room.rounds = await getMovieQuizTracks(room.totalRounds, onProgress, excludeMovieIds);
     } else {
       room.clipDuration = 15;
       const excludeTrackIds = room.usedTrackIds ? Array.from(room.usedTrackIds) : [];
@@ -50,10 +51,14 @@ export async function startGame(code, onProgress = null) {
       p.streak = 0;
     });
 
-    // Track used songs to avoid repeats across games
+    // Track used songs/movies to avoid repeats across games
     room.rounds.forEach(round => {
       if (round?.correctId) {
-        room.usedTrackIds.add(round.correctId);
+        if (room.answerMode === 'movie') {
+          room.usedMovieIds.add(round.correctId);
+        } else {
+          room.usedTrackIds.add(round.correctId);
+        }
       }
     });
 

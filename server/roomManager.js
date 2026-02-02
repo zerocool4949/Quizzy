@@ -39,7 +39,8 @@ export function createRoom(hostId, hostName) {
     totalRounds: 10,
     roundStartTime: null,
     answers: new Map(),
-    usedTrackIds: new Set()
+    usedTrackIds: new Set(),
+    usedMovieIds: new Set()
   };
 
   rooms.set(code, room);

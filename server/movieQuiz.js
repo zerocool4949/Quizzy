@@ -51,7 +51,7 @@ function normalizeTrack(track) {
   };
 }
 
-export async function getMovieQuizTracks(count = 10, onProgress = null) {
+export async function getMovieQuizTracks(count = 10, onProgress = null, excludeMovieIds = []) {
   const movies = loadMovies();
   const movieNames = Object.keys(movies);
 
@@ -65,8 +65,21 @@ export async function getMovieQuizTracks(count = 10, onProgress = null) {
 
   const rounds = [];
 
+  // Filter out previously used movies if possible
+  const excludeSet = new Set((excludeMovieIds || []).map(id => String(id)));
+  const freshMovies = excludeSet.size > 0
+    ? movieNames.filter(name => !excludeSet.has(movieId(name)))
+    : movieNames;
+
+  // Use fresh movies if enough, otherwise allow repeats
+  let moviesToUse = freshMovies;
+  if (freshMovies.length < count) {
+    console.log(`[MovieQuiz] Not enough fresh movies (${freshMovies.length}/${count}), allowing repeats`);
+    moviesToUse = movieNames;
+  }
+
   // Shuffle movies and cycle through them
-  const shuffledMovies = shuffle([...movieNames]);
+  const shuffledMovies = shuffle([...moviesToUse]);
   let movieIndex = 0;
 
   for (let i = 0; i < count; i++) {
