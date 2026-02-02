@@ -1,5 +1,5 @@
-{
-  "Pirates des Caraïbes": {
+﻿{
+  "Pirates des CaraÃ¯bes": {
     "tracks": ["He's a Pirate"],
     "composer": "Hans Zimmer",
     "year": 2003
@@ -139,9 +139,9 @@
     "composer": "Dust Brothers",
     "year": 1999
   },
-  "Le Cinquième Élément": {
+  "Le CinquiÃ¨me Ã‰lÃ©ment": {
     "tracks": ["The Diva Dance"],
-    "composer": "Éric Serra",
+    "composer": "Ã‰ric Serra",
     "year": 1997
   },
   "La Casa de Papel": {
@@ -224,8 +224,8 @@
     "composer": "Nicholas Britell",
     "year": 2018
   },
-  "Le Fabuleux Destin d'Amélie Poulain": {
-    "tracks": ["Comptine d'un autre été : L'après-midi"],
+  "Le Fabuleux Destin d'AmÃ©lie Poulain": {
+    "tracks": ["Comptine d'un autre Ã©tÃ© : L'aprÃ¨s-midi"],
     "composer": "Yann Tiersen",
     "year": 2001
   },
@@ -244,7 +244,7 @@
     "composer": "Joe Hisaishi",
     "year": 2001
   },
-  "La Panthère rose": {
+  "La PanthÃ¨re rose": {
     "tracks": ["The Pink Panther Theme"],
     "composer": "Henry Mancini",
     "year": 1963
@@ -254,7 +254,7 @@
     "composer": "Ray Parker Jr.",
     "year": 1984
   },
-  "Il était une fois dans l'Ouest": {
+  "Il Ã©tait une fois dans l'Ouest": {
     "tracks": ["The Man with the Harmonica"],
     "composer": "Ennio Morricone",
     "year": 1968
@@ -294,14 +294,149 @@
     "composer": "Alan Menken",
     "year": 1992
   },
-  "La Petite Sirène": {
+  "La Petite SirÃ¨ne": {
     "tracks": ["Under the Sea"],
     "composer": "Alan Menken",
     "year": 1989
   },
-  "La Belle et la Bête": {
+  "La Belle et la BÃªte": {
     "tracks": ["Beauty and the Beast"],
     "composer": "Alan Menken",
     "year": 1991
+  },
+  "Mulan": {
+    "tracks": ["Reflection"],
+    "composer": "Jerry Goldsmith",
+    "year": 1998
+  },
+  "Hercules": {
+    "tracks": ["Go the Distance"],
+    "composer": "Alan Menken",
+    "year": 1997
+  },
+  "Pocahontas": {
+    "tracks": ["Colors of the Wind"],
+    "composer": "Alan Menken",
+    "year": 1995
+  },
+  "Tarzan": {
+    "tracks": ["You'll Be in My Heart"],
+    "composer": "Phil Collins",
+    "year": 1999
+  },
+  "Cinderella": {
+    "tracks": ["A Dream Is a Wish Your Heart Makes"],
+    "composer": "Mack David",
+    "year": 1950
+  },
+  "Snow White": {
+    "tracks": ["Heigh-Ho"],
+    "composer": "Frank Churchill",
+    "year": 1937
+  },
+  "Peter Pan": {
+    "tracks": ["You Can Fly"],
+    "composer": "Sammy Cahn",
+    "year": 1953
+  },
+  "The Princess and the Frog": {
+    "tracks": ["Almost There"],
+    "composer": "Randy Newman",
+    "year": 2009
+  },
+  "Moana": {
+    "tracks": ["How Far I'll Go"],
+    "composer": "Lin-Manuel Miranda",
+    "year": 2016
+  },
+  "Tangled": {
+    "tracks": ["I See the Light"],
+    "composer": "Alan Menken",
+    "year": 2010
+  },
+  "Zootopia": {
+    "tracks": ["Try Everything"],
+    "composer": "Various",
+    "year": 2016
+  },
+  "Encanto": {
+    "tracks": ["We Don't Talk About Bruno"],
+    "composer": "Lin-Manuel Miranda",
+    "year": 2021
+  },
+  "Lilo & Stitch": {
+    "tracks": ["Hawaiian Roller Coaster Ride"],
+    "composer": "Various",
+    "year": 2002
+  },
+  "Finding Nemo": {
+    "tracks": ["Nemo Egg (Main Title)"],
+    "composer": "Thomas Newman",
+    "year": 2003
+  },
+  "The Incredibles": {
+    "tracks": ["The Incredits"],
+    "composer": "Michael Giacchino",
+    "year": 2004
+  },
+  "Ratatouille": {
+    "tracks": ["Le Festin"],
+    "composer": "Michael Giacchino",
+    "year": 2007
+  },
+  "Up": {
+    "tracks": ["Married Life"],
+    "composer": "Michael Giacchino",
+    "year": 2009
+  },
+  "Monsters, Inc.": {
+    "tracks": ["If I Didn't Have You"],
+    "composer": "Randy Newman",
+    "year": 2001
+  },
+  "Inside Out": {
+    "tracks": ["Bundle of Joy"],
+    "composer": "Michael Giacchino",
+    "year": 2015
+  },
+  "Soul": {
+    "tracks": ["Epiphany"],
+    "composer": "Trent Reznor & Atticus Ross",
+    "year": 2020
+  },
+  "How to Train Your Dragon": {
+    "tracks": ["Test Drive"],
+    "composer": "John Powell",
+    "year": 2010
+  },
+  "The Prince of Egypt": {
+    "tracks": ["When You Believe"],
+    "composer": "Hans Zimmer",
+    "year": 1998
+  },
+  "My Neighbor Totoro": {
+    "tracks": ["My Neighbor Totoro"],
+    "composer": "Joe Hisaishi",
+    "year": 1988
+  },
+  "Kiki's Delivery Service": {
+    "tracks": ["A Town with an Ocean View"],
+    "composer": "Joe Hisaishi",
+    "year": 1989
+  },
+  "Despicable Me": {
+    "tracks": ["Despicable Me"],
+    "composer": "Pharrell Williams",
+    "year": 2010
+  },
+  "Madagascar": {
+    "tracks": ["I Like to Move It"],
+    "composer": "Various",
+    "year": 2005
+  },
+  "Kung Fu Panda": {
+    "tracks": ["Hero"],
+    "composer": "Hans Zimmer",
+    "year": 2008
   }
 }
