@@ -1,4 +1,4 @@
-{
+﻿{
   "Pirates des Caraibes": {
     "tracks": ["He's a Pirate"],
     "composer": "Hans Zimmer",
@@ -205,7 +205,7 @@
     "year": 1999
   },
   "Rick et Morty": {
-    "tracks": ["Main Theme"],
+    "tracks": ["Intro"],
     "composer": "Ryan Elder",
     "year": 2013
   },
@@ -338,11 +338,6 @@
     "tracks": ["You Can Fly"],
     "composer": "Sammy Cahn",
     "year": 1953
-  },
-  "La Princesse et la Grenouille": {
-    "tracks": ["Almost There"],
-    "composer": "Randy Newman",
-    "year": 2009
   },
   "Vaiana": {
     "tracks": ["How Far I'll Go"],
