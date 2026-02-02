@@ -433,5 +433,15 @@
     "tracks": ["Hero"],
     "composer": "Hans Zimmer",
     "year": 2008
+  },
+  "South Park": {
+    "tracks": ["South Park Theme"],
+    "composer": "Primus",
+    "year": 1997
+  },
+  "Les Simpson": {
+    "tracks": ["The Simpsons Theme"],
+    "composer": "Danny Elfman",
+    "year": 1989
   }
 }
