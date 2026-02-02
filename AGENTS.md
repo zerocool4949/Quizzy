@@ -150,6 +150,7 @@ Behavior:
 - If Spotify credentials missing → Cache only (no fallback)
 
 ## Docker Notes
-- `compose.yml` mounts three volumes: `imported-playlists.json`, `logs/` directory, and `data/` directory (artist cache + movie audio clips).
+- `compose.yml` mounts four volumes: `imported-playlists.json`, `movies.json` (read-only), `logs/` directory, and `data/` directory (artist cache + movie audio clips).
+- `movies.json` is mounted separately so it can be updated without rebuilding the image (just `git pull && docker compose restart`).
 - Dockerfile installs `yt-dlp` and `ffmpeg` for movie clip downloads.
 - Images are built via GitHub Actions on tag push and stored in `ghcr.io/zerocool4949/quizzy`.

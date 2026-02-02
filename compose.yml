@@ -16,6 +16,8 @@ services:
     volumes:
       # Imported playlists persist across rebuilds (install-specific)
       - ./server/imported-playlists.json:/app/server/imported-playlists.json
+      # Movie list (edit without rebuild)
+      - ./server/movies.json:/app/server/movies.json:ro
       # Game logs
       - ./server/logs:/app/server/logs
       # Artist cache
