@@ -219,6 +219,8 @@ export async function warmMovieClips(movies) {
     }
   }
 
+  const total = queue.length;
+  let processed = 0;
   let cached = 0;
   let downloaded = 0;
   let failed = 0;
@@ -230,11 +232,19 @@ export async function warmMovieClips(movies) {
         if (!next) return;
         try {
           const result = await ensureMovieClip(next.movieName, next.trackKey, next.query);
-          if (result.status === 'cached') cached++;
-          if (result.status === 'downloaded') downloaded++;
+          processed++;
+          if (result.status === 'cached') {
+            cached++;
+            console.log(`[Movie Clips] ${processed}/${total} cached: ${next.movieName} - ${next.trackKey}`);
+          }
+          if (result.status === 'downloaded') {
+            downloaded++;
+            console.log(`[Movie Clips] ${processed}/${total} downloaded: ${next.movieName} - ${next.trackKey}`);
+          }
         } catch (error) {
+          processed++;
           failed++;
-          console.error(`[Movie Clips] Failed: ${next.movieName} - ${next.trackKey}: ${error.message}`);
+          console.error(`[Movie Clips] ${processed}/${total} failed: ${next.movieName} - ${next.trackKey}: ${error.message}`);
         }
       }
     })()
