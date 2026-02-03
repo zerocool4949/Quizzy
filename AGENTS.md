@@ -2,6 +2,8 @@
 
 ## Project Structure & Module Organization
 - `client/` hosts the React + Vite frontend; main UI lives in `client/src/components/`.
+- `client/src/components/game/` contains split Game screen components (GameLoading, GameCountdown, GameFinished, RoundResults, LiveScoreboard, MCQAnswers, TypedAnswers, MovieAnswers).
+- `client/src/components/ErrorBoundary.jsx` provides React error boundary for crash handling.
 - `client/src/context/` holds shared game state and socket wiring.
 - `client/src/locales/` contains translation JSON files; update `client/src/i18n.jsx` when adding a new language.
 - `server/` is the Express + Socket.io backend; game flow is in `server/gameManager.js`.
@@ -10,13 +12,14 @@
 - `server/movies.json` contains the curated list of movies/series with their soundtrack tracks.
 - `server/music.js` re-exports the active provider (`cache-provider.js`).
 - `server/cache-provider.js` is the main music provider (cache-first with Spotify fallback + Deezer previews).
-- `server/artistCache.js` handles local cache persistence (`server/data/artists.json`).
-- `server/lastfm.js` wraps the Last.fm API for all-time top tracks.
-- `server/spotify.js` wraps the Spotify API (token management, playlist import, fallback).
-- `server/deezer.js` wraps the Deezer API for audio previews.
+- `server/artistCache.js` handles local cache persistence (`server/data/artists.json`) with in-memory caching.
+- `server/lastfm.js` wraps the Last.fm API for all-time top tracks (30s timeout).
+- `server/spotify.js` wraps the Spotify API (token management, playlist import, fallback, 30s timeout).
+- `server/deezer.js` wraps the Deezer API for audio previews (30s timeout).
 - `server/audioCache.js` downloads/serves cached movie soundtrack clips (yt-dlp + ffmpeg) and prewarms on startup.
 - `server/answerMatcher.js` provides fuzzy matching for typed answers (Levenshtein distance, normalization).
 - `server/titleUtils.js` provides shared title cleaning helpers.
+- `server/validation.js` provides input sanitization for player names, room codes, and answers.
 - Shared config and deployment files are at repo root: `compose.yml`, `Dockerfile`, `.env.example`.
 
 ## Build, Test, and Development Commands
@@ -50,6 +53,12 @@
 - Do not commit secrets; use `.env` and keep API credentials local.
 
 ## Key Implementation Details
+- **Room codes**: 4-character alphanumeric codes (no ambiguous chars like 0/O/1/I). Generated in `server/roomManager.js`.
+- **Room TTL cleanup**: Rooms auto-delete after 2 hours of inactivity. Cleanup runs every 5 minutes. See `roomManager.js`.
+- **Input sanitization**: Player names, room codes, and typed answers are sanitized to prevent XSS. See `server/validation.js`.
+- **API timeouts**: All external API calls (Spotify, Last.fm, Deezer) have 30-second timeouts via `fetchWithTimeout()`.
+- **In-memory artist cache**: Artist track data is loaded once at startup and kept in memory. File reads only happen on cold start, significantly improving quiz generation performance. See `server/artistCache.js`.
+- **Error boundary**: React errors are caught by `ErrorBoundary.jsx` and display a friendly error page instead of crashing.
 - **Playlist sampling**: Artists are sampled equally from each playlist (not proportionally by size) to ensure smaller playlists get fair representation. Sample size scales with round count (`rounds * 3` buffer, minimum 60). See `getMultiCategoryTracks` in `server/quiz.js`.
 - **Spotify token caching**: The Spotify access token is cached with a promise lock to prevent parallel fetches when concurrent requests arrive. See `getAccessToken` in `server/spotify.js`.
 - **Title cleaning**: Track titles are cleaned by removing parenthetical content `(...)`, bracketed content `[...]`, and everything after ` - ` (which typically contains metadata like "Remastered", "Live", "Acoustic", etc.). Cache stores original titles; cleaning is applied at Deezer search (`server/cache-provider.js`) and output (`server/quiz.js`). See `cleanTitle` in `server/titleUtils.js`.
@@ -97,8 +106,8 @@ Quiz requests tracks for artist
 
 ### Cache Modules
 
-- `server/artistCache.js` - Cache persistence (get/save/isStale/prune)
-- `server/lastfm.js` - Last.fm API wrapper for all-time top tracks
+- `server/artistCache.js` - Cache persistence with in-memory layer (get/save/isStale/prune). Loads from disk once at startup, stays in memory for fast lookups.
+- `server/lastfm.js` - Last.fm API wrapper for all-time top tracks (30s timeout)
 - `server/cache-provider.js` - Integration layer (wraps cache + Spotify + Deezer)
 - `server/cache-warmer.js` - Startup warming, auto-prune, and CLI tool
 
@@ -152,5 +161,6 @@ Behavior:
 ## Docker Notes
 - `compose.yml` mounts four volumes: `imported-playlists.json`, `movies.json` (read-only), `logs/` directory, and `data/` directory (artist cache + movie audio clips).
 - `movies.json` is mounted separately so it can be updated without rebuilding the image (just `git pull && docker compose restart`).
-- Dockerfile installs `yt-dlp` and `ffmpeg` for movie clip downloads.
+- Dockerfile installs `yt-dlp` via pip (for latest updates when YouTube changes) and `ffmpeg` via Alpine packages.
+- To update yt-dlp when movie clips break: `docker compose build --no-cache && docker compose up -d`.
 - Images are built via GitHub Actions on tag push and stored in `ghcr.io/zerocool4949/quizzy`.
