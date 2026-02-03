@@ -6,6 +6,20 @@ dotenv.config();
 
 const LASTFM_API_KEY = process.env.LASTFM_API_KEY;
 const BASE_URL = 'https://ws.audioscrobbler.com/2.0/';
+const FETCH_TIMEOUT_MS = 30000; // 30 second timeout
+
+// Fetch with timeout
+async function fetchWithTimeout(url, options = {}, timeoutMs = FETCH_TIMEOUT_MS) {
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+
+  try {
+    const response = await fetch(url, { ...options, signal: controller.signal });
+    return response;
+  } finally {
+    clearTimeout(timeoutId);
+  }
+}
 
 // Check if Last.fm is configured
 export function isConfigured() {
@@ -27,7 +41,7 @@ export async function getArtistTopTracks(artistName, limit = 10) {
     `&limit=${limit}`;
 
   try {
-    const response = await fetch(url);
+    const response = await fetchWithTimeout(url);
     const data = await response.json();
 
     if (data.error) {
@@ -60,7 +74,7 @@ export async function getArtistInfo(artistName) {
     `&format=json`;
 
   try {
-    const response = await fetch(url);
+    const response = await fetchWithTimeout(url);
     const data = await response.json();
 
     if (data.error) {

@@ -3,6 +3,7 @@
 import { getQuizTracks } from './quiz.js';
 import { normalize, looselyMatches } from './answerMatcher.js';
 import { logGame } from './gameLogger.js';
+import { sanitizeAnswerText } from './validation.js';
 import {
   createRoom,
   joinRoom,
@@ -154,7 +155,7 @@ export function submitAnswer(code, playerId, payload) {
 
   // MOVIE TYPED MODE
   if (room.answerMode === 'movie') {
-    const text = payload?.text;
+    const text = sanitizeAnswerText(payload?.text);
     if (!text) return null;
 
     let existing = room.answers.get(playerId);
@@ -226,7 +227,7 @@ export function submitAnswer(code, playerId, payload) {
   }
 
   // TYPED MODE
-  const text = payload?.text;
+  const text = sanitizeAnswerText(payload?.text);
   if (!text) return null;
 
   let existing = room.answers.get(playerId);

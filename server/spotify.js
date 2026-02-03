@@ -4,6 +4,21 @@
 import dotenv from 'dotenv';
 dotenv.config();
 
+const FETCH_TIMEOUT_MS = 30000; // 30 second timeout
+
+// Fetch with timeout
+async function fetchWithTimeout(url, options = {}, timeoutMs = FETCH_TIMEOUT_MS) {
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+
+  try {
+    const response = await fetch(url, { ...options, signal: controller.signal });
+    return response;
+  } finally {
+    clearTimeout(timeoutId);
+  }
+}
+
 let accessToken = null;
 let tokenExpiry = 0;
 let tokenPromise = null; // Prevents parallel token fetches
@@ -31,7 +46,7 @@ async function getAccessToken() {
   // Start fetching and store the promise
   tokenPromise = (async () => {
     try {
-      const response = await fetch('https://accounts.spotify.com/api/token', {
+      const response = await fetchWithTimeout('https://accounts.spotify.com/api/token', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/x-www-form-urlencoded',
@@ -99,7 +114,7 @@ export async function searchTracks(query, limit = 50) {
   if (!token) return [];
 
   try {
-    const response = await fetch(
+    const response = await fetchWithTimeout(
       `https://api.spotify.com/v1/search?q=${encodeURIComponent(query)}&type=track&limit=${limit}`,
       {
         headers: { 'Authorization': `Bearer ${token}` }
@@ -129,7 +144,7 @@ export async function searchTracksMeta(query, limit = 50) {
   if (!token) return [];
 
   try {
-    const response = await fetch(
+    const response = await fetchWithTimeout(
       `https://api.spotify.com/v1/search?q=${encodeURIComponent(query)}&type=track&limit=${limit}`,
       {
         headers: { 'Authorization': `Bearer ${token}` }
@@ -158,7 +173,7 @@ export async function searchArtistId(artistName) {
   if (!token) return null;
 
   try {
-    const response = await fetch(
+    const response = await fetchWithTimeout(
       `https://api.spotify.com/v1/search?q=${encodeURIComponent(artistName)}&type=artist&limit=1`,
       {
         headers: { 'Authorization': `Bearer ${token}` }
@@ -181,7 +196,7 @@ export async function getArtistTopTracks(artistId, limit = 10) {
 
   try {
     // Spotify requires a market parameter for top tracks
-    const response = await fetch(
+    const response = await fetchWithTimeout(
       `https://api.spotify.com/v1/artists/${artistId}/top-tracks?market=US`,
       {
         headers: { 'Authorization': `Bearer ${token}` }
@@ -239,7 +254,7 @@ export async function getPlaylist(playlistIdOrUrl) {
 
   try {
     // Get playlist metadata
-    const playlistRes = await fetch(
+    const playlistRes = await fetchWithTimeout(
       `https://api.spotify.com/v1/playlists/${playlistId}`,
       { headers: { 'Authorization': `Bearer ${token}` } }
     );
@@ -263,7 +278,7 @@ export async function getPlaylist(playlistIdOrUrl) {
     // If playlist has more tracks, fetch them (Spotify paginates at 100)
     let nextUrl = playlist.tracks?.next;
     while (nextUrl) {
-      const nextRes = await fetch(nextUrl, {
+      const nextRes = await fetchWithTimeout(nextUrl, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       if (!nextRes.ok) break;
@@ -301,7 +316,7 @@ export async function getTrackId(artist, trackName) {
   const query = `track:${trackName} artist:${artist}`;
 
   try {
-    const response = await fetch(
+    const response = await fetchWithTimeout(
       `https://api.spotify.com/v1/search?q=${encodeURIComponent(query)}&type=track&limit=1`,
       { headers: { 'Authorization': `Bearer ${token}` } }
     );
@@ -327,7 +342,7 @@ export async function getTrackYear(artist, trackName) {
   const query = `track:${safeTrack} artist:${safeArtist}`;
 
   try {
-    const response = await fetch(
+    const response = await fetchWithTimeout(
       `https://api.spotify.com/v1/search?q=${encodeURIComponent(query)}&type=track&limit=1`,
       { headers: { 'Authorization': `Bearer ${token}` } }
     );

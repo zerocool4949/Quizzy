@@ -1,5 +1,20 @@
 // Deezer API wrapper - free, no auth required, reliable 30-second previews
 
+const FETCH_TIMEOUT_MS = 30000; // 30 second timeout
+
+// Fetch with timeout
+async function fetchWithTimeout(url, options = {}, timeoutMs = FETCH_TIMEOUT_MS) {
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+
+  try {
+    const response = await fetch(url, { ...options, signal: controller.signal });
+    return response;
+  } finally {
+    clearTimeout(timeoutId);
+  }
+}
+
 // Clean up track titles by removing parenthetical content and common suffixes
 function cleanTitle(title) {
   if (!title) return '';
@@ -30,7 +45,7 @@ function mapTrack(t) {
 // Search for tracks by query
 export async function searchTracks(query, limit = 50) {
   try {
-    const response = await fetch(
+    const response = await fetchWithTimeout(
       `https://api.deezer.com/search?q=${encodeURIComponent(query)}&limit=${limit}`
     );
 
@@ -53,7 +68,7 @@ export async function searchTracks(query, limit = 50) {
 // Search for an artist and return their Deezer ID
 export async function searchArtistId(artistName) {
   try {
-    const res = await fetch(
+    const res = await fetchWithTimeout(
       `https://api.deezer.com/search/artist?q=${encodeURIComponent(artistName)}&limit=1`
     );
     if (!res.ok) return null;
@@ -68,7 +83,7 @@ export async function searchArtistId(artistName) {
 // Get top tracks for an artist by their Deezer ID
 export async function getArtistTopTracks(artistId, limit = 10) {
   try {
-    const res = await fetch(`https://api.deezer.com/artist/${artistId}/top?limit=${limit}`);
+    const res = await fetchWithTimeout(`https://api.deezer.com/artist/${artistId}/top?limit=${limit}`);
     if (!res.ok) return [];
 
     const data = await res.json();
@@ -83,7 +98,7 @@ export async function getArtistTopTracks(artistId, limit = 10) {
 // Check if Deezer is available
 export async function isAvailable() {
   try {
-    const res = await fetch('https://api.deezer.com/search?q=test&limit=1');
+    const res = await fetchWithTimeout('https://api.deezer.com/search?q=test&limit=1');
     return res.ok;
   } catch {
     return false;

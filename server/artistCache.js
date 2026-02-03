@@ -1,5 +1,5 @@
 // Artist track cache - persists top tracks per artist to avoid API spam
-// Data stored in server/data/artists.json
+// Data stored in server/data/artists.json with in-memory caching
 
 import { readFileSync, writeFileSync, existsSync, mkdirSync } from 'fs';
 import { fileURLToPath } from 'url';
@@ -16,20 +16,34 @@ if (!existsSync(DATA_DIR)) {
   mkdirSync(DATA_DIR, { recursive: true });
 }
 
-// Load cache from disk
+// In-memory cache - loaded once at startup, updated on writes
+let memoryCache = null;
+
+// Load cache from disk (only if not already in memory)
 function loadCache() {
+  if (memoryCache !== null) {
+    return memoryCache;
+  }
+
   try {
-    if (!existsSync(CACHE_FILE)) return {};
-    return JSON.parse(readFileSync(CACHE_FILE, 'utf-8'));
+    if (!existsSync(CACHE_FILE)) {
+      memoryCache = {};
+      return memoryCache;
+    }
+    memoryCache = JSON.parse(readFileSync(CACHE_FILE, 'utf-8'));
+    console.log(`[Artist Cache] Loaded ${Object.keys(memoryCache).length} artists into memory`);
+    return memoryCache;
   } catch (err) {
     console.error('Failed to load artist cache:', err.message);
-    return {};
+    memoryCache = {};
+    return memoryCache;
   }
 }
 
-// Save cache to disk
+// Save cache to disk and update memory
 function saveCache(cache) {
   try {
+    memoryCache = cache;
     writeFileSync(CACHE_FILE, JSON.stringify(cache, null, 2), 'utf-8');
     return true;
   } catch (err) {
@@ -37,6 +51,9 @@ function saveCache(cache) {
     return false;
   }
 }
+
+// Initialize cache on module load
+loadCache();
 
 // Get cached tracks for an artist
 // Returns { tracks, source, lastUpdated } or null if not cached
