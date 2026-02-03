@@ -7,6 +7,49 @@ import { ensureMovieClip, getClipUrl } from './audioCache.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
+// Fetch movie poster from iTunes (no API key needed)
+async function fetchMoviePoster(movieName, year) {
+  try {
+    const query = year ? `${movieName} ${year}` : movieName;
+    const url = `https://itunes.apple.com/search?term=${encodeURIComponent(query)}&entity=movie&limit=3`;
+
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 5000); // 5s timeout
+
+    const response = await fetch(url, { signal: controller.signal });
+    clearTimeout(timeoutId);
+
+    if (!response.ok) return '';
+
+    const data = await response.json();
+
+    // Find best match (prefer exact title match)
+    const results = data.results || [];
+    const normalizedMovie = movieName.toLowerCase();
+
+    // Try to find exact match first
+    let match = results.find(r =>
+      r.trackName?.toLowerCase() === normalizedMovie ||
+      r.collectionName?.toLowerCase() === normalizedMovie
+    );
+
+    // Fall back to first result
+    if (!match && results.length > 0) {
+      match = results[0];
+    }
+
+    if (match?.artworkUrl100) {
+      // Get higher resolution (replace 100x100 with 600x600)
+      return match.artworkUrl100.replace('100x100', '600x600');
+    }
+
+    return '';
+  } catch (error) {
+    // Silently fail - poster is optional
+    return '';
+  }
+}
+
 let moviesCache = null;
 
 export function loadMovies() {
@@ -123,10 +166,13 @@ export async function getMovieQuizTracks(count = 10, onProgress = null, excludeM
       continue;
     }
 
+    // Fetch movie poster from iTunes (non-blocking, optional)
+    const poster = await fetchMoviePoster(movieName, movie.year);
+
     rounds.push({
       roundNumber: i + 1,
       previewUrl: getClipUrl(movieName, track.key),
-      albumArt: '',
+      albumArt: poster,
       correctId: movieId(movieName),
       correctMovie: movieName,
       correctTrack: track.name,
