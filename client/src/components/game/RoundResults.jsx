@@ -34,6 +34,14 @@ export default function RoundResults({ roundResults, answerResult, isSpectator }
                     <p className="text-slate-400 text-sm">{t('game.composedBy', { composer: roundResults.correctComposer })}</p>
                   )}
                 </>
+              ) : roundResults.correctGame ? (
+                <>
+                  <p className="text-2xl sm:text-3xl font-bold text-purple-200">{roundResults.correctGame}</p>
+                  <p className="text-slate-300">{roundResults.correctTrack}</p>
+                  {roundResults.correctComposer && (
+                    <p className="text-slate-400 text-sm">{t('game.composedBy', { composer: roundResults.correctComposer })}</p>
+                  )}
+                </>
               ) : (
                 <>
                   <p className="text-2xl sm:text-3xl font-bold text-teal-200">{roundResults.correctName}</p>

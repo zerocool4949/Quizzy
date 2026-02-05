@@ -31,6 +31,12 @@ export async function startGame(code, onProgress = null) {
       room.clipDuration = getMovieClipSeconds();
       const excludeMovieIds = room.usedMovieIds ? Array.from(room.usedMovieIds) : [];
       room.rounds = await getMovieQuizTracks(room.totalRounds, onProgress, excludeMovieIds);
+    } else if (room.answerMode === 'videogame') {
+      const { getVideogameQuizTracks } = await import('./videogameQuiz.js');
+      const { getMovieClipSeconds } = await import('./audioCache.js');
+      room.clipDuration = getMovieClipSeconds();
+      const excludeGameIds = room.usedVideogameIds ? Array.from(room.usedVideogameIds) : [];
+      room.rounds = await getVideogameQuizTracks(room.totalRounds, onProgress, excludeGameIds);
     } else {
       room.clipDuration = 15;
       const excludeTrackIds = room.usedTrackIds ? Array.from(room.usedTrackIds) : [];
@@ -57,6 +63,8 @@ export async function startGame(code, onProgress = null) {
       if (round?.correctId) {
         if (room.answerMode === 'movie') {
           room.usedMovieIds.add(round.correctId);
+        } else if (room.answerMode === 'videogame') {
+          room.usedVideogameIds.add(round.correctId);
         } else {
           room.usedTrackIds.add(round.correctId);
         }
@@ -83,7 +91,7 @@ export function getCurrentRound(code) {
   room.roundEnded = false;
   room.answers.clear();
 
-  const answerTime = (room.answerMode === 'typed' || room.answerMode === 'movie') ? 10 : 5;
+  const answerTime = (room.answerMode === 'typed' || room.answerMode === 'movie' || room.answerMode === 'videogame') ? 10 : 5;
   const startingLives = room.difficulty === 3 ? 5 : 3;
 
   return {
@@ -218,6 +226,79 @@ export function submitAnswer(code, playerId, payload) {
       mode: 'movie',
       isCorrect: true,
       movieCorrect: true,
+      points: pointsAwarded,
+      speedBonus,
+      totalScore: player.score,
+      streak: player.streak,
+      livesLeft: existing.lives
+    };
+  }
+
+  // VIDEOGAME TYPED MODE
+  if (room.answerMode === 'videogame') {
+    const text = sanitizeAnswerText(payload?.text);
+    if (!text) return null;
+
+    let existing = room.answers.get(playerId);
+
+    if (!existing) {
+      existing = {
+        mode: 'videogame',
+        finished: false,
+        lives: 3,
+        videogameCorrect: false,
+        points: 0
+      };
+      room.answers.set(playerId, existing);
+    }
+
+    if (existing.finished) return null;
+
+    const correctGame = round.correctGame;
+
+    function getSpeedBonus(time) {
+      if (time < 5) return 5;
+      if (time < 10) return 3;
+      if (time < 15) return 1;
+      return 0;
+    }
+
+    const matchesGame = looselyMatches(text, correctGame);
+
+    // Wrong guess - lose a life
+    if (!matchesGame) {
+      existing.lives--;
+      if (existing.lives <= 0) {
+        player.streak = 0;
+        existing.finished = true;
+      }
+      room.answers.set(playerId, existing);
+
+      return {
+        mode: 'videogame',
+        isCorrect: false,
+        videogameCorrect: false,
+        points: 0,
+        totalScore: player.score,
+        streak: player.streak,
+        livesLeft: existing.lives
+      };
+    }
+
+    // Correct!
+    const speedBonus = getSpeedBonus(timeTaken);
+    const pointsAwarded = 15 + speedBonus;
+    player.score += pointsAwarded;
+    player.streak++;
+    existing.videogameCorrect = true;
+    existing.points = pointsAwarded;
+    existing.finished = true;
+    room.answers.set(playerId, existing);
+
+    return {
+      mode: 'videogame',
+      isCorrect: true,
+      videogameCorrect: true,
       points: pointsAwarded,
       speedBonus,
       totalScore: player.score,
@@ -397,6 +478,8 @@ export function getRoundResults(code) {
           isCorrect = answer?.isCorrect || false;
         } else if (answer?.mode === 'movie') {
           isCorrect = answer?.movieCorrect || false;
+        } else if (answer?.mode === 'videogame') {
+          isCorrect = answer?.videogameCorrect || false;
         } else if (answer?.mode === 'typed') {
           isCorrect = !!(answer?.artistCorrect && answer?.titleCorrect);
         }
@@ -416,6 +499,11 @@ export function getRoundResults(code) {
   // Add mode-specific fields
   if (room.answerMode === 'movie') {
     result.correctMovie = round.correctMovie;
+    result.correctTrack = round.correctTrack;
+    result.correctComposer = round.correctComposer;
+    result.correctYear = round.correctYear;
+  } else if (room.answerMode === 'videogame') {
+    result.correctGame = round.correctGame;
     result.correctTrack = round.correctTrack;
     result.correctComposer = round.correctComposer;
     result.correctYear = round.correctYear;
@@ -467,6 +555,13 @@ export function getGameResults(code) {
       if (room.answerMode === 'movie') {
         return {
           movie: r.correctMovie,
+          track: r.correctTrack,
+          composer: r.correctComposer
+        };
+      }
+      if (room.answerMode === 'videogame') {
+        return {
+          game: r.correctGame,
           track: r.correctTrack,
           composer: r.correctComposer
         };

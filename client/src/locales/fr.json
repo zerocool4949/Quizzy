@@ -48,9 +48,11 @@
     "mode": {
       "typed": "Réponse écrite",
       "mcq": "Choix multiple",
-      "movie": "Bande Originale"
+      "movie": "Bande Originale",
+      "videogame": "BO Jeu Vidéo"
     },
     "movieModeDescription": "Devinez le film à partir de sa bande originale !",
+    "videogameModeDescription": "Devinez le jeu vidéo à partir de sa bande originale !",
     "difficultyLabel": {
       "easy": "Facile",
       "medium": "Moyen",
@@ -99,13 +101,17 @@
     "clip": "extrait de {seconds}s",
     "question": "Quelle chanson est-ce ?",
     "movieQuestion": "De quel film vient cette bande originale ?",
+    "videogameQuestion": "De quel jeu vidéo vient cette bande originale ?",
     "composedBy": "Composé par {composer}",
     "moviesPlayed": "Films joués",
+    "videogamesPlayed": "Jeux vidéo joués",
     "spectating": "Vous êtes spectateur de cette partie",
     "artistLabel": "Artiste",
     "titleLabel": "Titre",
     "movieLabel": "Film",
+    "videogameLabel": "Jeu",
     "typeMovieName": "Tapez le nom du film ou de la série",
+    "typeVideogameName": "Tapez le nom du jeu vidéo",
     "correct": "Correct !",
     "status": {
       "ok": "OK",

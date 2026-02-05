@@ -10,7 +10,8 @@ import {
   LiveScoreboard,
   MCQAnswers,
   TypedAnswers,
-  MovieAnswers
+  MovieAnswers,
+  VideogameAnswers
 } from './game'
 
 export default function Game() {
@@ -44,6 +45,7 @@ export default function Game() {
   const [artistCorrect, setArtistCorrect] = useState(false)
   const [titleCorrect, setTitleCorrect] = useState(false)
   const [movieCorrect, setMovieCorrect] = useState(false)
+  const [videogameCorrect, setVideogameCorrect] = useState(false)
   const [lives, setLives] = useState(null)
   const [totalPoints, setTotalPoints] = useState(0)
   const [volume, setVolume] = useState(() => {
@@ -88,6 +90,7 @@ export default function Game() {
       setArtistCorrect(false)
       setTitleCorrect(false)
       setMovieCorrect(false)
+      setVideogameCorrect(false)
       setLives(currentRound?.startingLives ?? null)
       setTotalPoints(0)
     }
@@ -105,6 +108,12 @@ export default function Game() {
     if (answerResult?.mode === 'movie') {
       if (typeof answerResult.livesLeft === 'number') setLives(answerResult.livesLeft)
       if (typeof answerResult.movieCorrect === 'boolean') setMovieCorrect(answerResult.movieCorrect)
+      if (typeof answerResult.points === 'number') setTotalPoints(answerResult.points)
+      setTypedInput('')
+    }
+    if (answerResult?.mode === 'videogame') {
+      if (typeof answerResult.livesLeft === 'number') setLives(answerResult.livesLeft)
+      if (typeof answerResult.videogameCorrect === 'boolean') setVideogameCorrect(answerResult.videogameCorrect)
       if (typeof answerResult.points === 'number') setTotalPoints(answerResult.points)
       setTypedInput('')
     }
@@ -303,7 +312,7 @@ export default function Game() {
             </div>
 
             <p className="text-center text-slate-300 mb-4">
-              {currentRound?.answerMode === 'movie' ? t('game.movieQuestion') : t('game.question')}
+              {currentRound?.answerMode === 'movie' ? t('game.movieQuestion') : currentRound?.answerMode === 'videogame' ? t('game.videogameQuestion') : t('game.question')}
             </p>
 
             {/* Spectator indicator */}
@@ -328,6 +337,17 @@ export default function Game() {
                 typedInput={typedInput}
                 setTypedInput={setTypedInput}
                 movieCorrect={movieCorrect}
+                lives={lives}
+                totalPoints={totalPoints}
+                submitTypedAnswer={submitTypedAnswer}
+              />
+            )}
+
+            {!isSpectator && currentRound?.answerMode === 'videogame' && (
+              <VideogameAnswers
+                typedInput={typedInput}
+                setTypedInput={setTypedInput}
+                videogameCorrect={videogameCorrect}
                 lives={lives}
                 totalPoints={totalPoints}
                 submitTypedAnswer={submitTypedAnswer}

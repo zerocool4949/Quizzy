@@ -25,7 +25,7 @@ export function sanitizeRoomCode(code) {
 
 // Validate answer mode
 export function isValidAnswerMode(mode) {
-  return ['mcq', 'typed', 'movie'].includes(mode);
+  return ['mcq', 'typed', 'movie', 'videogame'].includes(mode);
 }
 
 // Validate difficulty (1-3)

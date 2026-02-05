@@ -51,21 +51,24 @@ export default function GameFinished({ gameResults, isHost, playAgain, leaveGame
           <div className="mb-8">
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-lg font-semibold text-slate-300">
-                {gameResults.rounds[0]?.movie ? t('game.moviesPlayed') : t('game.songsPlayed')}
+                {gameResults.rounds[0]?.movie ? t('game.moviesPlayed') : gameResults.rounds[0]?.game ? t('game.videogamesPlayed') : t('game.songsPlayed')}
               </h3>
               <button
                 onClick={() => {
                   const isMovieMode = gameResults.rounds[0]?.movie
+                  const isVideogameMode = gameResults.rounds[0]?.game
                   const text = gameResults.rounds
                     .map((r, i) => isMovieMode
                       ? `${i + 1}. ${r.movie} - ${r.track}`
+                      : isVideogameMode
+                      ? `${i + 1}. ${r.game} - ${r.track}`
                       : `${i + 1}. ${r.artist} - ${r.title}`)
                     .join('\n')
                   const blob = new Blob([text], { type: 'text/plain' })
                   const url = URL.createObjectURL(blob)
                   const a = document.createElement('a')
                   a.href = url
-                  a.download = isMovieMode ? 'quizzy-movies.txt' : 'quizzy-songs.txt'
+                  a.download = isMovieMode ? 'quizzy-movies.txt' : isVideogameMode ? 'quizzy-videogames.txt' : 'quizzy-songs.txt'
                   a.click()
                   URL.revokeObjectURL(url)
                 }}
@@ -81,7 +84,7 @@ export default function GameFinished({ gameResults, isHost, playAgain, leaveGame
               {gameResults.rounds.map((round, index) => (
                 <div key={index} className="text-sm text-slate-300">
                   <span className="text-slate-500">{index + 1}.</span>{' '}
-                  {round.movie ? `${round.movie} - ${round.track}` : `${round.artist} - ${round.title}`}
+                  {round.movie ? `${round.movie} - ${round.track}` : round.game ? `${round.game} - ${round.track}` : `${round.artist} - ${round.title}`}
                 </div>
               ))}
             </div>

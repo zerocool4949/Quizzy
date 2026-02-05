@@ -49,7 +49,7 @@ export function createRoom(hostId, hostName) {
     state: 'lobby', // lobby, playing, finished
     categoryIds: ['top-hits'],
     clipDuration: 15,
-    answerMode: 'typed', // 'mcq' | 'typed' | 'movie'
+    answerMode: 'typed', // 'mcq' | 'typed' | 'movie' | 'videogame'
     difficulty: 1, // 1=easy, 2=medium, 3=hard
     musicProvider: 'spotify',
     rounds: [],
@@ -59,6 +59,7 @@ export function createRoom(hostId, hostName) {
     answers: new Map(),
     usedTrackIds: new Set(),
     usedMovieIds: new Set(),
+    usedVideogameIds: new Set(),
     lastActivity: Date.now()
   };
 

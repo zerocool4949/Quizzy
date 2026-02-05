@@ -48,9 +48,11 @@
     "mode": {
       "typed": "Type Answer",
       "mcq": "Multiple Choice",
-      "movie": "Movie Soundtrack"
+      "movie": "Movie Soundtrack",
+      "videogame": "Game Soundtrack"
     },
     "movieModeDescription": "Guess the movie from its soundtrack!",
+    "videogameModeDescription": "Guess the video game from its soundtrack!",
     "difficultyLabel": {
       "easy": "Easy",
       "medium": "Medium",
@@ -99,13 +101,17 @@
     "clip": "{seconds}s clip",
     "question": "What song is this?",
     "movieQuestion": "Which movie is this soundtrack from?",
+    "videogameQuestion": "Which video game is this soundtrack from?",
     "composedBy": "Composed by {composer}",
     "moviesPlayed": "Movies Played",
+    "videogamesPlayed": "Video Games Played",
     "spectating": "You are spectating this game",
     "artistLabel": "Artist",
     "titleLabel": "Title",
     "movieLabel": "Movie",
+    "videogameLabel": "Game",
     "typeMovieName": "Type the movie or series name",
+    "typeVideogameName": "Type the video game name",
     "correct": "Correct!",
     "status": {
       "ok": "OK",

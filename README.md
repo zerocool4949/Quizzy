@@ -21,7 +21,7 @@ npm test
 
 - **Multiplayer** - 6-character room codes, up to 8 players, shareable invite links
 - **Spectator mode** - Watch games without playing, join mid-game, switch roles in lobby
-- **Three game modes** - Multiple choice, typed answers, or movie soundtrack
+- **Four game modes** - Multiple choice, typed answers, movie soundtrack, or video game soundtrack
 - **Typed mode** - Single input, guess artist/title in any order, type both at once for bonus
 - **Fuzzy matching** - Typo tolerance, accent insensitive, partial matches
 - **Configurable** - Rounds, difficulty, music categories, import Spotify playlists
@@ -55,6 +55,15 @@ npm test
 - Uses curated movie list from `server/movies.json`
 - Audio clips downloaded from YouTube (requires `yt-dlp` and `ffmpeg`)
 - No category or difficulty selection (uses built-in movie list)
+
+### Video Game Soundtrack
+- Guess which video game a soundtrack belongs to
+- Type the game name (fuzzy matching)
+- 3 lives per round
+- 15 base points + speed bonus
+- Uses curated game list from `server/videogames.json`
+- Audio clips downloaded from YouTube (requires `yt-dlp` and `ffmpeg`)
+- No category or difficulty selection (uses built-in game list)
 
 ## Host Settings
 
@@ -116,7 +125,7 @@ LASTFM_API_KEY=your_key
 - React + Vite + Tailwind CSS
 - Node.js + Express + Socket.io
 - Last.fm API (track ranking) + Spotify API (fallback, playlists) + Deezer API (audio previews)
-- yt-dlp + ffmpeg (movie soundtrack clips)
+- yt-dlp + ffmpeg (movie/video game soundtrack clips)
 - Docker
 
 ## Project Structure
@@ -138,7 +147,9 @@ quizzy/
 │   ├── quiz.js            # Track selection, decoys
 │   ├── movieQuiz.js       # Movie soundtrack quiz generator
 │   ├── movies.json        # Movie soundtrack list
-│   ├── audioCache.js      # Movie clip downloader (yt-dlp)
+│   ├── videogameQuiz.js   # Video game soundtrack quiz generator
+│   ├── videogames.json    # Video game soundtrack list
+│   ├── audioCache.js      # Movie/videogame clip downloader (yt-dlp)
 │   ├── cache-provider.js  # Cache-first music provider
 │   ├── artistCache.js     # Local cache persistence
 │   ├── lastfm.js          # Last.fm API (track ranking)
@@ -166,7 +177,7 @@ node server/audioCache.js --prune              # Remove unused clips
 
 ## Notes
 
-- Clip duration: 15 seconds (music), 20 seconds (movies)
+- Clip duration: 15 seconds (music), 20 seconds (movies/video games)
 - Each artist appears once per quiz
 - Release year shown on round reveal (from Spotify metadata)
 - Fuzzy matching: ~15% typo tolerance, must type 70%+ of answer, spaces optional
@@ -174,7 +185,7 @@ node server/audioCache.js --prune              # Remove unused clips
 - Loading screen shows track fetching progress
 - Non-host players see live settings updates in lobby
 - Rooms avoid repeating the same song across consecutive games when possible
-- Movie clips are cached in `server/data/audio/` and prewarmed on server start
+- Movie and video game clips are cached in `server/data/audio/` and prewarmed on server start
 
 ---
 

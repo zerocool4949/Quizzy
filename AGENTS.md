@@ -2,7 +2,7 @@
 
 ## Project Structure & Module Organization
 - `client/` hosts the React + Vite frontend; main UI lives in `client/src/components/`.
-- `client/src/components/game/` contains split Game screen components (GameLoading, GameCountdown, GameFinished, RoundResults, LiveScoreboard, MCQAnswers, TypedAnswers, MovieAnswers).
+- `client/src/components/game/` contains split Game screen components (GameLoading, GameCountdown, GameFinished, RoundResults, LiveScoreboard, MCQAnswers, TypedAnswers, MovieAnswers, VideogameAnswers).
 - `client/src/components/ErrorBoundary.jsx` provides React error boundary for crash handling.
 - `client/src/context/` holds shared game state and socket wiring.
 - `client/src/locales/` contains translation JSON files; update `client/src/i18n.jsx` when adding a new language.
@@ -10,13 +10,15 @@
 - `server/quiz.js` handles quiz generation, artist sampling, and track fetching via `music.js`.
 - `server/movieQuiz.js` handles movie soundtrack quiz generation (separate from music quiz).
 - `server/movies.json` contains the curated list of movies/series with their soundtrack tracks.
+- `server/videogameQuiz.js` handles video game soundtrack quiz generation (mirrors movieQuiz.js).
+- `server/videogames.json` contains the curated list of video games with their soundtrack tracks.
 - `server/music.js` re-exports the active provider (`cache-provider.js`).
 - `server/cache-provider.js` is the main music provider (cache-first with Spotify fallback + Deezer previews).
 - `server/artistCache.js` handles local cache persistence (`server/data/artists.json`) with in-memory caching.
 - `server/lastfm.js` wraps the Last.fm API for all-time top tracks (30s timeout).
 - `server/spotify.js` wraps the Spotify API (token management, playlist import, fallback, 30s timeout).
 - `server/deezer.js` wraps the Deezer API for audio previews (30s timeout).
-- `server/audioCache.js` downloads/serves cached movie soundtrack clips (yt-dlp + ffmpeg) and prewarms on startup.
+- `server/audioCache.js` downloads/serves cached movie/videogame soundtrack clips (yt-dlp + ffmpeg) and prewarms on startup.
 - `server/answerMatcher.js` provides fuzzy matching for typed answers (Levenshtein distance, normalization).
 - `server/titleUtils.js` provides shared title cleaning helpers.
 - `server/validation.js` provides input sanitization for player names, room codes, and answers.
@@ -64,9 +66,10 @@
 - **Title cleaning**: Track titles are cleaned by removing parenthetical content `(...)`, bracketed content `[...]`, and everything after ` - ` (which typically contains metadata like "Remastered", "Live", "Acoustic", etc.). Cache stores original titles; cleaning is applied at Deezer search (`server/cache-provider.js`) and output (`server/quiz.js`). See `cleanTitle` in `server/titleUtils.js`.
 - **Typed answer matching**: Uses Levenshtein distance with ~15% typo tolerance and word-level matching for multi-word answers. Accents and punctuation are normalized. See `server/answerMatcher.js`.
 - **Typed scoring**: Speed bonus tiers are +5 (<5s), +3 (<10s), +1 (<15s). Artist base 10, title base 15, combo +5. See `submitAnswer` in `server/gameManager.js`.
-- **Round timing**: Round ends at `clipDuration + answerTime` (answerTime is 10s for typed/movie, 5s for MCQ). See `getCurrentRound` in `server/gameManager.js` and `sendNextRound` in `server/index.js`.
+- **Round timing**: Round ends at `clipDuration + answerTime` (answerTime is 10s for typed/movie/videogame, 5s for MCQ). See `getCurrentRound` in `server/gameManager.js` and `sendNextRound` in `server/index.js`.
 - **Movie soundtrack mode**: Uses typed input (not MCQ) to guess the movie/series name. Tracks are loaded from `server/movies.json` and downloaded from YouTube via yt-dlp. Players get 3 lives. See `server/movieQuiz.js` and movie handling in `server/gameManager.js`.
-- **Movie clip cache**: Movie mode uses local MP3 clips cached in `server/data/audio/`, served from `/audio`. Clips are prewarmed on server start via `audioCache.js`. Movies in `server/movies.json` use either a plain string (`"Track Name"`) or object with search override (`{ "name": "Track", "search": "Artist Track" }`). Clip selection uses 20s length and starts at ~30% of song duration but never before 20s. Configure via `MOVIE_CLIP_SECONDS`, `MOVIE_CLIP_START_PERCENT`, `MOVIE_CLIP_CONCURRENCY`, and `SERVER_URL`. Requires `yt-dlp` and `ffmpeg` (installed in Dockerfile).
+- **Video game soundtrack mode**: Mirrors movie mode exactly. Uses typed input to guess the video game name. Tracks are loaded from `server/videogames.json` and downloaded from YouTube via yt-dlp. Players get 3 lives. See `server/videogameQuiz.js` and videogame handling in `server/gameManager.js`.
+- **Movie/videogame clip cache**: Both modes use local MP3 clips cached in `server/data/audio/`, served from `/audio`. Clips are prewarmed on server start via `audioCache.js`. Entries in `movies.json`/`videogames.json` use either a plain string (`"Track Name"`) or object with search override (`{ "name": "Track", "search": "Artist Track" }`). Clip selection uses 20s length and starts at ~30% of song duration but never before 20s. Configure via `MOVIE_CLIP_SECONDS`, `MOVIE_CLIP_START_PERCENT`, `MOVIE_CLIP_CONCURRENCY`, and `SERVER_URL`. Requires `yt-dlp` and `ffmpeg` (installed in Dockerfile).
 - **Game logging**: Each game logs rounds to `server/logs/games.jsonl` (JSON lines format) when the game starts. Includes timestamp, roomId, playerCount, categories, and track details (artist, title, year). File is ignored by git. See `server/gameLogger.js`.
 - **Lobby settings persistence**: When returning to lobby after a game, settings (categories, difficulty, mode, rounds) are preserved via `roomSettings` from the game context. See `Lobby.jsx` state initialization.
 - **Direct link join handling**: Join requests via direct links (`/join/:code`) are queued in `pendingJoinRef` if the socket isn't connected yet, then processed on the `connect` event. This prevents race conditions where users submit the join form before socket.io finishes connecting. See `GameContext.jsx`.
@@ -159,8 +162,8 @@ Behavior:
 - If Spotify credentials missing → Cache only (no fallback)
 
 ## Docker Notes
-- `compose.yml` mounts four volumes: `imported-playlists.json`, `movies.json` (read-only), `logs/` directory, and `data/` directory (artist cache + movie audio clips).
-- `movies.json` is mounted separately so it can be updated without rebuilding the image (just `git pull && docker compose restart`).
+- `compose.yml` mounts five volumes: `imported-playlists.json`, `movies.json` (read-only), `videogames.json` (read-only), `logs/` directory, and `data/` directory (artist cache + movie/videogame audio clips).
+- `movies.json` and `videogames.json` are mounted separately so they can be updated without rebuilding the image (just `git pull && docker compose restart`).
 - Dockerfile installs `yt-dlp` via pip (for latest updates when YouTube changes) and `ffmpeg` via Alpine packages.
 - To update yt-dlp when movie clips break: `docker compose build --no-cache && docker compose up -d`.
 - Images are built via GitHub Actions on tag push and stored in `ghcr.io/zerocool4949/quizzy`.

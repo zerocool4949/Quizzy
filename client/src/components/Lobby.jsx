@@ -149,9 +149,9 @@ export default function Lobby() {
 
   // Broadcast settings to other players whenever host changes them (debounced)
   useEffect(() => {
-    // Movie mode doesn't need categories, other modes do
+    // Movie/videogame mode doesn't need categories, other modes do
     if (!isHost) return;
-    if (answerMode !== 'movie' && selectedCategories.length === 0) return;
+    if (answerMode !== 'movie' && answerMode !== 'videogame' && selectedCategories.length === 0) return;
 
     const timeout = setTimeout(() => {
       updateSettings({
@@ -168,8 +168,8 @@ export default function Lobby() {
   const [startWarning, setStartWarning] = useState(false);
 
   const handleStartGame = () => {
-    // Movie mode doesn't need categories (uses movies.json)
-    if (answerMode !== 'movie' && selectedCategories.length === 0) {
+    // Movie/videogame mode doesn't need categories
+    if (answerMode !== 'movie' && answerMode !== 'videogame' && selectedCategories.length === 0) {
       setStartWarning(true);
       setTimeout(() => setStartWarning(false), 3000);
       return;
@@ -258,8 +258,8 @@ export default function Lobby() {
                 </div>
               </div>
 
-              {/* Difficulty - hidden for movie mode */}
-              {answerMode !== 'movie' && (
+              {/* Difficulty - hidden for movie/videogame mode */}
+              {answerMode !== 'movie' && answerMode !== 'videogame' && (
               <div className="flex-1">
                 <label className="block text-xs text-slate-400 mb-1">{t('lobby.difficulty')}</label>
                 <div className="flex gap-1">
@@ -320,6 +320,16 @@ export default function Lobby() {
                 >
                   {t('lobby.mode.movie')}
                 </button>
+                <button
+                  onClick={() => setAnswerMode('videogame')}
+                  className={`flex-1 px-3 py-1.5 rounded-md text-sm transition-colors ${
+                    answerMode === 'videogame'
+                      ? 'bg-purple-600 text-white'
+                      : 'text-slate-400 hover:text-slate-200'
+                  }`}
+                >
+                  {t('lobby.mode.videogame')}
+                </button>
               </div>
             </div>
 
@@ -330,8 +340,15 @@ export default function Lobby() {
               </div>
             )}
 
-            {/* Category Selector - hidden for movie mode */}
-            {answerMode !== 'movie' && (
+            {/* Videogame Mode Info */}
+            {answerMode === 'videogame' && (
+              <div className="text-center p-4 bg-purple-900/20 rounded-xl border border-purple-600/30">
+                <p className="text-purple-200 text-sm">{t('lobby.videogameModeDescription')}</p>
+              </div>
+            )}
+
+            {/* Category Selector - hidden for movie/videogame mode */}
+            {answerMode !== 'movie' && answerMode !== 'videogame' && (
             <div>
               <div className="flex items-center justify-between mb-2">
                 <label className="text-xs text-slate-400">
@@ -415,7 +432,7 @@ export default function Lobby() {
                   <span className="text-slate-500">{t('lobby.rounds')}</span>
                   <span className="text-slate-300">{roomSettings.totalRounds}</span>
                 </div>
-                {roomSettings.answerMode !== 'movie' && (
+                {roomSettings.answerMode !== 'movie' && roomSettings.answerMode !== 'videogame' && (
                 <div className="flex justify-between">
                   <span className="text-slate-500">{t('lobby.difficulty')}</span>
                   <span className="text-slate-300">
@@ -434,10 +451,12 @@ export default function Lobby() {
                       ? t('lobby.mode.typed')
                       : roomSettings.answerMode === 'movie'
                       ? t('lobby.mode.movie')
+                      : roomSettings.answerMode === 'videogame'
+                      ? t('lobby.mode.videogame')
                       : t('lobby.mode.mcq')}
                   </span>
                 </div>
-                {roomSettings.answerMode !== 'movie' && (
+                {roomSettings.answerMode !== 'movie' && roomSettings.answerMode !== 'videogame' && (
                 <div className="flex justify-between">
                   <span className="text-slate-500">{t('lobby.categoriesLabel')}</span>
                   <span className="text-slate-300 text-right max-w-[60%]">
