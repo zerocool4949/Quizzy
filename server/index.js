@@ -31,8 +31,9 @@ import { getPlaylist } from './spotify.js';
 import { warmCache, refreshArtists } from './cache-warmer.js';
 import * as artistCache from './artistCache.js';
 import { warmMovieClips } from './audioCache.js';
-import { loadMovies } from './movieQuiz.js';
-import { loadVideogames } from './videogameQuiz.js';
+import { loadMovies, clearMoviesCache } from './movieQuiz.js';
+import { loadVideogames, clearVideogamesCache } from './videogameQuiz.js';
+import { writeFileSync } from 'fs';
 
 dotenv.config();
 
@@ -130,6 +131,57 @@ app.delete('/api/playlists/:categoryId', (req, res) => {
 
   console.log(`Deleted imported playlist "${result.name}"`);
   res.json(result);
+});
+
+// Admin middleware - checks ADMIN_KEY env var
+function requireAdmin(req, res, next) {
+  const key = req.query.key || req.headers['x-admin-key'];
+  if (!process.env.ADMIN_KEY || key !== process.env.ADMIN_KEY) {
+    return res.status(401).json({ error: 'Unauthorized' });
+  }
+  next();
+}
+
+// Admin: get/save movies.json
+app.get('/api/admin/movies', requireAdmin, (_req, res) => {
+  res.json(loadMovies());
+});
+
+app.put('/api/admin/movies', requireAdmin, (req, res) => {
+  const data = req.body;
+  if (!data || typeof data !== 'object' || Array.isArray(data) || Object.keys(data).length === 0) {
+    return res.status(400).json({ error: 'Invalid data' });
+  }
+  try {
+    writeFileSync(path.join(__dirname, 'movies.json'), JSON.stringify(data, null, 2), 'utf-8');
+    clearMoviesCache();
+    console.log(`[Admin] movies.json updated (${Object.keys(data).length} entries)`);
+    res.json({ success: true, count: Object.keys(data).length });
+  } catch (err) {
+    console.error('[Admin] Failed to save movies.json:', err.message);
+    res.status(500).json({ error: 'Failed to save' });
+  }
+});
+
+// Admin: get/save videogames.json
+app.get('/api/admin/videogames', requireAdmin, (_req, res) => {
+  res.json(loadVideogames());
+});
+
+app.put('/api/admin/videogames', requireAdmin, (req, res) => {
+  const data = req.body;
+  if (!data || typeof data !== 'object' || Array.isArray(data) || Object.keys(data).length === 0) {
+    return res.status(400).json({ error: 'Invalid data' });
+  }
+  try {
+    writeFileSync(path.join(__dirname, 'videogames.json'), JSON.stringify(data, null, 2), 'utf-8');
+    clearVideogamesCache();
+    console.log(`[Admin] videogames.json updated (${Object.keys(data).length} entries)`);
+    res.json({ success: true, count: Object.keys(data).length });
+  } catch (err) {
+    console.error('[Admin] Failed to save videogames.json:', err.message);
+    res.status(500).json({ error: 'Failed to save' });
+  }
 });
 
 // Serve static files in production

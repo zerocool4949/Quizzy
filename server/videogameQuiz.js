@@ -52,6 +52,10 @@ async function fetchVideogameCover(gameName, year) {
 
 let videogamesCache = null;
 
+export function clearVideogamesCache() {
+  videogamesCache = null;
+}
+
 export function loadVideogames() {
   if (videogamesCache) return videogamesCache;
 

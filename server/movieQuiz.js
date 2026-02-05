@@ -52,6 +52,10 @@ async function fetchMoviePoster(movieName, year) {
 
 let moviesCache = null;
 
+export function clearMoviesCache() {
+  moviesCache = null;
+}
+
 export function loadMovies() {
   if (moviesCache) return moviesCache;
 
