@@ -27,11 +27,15 @@ export function logGame(roomId, categories, rounds, playerCount) {
       roomId,
       playerCount,
       categories,
-      rounds: rounds.map(r => ({
-        artist: r.correctArtist,
-        title: r.correctName,
-        year: r.correctYear || null
-      }))
+      rounds: rounds.map(r => {
+        if (r.correctMovie) {
+          return { movie: r.correctMovie, track: r.correctTrack, composer: r.correctComposer, year: r.correctYear || null };
+        }
+        if (r.correctGame) {
+          return { game: r.correctGame, track: r.correctTrack, composer: r.correctComposer, year: r.correctYear || null };
+        }
+        return { artist: r.correctArtist, title: r.correctName, year: r.correctYear || null };
+      })
     };
 
     appendFileSync(LOG_FILE, JSON.stringify(entry) + '\n', 'utf-8');
