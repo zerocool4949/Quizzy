@@ -109,7 +109,7 @@ export default function Home() {
             value={roomCode}
             onChange={(e) => setRoomCode(e.target.value.toUpperCase())}
             className="input text-center text-2xl tracking-widest"
-            maxLength={6}
+            maxLength={4}
           />
           <label className="flex items-center gap-2 text-sm text-slate-300 cursor-pointer">
             <input
@@ -123,7 +123,7 @@ export default function Home() {
           <button
             type="submit"
             className="btn-primary w-full"
-            disabled={!playerName.trim() || roomCode.length < 6}
+            disabled={!playerName.trim() || roomCode.length < 4}
           >
             {t('buttons.joinRoom')}
           </button>
