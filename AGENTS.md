@@ -167,6 +167,6 @@ Behavior:
 ## Docker Notes
 - `compose.yml` mounts five volumes: `imported-playlists.json`, `movies.json` (read-write for admin page), `videogames.json` (read-write for admin page), `logs/` directory, and `data/` directory (artist cache + movie/videogame audio clips).
 - `movies.json` and `videogames.json` are mounted separately so they can be updated without rebuilding the image (just `git pull && docker compose restart`).
-- Dockerfile installs `yt-dlp` via pip (for latest updates when YouTube changes) and `ffmpeg` via Alpine packages.
+- Dockerfile installs `yt-dlp[default]` via pip (includes EJS challenge solver scripts), `ffmpeg` via Alpine packages, and Deno as the JavaScript runtime required by yt-dlp to solve YouTube's n-parameter challenges. `gcompat` provides glibc compatibility for Deno on Alpine.
 - To update yt-dlp when movie clips break: `docker compose build --no-cache && docker compose up -d`.
 - Images are built via GitHub Actions on tag push and stored in `ghcr.io/zerocool4949/quizzy`.
