@@ -29,6 +29,7 @@ npm test
 - **Last.fm track ranking** - All-time top tracks by scrobbles (not just current popularity)
 - **Local cache** - Artist tracks cached locally with 90-day TTL, auto-refreshes on startup
 - **Multilanguage UI** - English and French with a language switcher (defaults to browser language, remembers choice)
+- **Admin page** - Edit movie and video game lists from the browser (`/admin?key=yourSecret`)
 
 ## Game Modes
 
@@ -109,10 +110,16 @@ Add to `server/.env`:
 SPOTIFY_CLIENT_ID=your_id
 SPOTIFY_CLIENT_SECRET=your_secret
 LASTFM_API_KEY=your_key
+ADMIN_KEY=your_secret_key
 ```
 
 - **Spotify**: Get credentials from [Spotify Developer Dashboard](https://developer.spotify.com/dashboard) (used for playlist import and fallback)
 - **Last.fm**: Get a free API key from [Last.fm API](https://www.last.fm/api/account/create) (used for all-time top tracks ranking)
+- **Admin key**: Any secret string of your choice (used to access the admin page)
+
+## Admin Page
+
+Visit `/admin?key=yourSecret` (where `yourSecret` matches the `ADMIN_KEY` env var) to add, edit, or delete entries in `movies.json` and `videogames.json` from the browser. Changes take effect immediately without restarting the server.
 
 ## Localization
 
@@ -136,7 +143,8 @@ quizzy/
 │   ├── components/        # Game UI
 │   │   ├── Game.jsx       # Game states, audio, timers
 │   │   ├── Lobby.jsx      # Room settings
-│   │   └── Home.jsx       # Join/create
+│   │   ├── Home.jsx       # Join/create
+│   │   └── Admin.jsx      # Admin page (edit movies/videogames)
 │   ├── locales/           # UI translations (en.json, fr.json)
 │   └── context/           # GameContext (state + sockets)
 ├── server/

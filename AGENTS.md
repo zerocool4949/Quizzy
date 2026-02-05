@@ -3,6 +3,7 @@
 ## Project Structure & Module Organization
 - `client/` hosts the React + Vite frontend; main UI lives in `client/src/components/`.
 - `client/src/components/game/` contains split Game screen components (GameLoading, GameCountdown, GameFinished, RoundResults, LiveScoreboard, MCQAnswers, TypedAnswers, MovieAnswers, VideogameAnswers).
+- `client/src/components/Admin.jsx` is the admin page for editing `movies.json` and `videogames.json` (accessible at `/admin?key=ADMIN_KEY`).
 - `client/src/components/ErrorBoundary.jsx` provides React error boundary for crash handling.
 - `client/src/context/` holds shared game state and socket wiring.
 - `client/src/locales/` contains translation JSON files; update `client/src/i18n.jsx` when adding a new language.
@@ -50,8 +51,9 @@
 - Link related issues or feature requests when applicable.
 
 ## Configuration & Security Notes
-- Copy `.env.example` to `server/.env` and set `SPOTIFY_CLIENT_ID`, `SPOTIFY_CLIENT_SECRET`, and `LASTFM_API_KEY`.
+- Copy `.env.example` to `server/.env` and set `SPOTIFY_CLIENT_ID`, `SPOTIFY_CLIENT_SECRET`, `LASTFM_API_KEY`, and `ADMIN_KEY`.
 - Get a free Last.fm API key at https://www.last.fm/api/account/create
+- `ADMIN_KEY` is used for the admin page (`/admin?key=yourSecret`) to edit movies/videogames JSON files without restarting the server.
 - Do not commit secrets; use `.env` and keep API credentials local.
 
 ## Key Implementation Details
@@ -68,6 +70,7 @@
 - **Typed scoring**: Speed bonus tiers are +5 (<5s), +3 (<10s), +1 (<15s). Artist base 10, title base 15, combo +5. See `submitAnswer` in `server/gameManager.js`.
 - **Round timing**: Round ends at `clipDuration + answerTime` (answerTime is 10s for typed/movie/videogame, 5s for MCQ). See `getCurrentRound` in `server/gameManager.js` and `sendNextRound` in `server/index.js`.
 - **Movie soundtrack mode**: Uses typed input (not MCQ) to guess the movie/series name. Tracks are loaded from `server/movies.json` and downloaded from YouTube via yt-dlp. Players get 3 lives. See `server/movieQuiz.js` and movie handling in `server/gameManager.js`.
+- **Admin page**: Accessible at `/admin?key=ADMIN_KEY`. Provides a UI to add/edit/delete entries in `movies.json` and `videogames.json`. Auth via `ADMIN_KEY` env var checked by `requireAdmin` middleware in `server/index.js`. Saves to disk with `writeFileSync` and clears in-memory caches (`clearMoviesCache`/`clearVideogamesCache`) so changes take effect immediately. See `client/src/components/Admin.jsx` and admin routes in `server/index.js`.
 - **Video game soundtrack mode**: Mirrors movie mode exactly. Uses typed input to guess the video game name. Tracks are loaded from `server/videogames.json` and downloaded from YouTube via yt-dlp. Players get 3 lives. See `server/videogameQuiz.js` and videogame handling in `server/gameManager.js`.
 - **Movie/videogame clip cache**: Both modes use local MP3 clips cached in `server/data/audio/`, served from `/audio`. Clips are prewarmed on server start via `audioCache.js`. Entries in `movies.json`/`videogames.json` use either a plain string (`"Track Name"`) or object with search override (`{ "name": "Track", "search": "Artist Track" }`). Clip selection uses 20s length and starts at ~30% of song duration but never before 20s. Configure via `MOVIE_CLIP_SECONDS`, `MOVIE_CLIP_START_PERCENT`, `MOVIE_CLIP_CONCURRENCY`, and `SERVER_URL`. Requires `yt-dlp` and `ffmpeg` (installed in Dockerfile).
 - **Game logging**: Each game logs rounds to `server/logs/games.jsonl` (JSON lines format) when the game starts. Includes timestamp, roomId, playerCount, categories, and track details (artist, title, year). File is ignored by git. See `server/gameLogger.js`.
@@ -162,7 +165,7 @@ Behavior:
 - If Spotify credentials missing → Cache only (no fallback)
 
 ## Docker Notes
-- `compose.yml` mounts five volumes: `imported-playlists.json`, `movies.json` (read-only), `videogames.json` (read-only), `logs/` directory, and `data/` directory (artist cache + movie/videogame audio clips).
+- `compose.yml` mounts five volumes: `imported-playlists.json`, `movies.json` (read-write for admin page), `videogames.json` (read-write for admin page), `logs/` directory, and `data/` directory (artist cache + movie/videogame audio clips).
 - `movies.json` and `videogames.json` are mounted separately so they can be updated without rebuilding the image (just `git pull && docker compose restart`).
 - Dockerfile installs `yt-dlp` via pip (for latest updates when YouTube changes) and `ffmpeg` via Alpine packages.
 - To update yt-dlp when movie clips break: `docker compose build --no-cache && docker compose up -d`.
