@@ -22,15 +22,10 @@ FROM node:20-alpine AS production
 WORKDIR /app
 
 # System deps for movie clip cache
-# gcompat: glibc compat layer for Deno on Alpine
-# Deno: JS runtime required by yt-dlp to solve YouTube challenges
-# yt-dlp[default]: includes EJS challenge solver scripts
-RUN apk add --no-cache ffmpeg python3 py3-pip gcompat unzip && \
-    pip install --break-system-packages "yt-dlp[default]" && \
-    wget -qO /tmp/deno.zip https://github.com/denoland/deno/releases/latest/download/deno-x86_64-unknown-linux-gnu.zip && \
-    unzip -o /tmp/deno.zip -d /usr/local/bin && \
-    chmod +x /usr/local/bin/deno && \
-    rm /tmp/deno.zip
+# yt-dlp[default]: includes EJS challenge solver scripts for YouTube
+# Node.js (already in base image) is used as the JS runtime via audioCache.js args
+RUN apk add --no-cache ffmpeg python3 py3-pip && \
+    pip install --break-system-packages "yt-dlp[default]"
 
 # Copy package files
 COPY package*.json ./
