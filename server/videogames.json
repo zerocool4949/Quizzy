@@ -1,246 +1,246 @@
 {
   "The Legend of Zelda": {
-    "tracks": [{ "name": "Main Theme", "key": "zelda-main-theme", "search": "The Legend of Zelda Main Theme orchestra" }],
+    "tracks": [{ "name": "Main Theme", "search": "The Legend of Zelda Main Theme orchestra" }],
     "composer": "Koji Kondo",
     "year": 1986
   },
   "Super Mario Bros": {
-    "tracks": [{ "name": "Ground Theme", "key": "mario-ground-theme", "search": "Super Mario Bros Ground Theme Koji Kondo" }],
+    "tracks": [{ "name": "Ground Theme", "search": "Super Mario Bros Ground Theme Koji Kondo" }],
     "composer": "Koji Kondo",
     "year": 1985
   },
   "Tetris": {
-    "tracks": [{ "name": "Theme A (Korobeiniki)", "key": "tetris-theme-a", "search": "Tetris Theme A Korobeiniki game" }],
+    "tracks": [{ "name": "Theme A (Korobeiniki)", "search": "Tetris Theme A Korobeiniki game" }],
     "composer": "Hirokazu Tanaka",
     "year": 1989
   },
   "Final Fantasy VII": {
-    "tracks": [{ "name": "One-Winged Angel", "key": "ff7-one-winged-angel", "search": "Final Fantasy VII One-Winged Angel Nobuo Uematsu" }],
+    "tracks": ["One-Winged Angel"],
     "composer": "Nobuo Uematsu",
     "year": 1997
   },
   "Halo": {
-    "tracks": [{ "name": "Main Theme", "key": "halo-main-theme", "search": "Halo Main Theme Martin O'Donnell" }],
+    "tracks": [{ "name": "Main Theme", "search": "Halo Main Theme Martin O'Donnell" }],
     "composer": "Martin O'Donnell",
     "year": 2001
   },
   "Minecraft": {
-    "tracks": [{ "name": "Sweden", "key": "minecraft-sweden", "search": "Minecraft Sweden C418" }],
+    "tracks": [{ "name": "Sweden", "search": "Minecraft Sweden C418" }],
     "composer": "C418",
     "year": 2011
   },
   "Undertale": {
-    "tracks": [{ "name": "Megalovania", "key": "undertale-megalovania", "search": "Undertale Megalovania Toby Fox" }],
+    "tracks": ["Megalovania"],
     "composer": "Toby Fox",
     "year": 2015
   },
   "The Elder Scrolls V: Skyrim": {
-    "tracks": [{ "name": "Dragonborn", "key": "skyrim-dragonborn", "search": "Skyrim Dragonborn Main Theme Jeremy Soule" }],
+    "tracks": [{ "name": "Dragonborn", "search": "Skyrim Dragonborn Main Theme Jeremy Soule" }],
     "composer": "Jeremy Soule",
     "year": 2011
   },
   "Portal": {
-    "tracks": [{ "name": "Still Alive", "key": "portal-still-alive", "search": "Portal Still Alive Jonathan Coulton" }],
+    "tracks": [{ "name": "Still Alive", "search": "Portal Still Alive Jonathan Coulton" }],
     "composer": "Jonathan Coulton",
     "year": 2007
   },
   "Doom": {
-    "tracks": [{ "name": "BFG Division", "key": "doom-bfg-division", "search": "Doom 2016 BFG Division Mick Gordon" }],
+    "tracks": [{ "name": "BFG Division", "search": "Doom 2016 BFG Division Mick Gordon" }],
     "composer": "Mick Gordon",
     "year": 2016
   },
   "The Witcher 3": {
-    "tracks": [{ "name": "Silver for Monsters", "key": "witcher3-silver-monsters", "search": "Witcher 3 Silver for Monsters soundtrack" }],
+    "tracks": ["Silver for Monsters"],
     "composer": "Marcin Przybylowicz",
     "year": 2015
   },
   "Dark Souls": {
-    "tracks": [{ "name": "Gwyn Lord of Cinder", "key": "darksouls-gwyn", "search": "Dark Souls Gwyn Lord of Cinder Motoi Sakuraba" }],
+    "tracks": ["Gwyn Lord of Cinder"],
     "composer": "Motoi Sakuraba",
     "year": 2011
   },
   "Chrono Trigger": {
-    "tracks": [{ "name": "Corridors of Time", "key": "chronotrigger-corridors", "search": "Chrono Trigger Corridors of Time Yasunori Mitsuda" }],
+    "tracks": ["Corridors of Time"],
     "composer": "Yasunori Mitsuda",
     "year": 1995
   },
   "Metal Gear Solid": {
-    "tracks": [{ "name": "Main Theme", "key": "mgs-main-theme", "search": "Metal Gear Solid Main Theme TAPPY" }],
+    "tracks": ["Main Theme"],
     "composer": "TAPPY",
     "year": 1998
   },
   "Kingdom Hearts": {
-    "tracks": [{ "name": "Dearly Beloved", "key": "kh-dearly-beloved", "search": "Kingdom Hearts Dearly Beloved Yoko Shimomura" }],
+    "tracks": ["Dearly Beloved"],
     "composer": "Yoko Shimomura",
     "year": 2002
   },
   "Sonic the Hedgehog": {
-    "tracks": [{ "name": "Green Hill Zone", "key": "sonic-green-hill", "search": "Sonic the Hedgehog Green Hill Zone Masato Nakamura" }],
+    "tracks": [{ "name": "Green Hill Zone", "search": "Sonic the Hedgehog Green Hill Zone Masato Nakamura" }],
     "composer": "Masato Nakamura",
     "year": 1991
   },
   "Street Fighter II": {
-    "tracks": [{ "name": "Guile's Theme", "key": "sf2-guiles-theme", "search": "Street Fighter II Guile's Theme Yoko Shimomura" }],
+    "tracks": ["Guile's Theme"],
     "composer": "Yoko Shimomura",
     "year": 1991
   },
   "Mega Man 2": {
-    "tracks": [{ "name": "Dr. Wily Stage 1", "key": "megaman2-wily", "search": "Mega Man 2 Dr Wily Stage 1 soundtrack" }],
+    "tracks": [{ "name": "Dr. Wily Stage 1", "search": "Mega Man 2 Dr Wily Stage 1 soundtrack" }],
     "composer": "Takashi Tateishi",
     "year": 1988
   },
   "Castlevania": {
-    "tracks": [{ "name": "Vampire Killer", "key": "castlevania-vampire-killer", "search": "Castlevania Vampire Killer Kinuyo Yamashita" }],
+    "tracks": ["Vampire Killer"],
     "composer": "Kinuyo Yamashita",
     "year": 1986
   },
   "God of War": {
-    "tracks": [{ "name": "God of War", "key": "gow-main-theme", "search": "God of War 2018 Main Theme Bear McCreary" }],
+    "tracks": [{ "name": "God of War", "search": "God of War 2018 Main Theme Bear McCreary" }],
     "composer": "Bear McCreary",
     "year": 2018
   },
   "Red Dead Redemption 2": {
-    "tracks": [{ "name": "That's the Way It Is", "key": "rdr2-thats-the-way", "search": "Red Dead Redemption 2 That's the Way It Is Daniel Lanois" }],
+    "tracks": [{ "name": "That's the Way It Is", "search": "Red Dead Redemption 2 That's the Way It Is Daniel Lanois" }],
     "composer": "Woody Jackson",
     "year": 2018
   },
   "The Last of Us": {
-    "tracks": [{ "name": "Main Theme", "key": "tlou-main-theme", "search": "The Last of Us Main Theme Gustavo Santaolalla" }],
+    "tracks": [{ "name": "Main Theme", "search": "The Last of Us game Main Theme Gustavo Santaolalla" }],
     "composer": "Gustavo Santaolalla",
     "year": 2013
   },
   "Celeste": {
-    "tracks": [{ "name": "Resurrections", "key": "celeste-resurrections", "search": "Celeste Resurrections Lena Raine" }],
+    "tracks": ["Resurrections"],
     "composer": "Lena Raine",
     "year": 2018
   },
   "Hollow Knight": {
-    "tracks": [{ "name": "City of Tears", "key": "hollowknight-city-tears", "search": "Hollow Knight City of Tears Christopher Larkin" }],
+    "tracks": ["City of Tears"],
     "composer": "Christopher Larkin",
     "year": 2017
   },
   "Cuphead": {
-    "tracks": [{ "name": "Don't Deal with the Devil", "key": "cuphead-dont-deal", "search": "Cuphead Don't Deal with the Devil Kristofer Maddigan" }],
+    "tracks": ["Don't Deal with the Devil"],
     "composer": "Kristofer Maddigan",
     "year": 2017
   },
   "Persona 5": {
-    "tracks": [{ "name": "Last Surprise", "key": "persona5-last-surprise", "search": "Persona 5 Last Surprise Shoji Meguro" }],
+    "tracks": ["Last Surprise"],
     "composer": "Shoji Meguro",
     "year": 2016
   },
   "NieR: Automata": {
-    "tracks": [{ "name": "Weight of the World", "key": "nier-weight-world", "search": "NieR Automata Weight of the World Keiichi Okabe" }],
+    "tracks": ["Weight of the World"],
     "composer": "Keiichi Okabe",
     "year": 2017
   },
   "Ori and the Blind Forest": {
-    "tracks": [{ "name": "Main Theme", "key": "ori-main-theme", "search": "Ori and the Blind Forest Main Theme Gareth Coker" }],
+    "tracks": ["Main Theme"],
     "composer": "Gareth Coker",
     "year": 2015
   },
   "Journey": {
-    "tracks": [{ "name": "Nascence", "key": "journey-nascence", "search": "Journey game Nascence Austin Wintory" }],
+    "tracks": [{ "name": "Nascence", "search": "Journey game Nascence Austin Wintory" }],
     "composer": "Austin Wintory",
     "year": 2012
   },
   "Pokémon": {
-    "tracks": [{ "name": "Route 1 Theme", "key": "pokemon-route1", "search": "Pokemon Red Blue Route 1 Theme Junichi Masuda" }],
+    "tracks": [{ "name": "Route 1 Theme", "search": "Pokemon Red Blue Route 1 Theme Junichi Masuda" }],
     "composer": "Junichi Masuda",
     "year": 1996
   },
   "Animal Crossing": {
-    "tracks": [{ "name": "Main Theme", "key": "animalcrossing-main", "search": "Animal Crossing Main Theme Kazumi Totaka" }],
+    "tracks": ["Main Theme"],
     "composer": "Kazumi Totaka",
     "year": 2001
   },
   "Doom Eternal": {
-    "tracks": [{ "name": "The Only Thing They Fear Is You", "key": "doom-eternal-fear", "search": "Doom Eternal The Only Thing They Fear Is You Mick Gordon" }],
+    "tracks": [{ "name": "The Only Thing They Fear Is You", "search": "Doom Eternal The Only Thing They Fear Is You Mick Gordon" }],
     "composer": "Mick Gordon",
     "year": 2020
   },
   "Ghost of Tsushima": {
-    "tracks": [{ "name": "The Way of the Ghost", "key": "got-way-ghost", "search": "Ghost of Tsushima The Way of the Ghost Ilan Eshkeri" }],
+    "tracks": ["The Way of the Ghost"],
     "composer": "Ilan Eshkeri",
     "year": 2020
   },
   "Sekiro": {
-    "tracks": [{ "name": "Main Theme", "key": "sekiro-main-theme", "search": "Sekiro Shadows Die Twice Main Theme Yuka Kitamura" }],
+    "tracks": [{ "name": "Main Theme", "search": "Sekiro Shadows Die Twice Main Theme" }],
     "composer": "Yuka Kitamura",
     "year": 2019
   },
   "Bloodborne": {
-    "tracks": [{ "name": "Ludwig the Holy Blade", "key": "bloodborne-ludwig", "search": "Bloodborne Ludwig the Holy Blade soundtrack" }],
+    "tracks": ["Ludwig the Holy Blade"],
     "composer": "Ryan Amon",
     "year": 2015
   },
   "Super Smash Bros": {
-    "tracks": [{ "name": "Main Theme", "key": "smash-main-theme", "search": "Super Smash Bros Brawl Main Theme orchestra" }],
+    "tracks": [{ "name": "Main Theme", "search": "Super Smash Bros Brawl Main Theme orchestra" }],
     "composer": "Nobuo Uematsu",
     "year": 2008
   },
   "Zelda: Breath of the Wild": {
-    "tracks": [{ "name": "Main Theme", "key": "botw-main-theme", "search": "Zelda Breath of the Wild Main Theme Manaka Kataoka" }],
+    "tracks": [{ "name": "Main Theme", "search": "Zelda Breath of the Wild Main Theme" }],
     "composer": "Manaka Kataoka",
     "year": 2017
   },
   "Mass Effect": {
-    "tracks": [{ "name": "Vigil", "key": "masseffect-vigil", "search": "Mass Effect Vigil Jack Wall Sam Hulick" }],
+    "tracks": ["Vigil"],
     "composer": "Jack Wall",
     "year": 2007
   },
   "Assassin's Creed II": {
-    "tracks": [{ "name": "Ezio's Family", "key": "ac2-ezios-family", "search": "Assassin's Creed II Ezio's Family Jesper Kyd" }],
+    "tracks": ["Ezio's Family"],
     "composer": "Jesper Kyd",
     "year": 2009
   },
   "Uncharted": {
-    "tracks": [{ "name": "Nate's Theme", "key": "uncharted-nates-theme", "search": "Uncharted Nate's Theme Greg Edmonson" }],
+    "tracks": ["Nate's Theme"],
     "composer": "Greg Edmonson",
     "year": 2007
   },
   "Hades": {
-    "tracks": [{ "name": "Good Riddance", "key": "hades-good-riddance", "search": "Hades Good Riddance Darren Korb Ashley Barrett" }],
+    "tracks": [{ "name": "Good Riddance", "search": "Hades Good Riddance Darren Korb Ashley Barrett" }],
     "composer": "Darren Korb",
     "year": 2020
   },
   "Stardew Valley": {
-    "tracks": [{ "name": "Spring (It's a Big World Outside)", "key": "stardew-spring", "search": "Stardew Valley Spring It's a Big World Outside ConcernedApe" }],
+    "tracks": [{ "name": "Spring (It's a Big World Outside)", "search": "Stardew Valley Spring It's a Big World Outside ConcernedApe" }],
     "composer": "ConcernedApe",
     "year": 2016
   },
   "Octopath Traveler": {
-    "tracks": [{ "name": "Main Theme", "key": "octopath-main", "search": "Octopath Traveler Main Theme Yasunori Nishiki" }],
+    "tracks": ["Main Theme"],
     "composer": "Yasunori Nishiki",
     "year": 2018
   },
   "Xenoblade Chronicles": {
-    "tracks": [{ "name": "Gaur Plain", "key": "xenoblade-gaur-plain", "search": "Xenoblade Chronicles Gaur Plain ACE+" }],
+    "tracks": ["Gaur Plain"],
     "composer": "ACE+",
     "year": 2010
   },
   "Fire Emblem: Three Houses": {
-    "tracks": [{ "name": "Main Theme", "key": "fe3h-main-theme", "search": "Fire Emblem Three Houses Main Theme Edge of Dawn" }],
+    "tracks": [{ "name": "Main Theme", "search": "Fire Emblem Three Houses Main Theme Edge of Dawn" }],
     "composer": "Takeru Kanazaki",
     "year": 2019
   },
   "Elden Ring": {
-    "tracks": [{ "name": "Main Theme", "key": "eldenring-main-theme", "search": "Elden Ring Main Theme Tsukasa Saitoh" }],
+    "tracks": ["Main Theme"],
     "composer": "Tsukasa Saitoh",
     "year": 2022
   },
   "Genshin Impact": {
-    "tracks": [{ "name": "Main Theme", "key": "genshin-main-theme", "search": "Genshin Impact Main Theme Yu-Peng Chen" }],
+    "tracks": ["Main Theme"],
     "composer": "Yu-Peng Chen",
     "year": 2020
   },
   "Wii Sports": {
-    "tracks": [{ "name": "Main Theme", "key": "wiisports-main-theme", "search": "Wii Sports Main Theme Kazumi Totaka" }],
+    "tracks": ["Main Theme"],
     "composer": "Kazumi Totaka",
     "year": 2006
   },
   "Mario Kart": {
-    "tracks": [{ "name": "Coconut Mall", "key": "mariokart-coconut-mall", "search": "Mario Kart Wii Coconut Mall soundtrack" }],
+    "tracks": [{ "name": "Coconut Mall", "search": "Mario Kart Wii Coconut Mall soundtrack" }],
     "composer": "Ryo Nagamatsu",
     "year": 2008
   }
