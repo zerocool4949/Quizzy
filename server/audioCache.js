@@ -16,7 +16,7 @@ const CLIP_CONCURRENCY = Number.isFinite(clipConcurrency) ? clipConcurrency : 2;
 const CLIP_START_PERCENT = Number.isFinite(clipStartPercent) ? clipStartPercent : 0.3;
 const defaultYtDlpArgs = [
   '--extractor-args',
-  'youtube:player_client=web,ios'
+  'youtube:player_client=web'
 ];
 
 function getYtDlpArgs() {
