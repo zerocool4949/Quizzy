@@ -31,7 +31,15 @@ function serializeTrack(name, search) {
   return name
 }
 
-const emptyForm = { key: '', name: '', trackName: '', trackSearch: '', composer: '', year: '' }
+function slugify(value) {
+  return String(value || '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '')
+}
+
+function getClipUrl(movieName, trackName) {
+  return `${API_URL}/audio/${slugify(movieName)}__${slugify(trackName)}.mp3`
+}
+
+const inputClass = 'w-full px-2 py-1 text-sm bg-slate-900 border border-slate-600 rounded focus:outline-none focus:border-teal-500'
 
 export default function Admin() {
   const [tab, setTab] = useState('movies')
@@ -40,10 +48,13 @@ export default function Admin() {
   const [error, setError] = useState('')
   const [saving, setSaving] = useState(false)
   const [saveMsg, setSaveMsg] = useState('')
-  const [editForm, setEditForm] = useState(null) // null = closed, object = open
-  const [isNew, setIsNew] = useState(false)
-  const [hasChanges, setHasChanges] = useState(false)
-  const formRef = useRef(null)
+  const [editingKey, setEditingKey] = useState(null)
+  const [editForm, setEditForm] = useState(null)
+  const [addForm, setAddForm] = useState(null)
+  const [playing, setPlaying] = useState(null)
+  const [redownloading, setRedownloading] = useState(null)
+  const audioRef = useRef(null)
+  const addFormRef = useRef(null)
 
   const fetchData = useCallback(async () => {
     setLoading(true)
@@ -60,7 +71,6 @@ export default function Admin() {
         return
       }
       setData(await res.json())
-      setHasChanges(false)
     } catch {
       setError('Connection error')
       setData({})
@@ -71,20 +81,24 @@ export default function Admin() {
 
   useEffect(() => {
     fetchData()
+    setEditingKey(null)
+    setEditForm(null)
+    setAddForm(null)
   }, [fetchData])
 
   useEffect(() => {
-    if (editForm && formRef.current) {
-      formRef.current.scrollIntoView({ behavior: 'smooth', block: 'nearest' })
+    if (addForm && addFormRef.current) {
+      addFormRef.current.scrollIntoView({ behavior: 'smooth', block: 'nearest' })
     }
-  }, [editForm])
+  }, [addForm])
 
-  const save = async () => {
+  const persistData = async (newData) => {
+    setData(newData)
     setSaving(true)
     setSaveMsg('')
     try {
-      const sorted = Object.keys(data).sort((a, b) => a.localeCompare(b))
-        .reduce((obj, key) => { obj[key] = data[key]; return obj }, {})
+      const sorted = Object.keys(newData).sort((a, b) => a.localeCompare(b))
+        .reduce((obj, key) => { obj[key] = newData[key]; return obj }, {})
       const res = await adminFetch(`${API_URL}/api/admin/${tab}`, {
         method: 'PUT',
         body: JSON.stringify(sorted)
@@ -94,7 +108,7 @@ export default function Admin() {
         setSaveMsg(result.error || 'Save failed')
       } else {
         setSaveMsg(`Saved (${result.count} entries)`)
-        setHasChanges(false)
+        setData(sorted)
         setTimeout(() => setSaveMsg(''), 3000)
       }
     } catch {
@@ -104,32 +118,33 @@ export default function Admin() {
     }
   }
 
-  const openAdd = () => {
-    setEditForm({ ...emptyForm })
-    setIsNew(true)
-  }
-
-  const openEdit = (entryKey) => {
+  // Inline edit
+  const startEdit = (entryKey) => {
     const entry = data[entryKey]
     if (!entry) return
     const track = parseTrack(entry.tracks?.[0])
+    setEditingKey(entryKey)
     setEditForm({
-      key: entryKey,
       name: entryKey,
       trackName: track.name,
       trackSearch: track.search,
       composer: entry.composer || '',
       year: entry.year ? String(entry.year) : ''
     })
-    setIsNew(false)
+    setAddForm(null)
   }
 
-  const saveForm = () => {
-    if (!editForm?.name.trim()) return
+  const cancelEdit = () => {
+    setEditingKey(null)
+    setEditForm(null)
+  }
+
+  const saveEdit = () => {
+    if (!editForm?.name.trim() || !editForm?.trackName.trim()) return
     const newData = { ...data }
-    // If editing and name changed, remove old key
-    if (!isNew && editForm.key && editForm.key !== editForm.name.trim()) {
-      delete newData[editForm.key]
+    // If name changed, remove old key
+    if (editingKey !== editForm.name.trim()) {
+      delete newData[editingKey]
     }
     const track = serializeTrack(editForm.trackName.trim(), editForm.trackSearch.trim())
     newData[editForm.name.trim()] = {
@@ -137,20 +152,37 @@ export default function Admin() {
       composer: editForm.composer.trim(),
       year: editForm.year ? parseInt(editForm.year, 10) : null
     }
-    setData(newData)
+    setEditingKey(null)
     setEditForm(null)
-    setHasChanges(true)
+    persistData(newData)
+  }
+
+  // Add new
+  const openAdd = () => {
+    setAddForm({ name: '', trackName: '', trackSearch: '', composer: '', year: '' })
+    cancelEdit()
+  }
+
+  const saveAdd = () => {
+    if (!addForm?.name.trim() || !addForm?.trackName.trim()) return
+    const newData = { ...data }
+    const track = serializeTrack(addForm.trackName.trim(), addForm.trackSearch.trim())
+    newData[addForm.name.trim()] = {
+      tracks: [track],
+      composer: addForm.composer.trim(),
+      year: addForm.year ? parseInt(addForm.year, 10) : null
+    }
+    setAddForm(null)
+    persistData(newData)
   }
 
   const deleteEntry = (entryKey) => {
     if (!confirm(`Delete "${entryKey}"?`)) return
     const newData = { ...data }
     delete newData[entryKey]
-    setData(newData)
-    setHasChanges(true)
+    if (editingKey === entryKey) cancelEdit()
+    persistData(newData)
   }
-
-  const [redownloading, setRedownloading] = useState(null)
 
   const redownload = async (entryKey) => {
     setRedownloading(entryKey)
@@ -173,6 +205,25 @@ export default function Admin() {
     }
   }
 
+  const togglePlay = (entryKey, trackName) => {
+    if (playing === entryKey) {
+      audioRef.current?.pause()
+      audioRef.current = null
+      setPlaying(null)
+      return
+    }
+    audioRef.current?.pause()
+    const audio = new Audio(getClipUrl(entryKey, trackName))
+    audio.onended = () => setPlaying(null)
+    audio.play()
+    audioRef.current = audio
+    setPlaying(entryKey)
+  }
+
+  useEffect(() => {
+    return () => { audioRef.current?.pause() }
+  }, [tab])
+
   const entries = Object.entries(data).sort(([a], [b]) => a.localeCompare(b))
   const label = tab === 'movies' ? 'Movie' : 'Video Game'
 
@@ -189,7 +240,7 @@ export default function Admin() {
 
   return (
     <div className="min-h-screen flex flex-col items-center p-4">
-      <div className="w-full max-w-4xl">
+      <div className="w-full max-w-5xl">
         <div className="flex items-center justify-between mb-6">
           <h1 className="text-2xl font-bold">Admin</h1>
           <a href="/" className="text-sm text-slate-400 hover:text-slate-200">Back to Quizzy</a>
@@ -235,91 +286,53 @@ export default function Admin() {
               </button>
               <div className="flex items-center gap-3">
                 {saveMsg && (
-                  <span className={`text-sm ${saveMsg.includes('Saved') ? 'text-emerald-300' : 'text-rose-300'}`}>
+                  <span className={`text-sm ${saveMsg.includes('Saved') || saveMsg.includes('Re-downloaded') ? 'text-emerald-300' : 'text-rose-300'}`}>
                     {saveMsg}
                   </span>
                 )}
-                <button
-                  onClick={save}
-                  disabled={saving || !hasChanges}
-                  className="px-4 py-2 rounded-lg text-sm bg-teal-600 text-white hover:bg-teal-500 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  {saving ? 'Saving...' : hasChanges ? 'Save Changes' : 'Saved'}
-                </button>
+                {saving && <span className="text-sm text-slate-400">Saving...</span>}
               </div>
             </div>
 
-            {/* Edit form modal */}
-            {editForm && (
-              <div ref={formRef} className="mb-4 p-4 bg-slate-800/80 rounded-xl border border-slate-600 space-y-3">
-                <h3 className="font-semibold text-sm text-slate-300">
-                  {isNew ? `Add ${label}` : `Edit "${editForm.key}"`}
-                </h3>
+            {/* Add form */}
+            {addForm && (
+              <div ref={addFormRef} className="mb-4 p-4 bg-slate-800/80 rounded-xl border border-slate-600 space-y-3">
+                <h3 className="font-semibold text-sm text-slate-300">Add {label}</h3>
                 <div className="grid grid-cols-2 gap-3">
                   <div>
                     <label className="block text-xs text-slate-400 mb-1">{label} Name *</label>
-                    <input
-                      type="text"
-                      value={editForm.name}
-                      onChange={(e) => setEditForm({ ...editForm, name: e.target.value })}
-                      className="w-full px-3 py-2 text-sm bg-slate-900 border border-slate-700 rounded-lg focus:outline-none focus:border-teal-500"
-                      placeholder="e.g. Jurassic Park"
-                    />
+                    <input type="text" value={addForm.name} onChange={(e) => setAddForm({ ...addForm, name: e.target.value })}
+                      className={inputClass} placeholder="e.g. Jurassic Park" />
                   </div>
                   <div>
                     <label className="block text-xs text-slate-400 mb-1">Composer</label>
-                    <input
-                      type="text"
-                      value={editForm.composer}
-                      onChange={(e) => setEditForm({ ...editForm, composer: e.target.value })}
-                      className="w-full px-3 py-2 text-sm bg-slate-900 border border-slate-700 rounded-lg focus:outline-none focus:border-teal-500"
-                      placeholder="e.g. John Williams"
-                    />
+                    <input type="text" value={addForm.composer} onChange={(e) => setAddForm({ ...addForm, composer: e.target.value })}
+                      className={inputClass} placeholder="e.g. John Williams" />
                   </div>
                   <div>
                     <label className="block text-xs text-slate-400 mb-1">Track Name *</label>
-                    <input
-                      type="text"
-                      value={editForm.trackName}
-                      onChange={(e) => setEditForm({ ...editForm, trackName: e.target.value })}
-                      className="w-full px-3 py-2 text-sm bg-slate-900 border border-slate-700 rounded-lg focus:outline-none focus:border-teal-500"
-                      placeholder="e.g. Main Theme"
-                    />
+                    <input type="text" value={addForm.trackName} onChange={(e) => setAddForm({ ...addForm, trackName: e.target.value })}
+                      className={inputClass} placeholder="e.g. Main Theme" />
                   </div>
                   <div>
                     <label className="block text-xs text-slate-400 mb-1">Year</label>
-                    <input
-                      type="number"
-                      value={editForm.year}
-                      onChange={(e) => setEditForm({ ...editForm, year: e.target.value })}
-                      className="w-full px-3 py-2 text-sm bg-slate-900 border border-slate-700 rounded-lg focus:outline-none focus:border-teal-500"
-                      placeholder="e.g. 1993"
-                    />
+                    <input type="number" value={addForm.year} onChange={(e) => setAddForm({ ...addForm, year: e.target.value })}
+                      className={inputClass} placeholder="e.g. 1993" />
                   </div>
                   <div className="col-span-2">
-                    <label className="block text-xs text-slate-400 mb-1">YouTube Search Override <span className="text-slate-500">(optional - leave empty for auto)</span></label>
-                    <input
-                      type="text"
-                      value={editForm.trackSearch}
-                      onChange={(e) => setEditForm({ ...editForm, trackSearch: e.target.value })}
-                      className="w-full px-3 py-2 text-sm bg-slate-900 border border-slate-700 rounded-lg focus:outline-none focus:border-teal-500"
-                      placeholder="e.g. John Williams Jurassic Park Theme"
-                    />
+                    <label className="block text-xs text-slate-400 mb-1">YouTube Search Override <span className="text-slate-500">(optional)</span></label>
+                    <input type="text" value={addForm.trackSearch} onChange={(e) => setAddForm({ ...addForm, trackSearch: e.target.value })}
+                      className={inputClass} placeholder="e.g. John Williams Jurassic Park Theme" />
                   </div>
                 </div>
                 <div className="flex gap-2 justify-end">
-                  <button
-                    onClick={() => setEditForm(null)}
-                    className="px-4 py-2 rounded-lg text-sm bg-slate-700 text-slate-300 hover:bg-slate-600 transition-colors"
-                  >
+                  <button onClick={() => setAddForm(null)}
+                    className="px-4 py-2 rounded-lg text-sm bg-slate-700 text-slate-300 hover:bg-slate-600 transition-colors">
                     Cancel
                   </button>
-                  <button
-                    onClick={saveForm}
-                    disabled={!editForm.name.trim() || !editForm.trackName.trim()}
-                    className="px-4 py-2 rounded-lg text-sm bg-teal-600 text-white hover:bg-teal-500 transition-colors disabled:opacity-50"
-                  >
-                    {isNew ? 'Add' : 'Update'}
+                  <button onClick={saveAdd} disabled={!addForm.name.trim() || !addForm.trackName.trim()}
+                    className="px-4 py-2 rounded-lg text-sm bg-teal-600 text-white hover:bg-teal-500 transition-colors disabled:opacity-50">
+                    Add & Save
                   </button>
                 </div>
               </div>
@@ -330,42 +343,78 @@ export default function Admin() {
               <table className="w-full text-sm">
                 <thead>
                   <tr className="border-b border-slate-700 text-slate-400 text-xs uppercase">
-                    <th className="text-left px-4 py-3">Name</th>
-                    <th className="text-left px-4 py-3">Track</th>
-                    <th className="text-left px-4 py-3">Search</th>
-                    <th className="text-left px-4 py-3">Composer</th>
-                    <th className="text-left px-4 py-3 w-16">Year</th>
-                    <th className="text-right px-4 py-3 w-32">Actions</th>
+                    <th className="text-left px-3 py-3">Name</th>
+                    <th className="text-left px-3 py-3">Track</th>
+                    <th className="text-left px-3 py-3">Search</th>
+                    <th className="text-left px-3 py-3">Composer</th>
+                    <th className="text-left px-3 py-3 w-14">Year</th>
+                    <th className="text-right px-3 py-3 w-44">Actions</th>
                   </tr>
                 </thead>
                 <tbody>
                   {entries.map(([key, entry]) => {
                     const track = parseTrack(entry.tracks?.[0])
+                    const isEditing = editingKey === key
+
+                    if (isEditing) {
+                      return (
+                        <tr key={key} className="border-b border-teal-800 bg-slate-800/60">
+                          <td className="px-3 py-2">
+                            <input type="text" value={editForm.name} onChange={(e) => setEditForm({ ...editForm, name: e.target.value })}
+                              className={inputClass} />
+                          </td>
+                          <td className="px-3 py-2">
+                            <input type="text" value={editForm.trackName} onChange={(e) => setEditForm({ ...editForm, trackName: e.target.value })}
+                              className={inputClass} />
+                          </td>
+                          <td className="px-3 py-2">
+                            <input type="text" value={editForm.trackSearch} onChange={(e) => setEditForm({ ...editForm, trackSearch: e.target.value })}
+                              className={inputClass} placeholder="auto" />
+                          </td>
+                          <td className="px-3 py-2">
+                            <input type="text" value={editForm.composer} onChange={(e) => setEditForm({ ...editForm, composer: e.target.value })}
+                              className={inputClass} />
+                          </td>
+                          <td className="px-3 py-2">
+                            <input type="number" value={editForm.year} onChange={(e) => setEditForm({ ...editForm, year: e.target.value })}
+                              className={inputClass + ' w-16'} />
+                          </td>
+                          <td className="px-3 py-2 text-right whitespace-nowrap">
+                            <button onClick={saveEdit} disabled={!editForm.name.trim() || !editForm.trackName.trim()}
+                              className="text-emerald-400 hover:text-emerald-300 text-xs mr-3 disabled:opacity-50">
+                              Save
+                            </button>
+                            <button onClick={cancelEdit}
+                              className="text-slate-400 hover:text-slate-300 text-xs">
+                              Cancel
+                            </button>
+                          </td>
+                        </tr>
+                      )
+                    }
+
                     return (
                       <tr key={key} className="border-b border-slate-800 hover:bg-slate-800/40">
-                        <td className="px-4 py-2.5 font-medium">{key}</td>
-                        <td className="px-4 py-2.5 text-slate-300">{track.name}</td>
-                        <td className="px-4 py-2.5 text-slate-500 text-xs">{track.search || <span className="text-slate-600">auto</span>}</td>
-                        <td className="px-4 py-2.5 text-slate-400">{entry.composer}</td>
-                        <td className="px-4 py-2.5 text-slate-500">{entry.year}</td>
-                        <td className="px-4 py-2.5 text-right whitespace-nowrap">
-                          <button
-                            onClick={() => redownload(key)}
-                            disabled={redownloading === key}
-                            className="text-amber-400 hover:text-amber-300 text-xs mr-3 disabled:opacity-50"
-                          >
+                        <td className="px-3 py-2.5 font-medium">{key}</td>
+                        <td className="px-3 py-2.5 text-slate-300">{track.name}</td>
+                        <td className="px-3 py-2.5 text-slate-500 text-xs">{track.search || <span className="text-slate-600">auto</span>}</td>
+                        <td className="px-3 py-2.5 text-slate-400">{entry.composer}</td>
+                        <td className="px-3 py-2.5 text-slate-500">{entry.year}</td>
+                        <td className="px-3 py-2.5 text-right whitespace-nowrap">
+                          <button onClick={() => togglePlay(key, track.name)}
+                            className={`text-xs mr-3 ${playing === key ? 'text-green-300' : 'text-green-500 hover:text-green-400'}`}>
+                            {playing === key ? 'Stop' : 'Play'}
+                          </button>
+                          <button onClick={() => redownload(key)} disabled={redownloading === key}
+                            className="text-amber-400 hover:text-amber-300 text-xs mr-3 disabled:opacity-50">
                             {redownloading === key ? '...' : 'Re-dl'}
                           </button>
-                          <button
-                            onClick={() => openEdit(key)}
-                            className="text-teal-400 hover:text-teal-300 text-xs mr-3"
-                          >
+                          <button onClick={() => startEdit(key)}
+                            className="text-teal-400 hover:text-teal-300 text-xs mr-3">
                             Edit
                           </button>
-                          <button
-                            onClick={() => deleteEntry(key)}
-                            className="text-rose-400 hover:text-rose-300 text-xs"
-                          >
+                          <button onClick={() => deleteEntry(key)}
+                            className="text-rose-400 hover:text-rose-300 text-xs">
                             Delete
                           </button>
                         </td>
@@ -374,7 +423,7 @@ export default function Admin() {
                   })}
                   {entries.length === 0 && (
                     <tr>
-                      <td colSpan={6} className="px-4 py-8 text-center text-slate-500">
+                      <td colSpan={6} className="px-3 py-8 text-center text-slate-500">
                         No entries yet
                       </td>
                     </tr>
