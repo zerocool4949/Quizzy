@@ -30,10 +30,10 @@ import { importPlaylist, deleteImportedPlaylist } from './categories.js';
 import { getPlaylist } from './spotify.js';
 import { warmCache, refreshArtists } from './cache-warmer.js';
 import * as artistCache from './artistCache.js';
-import { warmMovieClips } from './audioCache.js';
+import { warmMovieClips, getClipFilePath, hasClip, slugify } from './audioCache.js';
 import { loadMovies, clearMoviesCache } from './movieQuiz.js';
 import { loadVideogames, clearVideogamesCache } from './videogameQuiz.js';
-import { writeFileSync } from 'fs';
+import { writeFileSync, unlinkSync } from 'fs';
 
 dotenv.config();
 
@@ -157,6 +157,7 @@ app.put('/api/admin/movies', requireAdmin, (req, res) => {
     clearMoviesCache();
     console.log(`[Admin] movies.json updated (${Object.keys(data).length} entries)`);
     res.json({ success: true, count: Object.keys(data).length });
+    warmMovieClips(data).then(r => console.log(`[Admin] Movie clips warm: ${r.downloaded} downloaded, ${r.failed} failed`));
   } catch (err) {
     console.error('[Admin] Failed to save movies.json:', err.message);
     res.status(500).json({ error: 'Failed to save' });
@@ -178,10 +179,31 @@ app.put('/api/admin/videogames', requireAdmin, (req, res) => {
     clearVideogamesCache();
     console.log(`[Admin] videogames.json updated (${Object.keys(data).length} entries)`);
     res.json({ success: true, count: Object.keys(data).length });
+    warmMovieClips(data).then(r => console.log(`[Admin] Videogame clips warm: ${r.downloaded} downloaded, ${r.failed} failed`));
   } catch (err) {
     console.error('[Admin] Failed to save videogames.json:', err.message);
     res.status(500).json({ error: 'Failed to save' });
   }
+});
+
+// Admin: re-download a clip (delete cached + re-warm)
+app.post('/api/admin/redownload', requireAdmin, async (req, res) => {
+  const { type, name } = req.body;
+  if (!type || !name) return res.status(400).json({ error: 'Missing type or name' });
+  const source = type === 'movies' ? loadMovies() : loadVideogames();
+  const entry = source[name];
+  if (!entry) return res.status(404).json({ error: 'Entry not found' });
+  const track = entry.tracks?.[0];
+  if (!track) return res.status(400).json({ error: 'No track' });
+  const trackName = typeof track === 'string' ? track : track.name;
+  const trackKey = typeof track === 'string' ? slugify(track) : (track.key || slugify(trackName));
+  // Delete existing clip
+  const clipPath = getClipFilePath(name, trackKey);
+  try { unlinkSync(clipPath); } catch {}
+  // Re-download
+  const result = await warmMovieClips({ [name]: entry });
+  console.log(`[Admin] Re-download ${name}: ${result.downloaded} downloaded, ${result.failed} failed`);
+  res.json({ success: result.downloaded > 0, downloaded: result.downloaded, failed: result.failed });
 });
 
 // Serve static files in production

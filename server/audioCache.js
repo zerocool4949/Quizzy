@@ -6,28 +6,18 @@ import { spawn } from 'child_process';
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
 const AUDIO_DIR = join(__dirname, 'data', 'audio');
-const clipSeconds = parseInt(process.env.MOVIE_CLIP_SECONDS || '20', 10);
-const clipStart = parseInt(process.env.MOVIE_CLIP_START || '30', 10);
-const clipConcurrency = parseInt(process.env.MOVIE_CLIP_CONCURRENCY || '2', 10);
-const clipStartPercent = parseFloat(process.env.MOVIE_CLIP_START_PERCENT || '0.3');
-const CLIP_SECONDS = Number.isFinite(clipSeconds) ? clipSeconds : 20;
-const CLIP_START = Number.isFinite(clipStart) ? clipStart : 30;
-const CLIP_CONCURRENCY = Number.isFinite(clipConcurrency) ? clipConcurrency : 2;
-const CLIP_START_PERCENT = Number.isFinite(clipStartPercent) ? clipStartPercent : 0.3;
-const defaultYtDlpArgs = [
+const CLIP_SECONDS = 20;
+const CLIP_START = 30;
+const CLIP_CONCURRENCY = 2;
+const CLIP_START_PERCENT = 0.3;
+const YT_DLP_ARGS = [
   '--extractor-args',
   'youtube:player_client=web',
   '--js-runtimes', 'node',
   '--remote-components', 'ejs:github'
 ];
 
-function getYtDlpArgs() {
-  const raw = process.env.MOVIE_CLIP_YTDLP_ARGS;
-  if (!raw) return defaultYtDlpArgs;
-  return raw.split(' ').filter(Boolean);
-}
-
-function slugify(value) {
+export function slugify(value) {
   return String(value || '')
     .toLowerCase()
     .replace(/[^a-z0-9]+/g, '-')
@@ -152,7 +142,7 @@ async function downloadClip(movieName, trackKey, query) {
     '--no-playlist',
     '-f', 'bestaudio[ext=m4a]/bestaudio/best',
     '-o', template,
-    ...getYtDlpArgs(),
+    ...YT_DLP_ARGS,
     `ytsearch1:${query}`
   ]);
 

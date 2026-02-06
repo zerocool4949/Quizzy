@@ -150,6 +150,29 @@ export default function Admin() {
     setHasChanges(true)
   }
 
+  const [redownloading, setRedownloading] = useState(null)
+
+  const redownload = async (entryKey) => {
+    setRedownloading(entryKey)
+    try {
+      const res = await adminFetch(`${API_URL}/api/admin/redownload`, {
+        method: 'POST',
+        body: JSON.stringify({ type: tab, name: entryKey })
+      })
+      const result = await res.json()
+      if (result.success) {
+        setSaveMsg(`Re-downloaded clip for "${entryKey}"`)
+      } else {
+        setSaveMsg(`Failed to re-download "${entryKey}"`)
+      }
+      setTimeout(() => setSaveMsg(''), 3000)
+    } catch {
+      setSaveMsg('Connection error')
+    } finally {
+      setRedownloading(null)
+    }
+  }
+
   const entries = Object.entries(data).sort(([a], [b]) => a.localeCompare(b))
   const label = tab === 'movies' ? 'Movie' : 'Video Game'
 
@@ -309,9 +332,10 @@ export default function Admin() {
                   <tr className="border-b border-slate-700 text-slate-400 text-xs uppercase">
                     <th className="text-left px-4 py-3">Name</th>
                     <th className="text-left px-4 py-3">Track</th>
+                    <th className="text-left px-4 py-3">Search</th>
                     <th className="text-left px-4 py-3">Composer</th>
                     <th className="text-left px-4 py-3 w-16">Year</th>
-                    <th className="text-right px-4 py-3 w-24">Actions</th>
+                    <th className="text-right px-4 py-3 w-32">Actions</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -320,13 +344,18 @@ export default function Admin() {
                     return (
                       <tr key={key} className="border-b border-slate-800 hover:bg-slate-800/40">
                         <td className="px-4 py-2.5 font-medium">{key}</td>
-                        <td className="px-4 py-2.5 text-slate-300">
-                          {track.name}
-                          {track.search && <span className="text-slate-500 text-xs ml-1" title={track.search}>*</span>}
-                        </td>
+                        <td className="px-4 py-2.5 text-slate-300">{track.name}</td>
+                        <td className="px-4 py-2.5 text-slate-500 text-xs">{track.search || <span className="text-slate-600">auto</span>}</td>
                         <td className="px-4 py-2.5 text-slate-400">{entry.composer}</td>
                         <td className="px-4 py-2.5 text-slate-500">{entry.year}</td>
-                        <td className="px-4 py-2.5 text-right">
+                        <td className="px-4 py-2.5 text-right whitespace-nowrap">
+                          <button
+                            onClick={() => redownload(key)}
+                            disabled={redownloading === key}
+                            className="text-amber-400 hover:text-amber-300 text-xs mr-3 disabled:opacity-50"
+                          >
+                            {redownloading === key ? '...' : 'Re-dl'}
+                          </button>
                           <button
                             onClick={() => openEdit(key)}
                             className="text-teal-400 hover:text-teal-300 text-xs mr-3"
@@ -345,7 +374,7 @@ export default function Admin() {
                   })}
                   {entries.length === 0 && (
                     <tr>
-                      <td colSpan={5} className="px-4 py-8 text-center text-slate-500">
+                      <td colSpan={6} className="px-4 py-8 text-center text-slate-500">
                         No entries yet
                       </td>
                     </tr>
