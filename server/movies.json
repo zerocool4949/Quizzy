@@ -1,442 +1,746 @@
 {
-  "Pirates des Caraibes": {
-    "tracks": ["He's a Pirate"],
-    "composer": "Hans Zimmer",
-    "year": 2003
+  "Aladdin": {
+    "tracks": [
+      {
+        "name": "A Whole New World",
+        "search": "Aladdin Ce rêve bleu"
+      }
+    ],
+    "composer": "Alan Menken",
+    "year": 1992
   },
-  "Jurassic Park": {
-    "tracks": ["Theme from Jurassic Park"],
-    "composer": "John Williams",
-    "year": 1993
-  },
-  "Titanic": {
-    "tracks": ["My Heart Will Go On"],
-    "composer": "James Horner",
-    "year": 1997
-  },
-  "Le Seigneur des Anneaux": {
-    "tracks": ["Concerning Hobbits"],
-    "composer": "Howard Shore",
-    "year": 2001
-  },
-  "Harry Potter": {
-    "tracks": ["Hedwig's Theme"],
-    "composer": "John Williams",
-    "year": 2001
-  },
-  "Star Wars": {
-    "tracks": ["Main Title"],
-    "composer": "John Williams",
-    "year": 1977
-  },
-  "Retour vers le futur": {
-    "tracks": ["Back to the Future Theme"],
-    "composer": "Alan Silvestri",
-    "year": 1985
-  },
-  "Forrest Gump": {
-    "tracks": ["Feather Theme"],
-    "composer": "Alan Silvestri",
-    "year": 1994
-  },
-  "Inception": {
-    "tracks": ["Time"],
-    "composer": "Hans Zimmer",
-    "year": 2010
-  },
-  "Interstellar": {
-    "tracks": ["Cornfield Chase"],
-    "composer": "Hans Zimmer",
-    "year": 2014
-  },
-  "Gladiator": {
-    "tracks": ["Now We Are Free"],
-    "composer": "Hans Zimmer",
-    "year": 2000
-  },
-  "Le Roi Lion": {
-    "tracks": ["Circle of Life"],
-    "composer": "Hans Zimmer",
-    "year": 1994
+  "Arcane": {
+    "tracks": [
+      {
+        "name": "Enemy",
+        "search": "Imagine Dragons Enemy Arcane"
+      }
+    ],
+    "composer": "Imagine Dragons",
+    "year": 2021
   },
   "Avengers": {
-    "tracks": ["The Avengers Theme"],
+    "tracks": [
+      "The Avengers Theme"
+    ],
     "composer": "Alan Silvestri",
     "year": 2012
   },
   "Batman": {
-    "tracks": ["Why So Serious"],
+    "tracks": [
+      {
+        "name": "The Dark Knight Main Theme",
+        "search": "The Dark Knight Main Theme - Hans Zimmer"
+      }
+    ],
     "composer": "Hans Zimmer",
     "year": 2008
   },
-  "Matrix": {
-    "tracks": [{ "name": "Clubbed to Death", "search": "Rob Dougan Clubbed to Death Matrix" }],
-    "composer": "Don Davis",
-    "year": 1999
-  },
-  "Rocky": {
-    "tracks": ["Gonna Fly Now"],
-    "composer": "Bill Conti",
-    "year": 1976
-  },
-  "Indiana Jones": {
-    "tracks": ["Raiders March"],
-    "composer": "John Williams",
-    "year": 1981
-  },
-  "E.T": {
-    "tracks": ["Flying Theme"],
-    "composer": "John Williams",
-    "year": 1982
-  },
-  "Terminator": {
-    "tracks": ["Main Theme"],
-    "composer": "Brad Fiedel",
-    "year": 1991
-  },
-  "Les Dents de la mer": {
-    "tracks": ["Main Theme"],
-    "composer": "John Williams",
-    "year": 1975
-  },
-  "Mission Impossible": {
-    "tracks": ["Mission Impossible Theme"],
-    "composer": "Lalo Schifrin",
-    "year": 1996
-  },
-  "Top Gun": {
-    "tracks": [{ "name": "Danger Zone", "search": "Kenny Loggins Danger Zone" }],
-    "composer": "Harold Faltermeyer",
-    "year": 1986
-  },
-  "Shrek": {
-    "tracks": [{ "name": "All Star", "search": "Smash Mouth  All Star" }],
-    "composer": "Harry Gregson-Williams",
-    "year": 2001
-  },
-  "Mad Max": {
-    "tracks": ["Brothers in Arms"],
-    "composer": "Junkie XL",
-    "year": 2015
-  },
-  "La Liste de Schindler": {
-    "tracks": ["Theme from Schindler's List"],
-    "composer": "John Williams",
-    "year": 1993
-  },
-  "Le Parrain": {
-    "tracks": ["The Godfather Waltz"],
-    "composer": "Nino Rota",
-    "year": 1972
-  },
-  "Pulp Fiction": {
-    "tracks": [{ "name": "Misirlou", "search": "Dick Dale Misirlou" }],
-    "composer": "Various",
-    "year": 1994
-  },
-  "Fight Club": {
-    "tracks": [{ "name": "Where Is My Mind", "search": "Pixies Where Is My Mind" }],
-    "composer": "Dust Brothers",
-    "year": 1999
-  },
-  "Le Cinquième Élément": {
-    "tracks": ["The Diva Dance"],
-    "composer": "Éric Serra",
-    "year": 1997
-  },
-  "La Casa de Papel": {
-    "tracks": ["Bella Ciao"],
-    "composer": "Various",
-    "year": 2017
-  },
-  "Breaking Bad": {
-    "tracks": ["Main Theme"],
-    "composer": "Dave Porter",
-    "year": 2008
-  },
-  "Game of Thrones": {
-    "tracks": ["Main Title"],
-    "composer": "Ramin Djawadi",
-    "year": 2011
-  },
-  "The Last of Us": {
-    "tracks": ["The Last of Us Theme"],
-    "composer": "Gustavo Santaolalla",
-    "year": 2023
-  },
-  "Stranger Things": {
-    "tracks": ["Main Theme"],
-    "composer": "Kyle Dixon & Michael Stein",
-    "year": 2016
-  },
-  "The Walking Dead": {
-    "tracks": ["Main Theme"],
-    "composer": "Bear McCreary",
-    "year": 2010
-  },
-  "The Boys": {
-    "tracks": ["Main Theme"],
-    "composer": "Christopher Lennertz",
-    "year": 2019
-  },
-  "Westworld": {
-    "tracks": ["Main Theme"],
-    "composer": "Ramin Djawadi",
-    "year": 2016
-  },
-  "Friends": {
-    "tracks": [{ "name": "I'll Be There for You", "search": "The Rembrandts I'll Be There for You" }],
-    "composer": "The Rembrandts",
-    "year": 1994
-  },
-  "Scrubs": {
-    "tracks": [{ "name": "Superman", "search": "Lazlo Bane Superman Scrubs" }],
-    "composer": "Lazlo Bane",
-    "year": 2001
-  },
-  "Malcolm": {
-    "tracks": [{ "name": "Boss of Me", "search": "They Might Be Giants Boss of Me" }],
-    "composer": "They Might Be Giants",
-    "year": 2000
-  },
-  "Futurama": {
-    "tracks": ["Main Theme"],
-    "composer": "Christopher Tyng",
-    "year": 1999
-  },
-  "Rick et Morty": {
-    "tracks": ["Intro"],
-    "composer": "Ryan Elder",
-    "year": 2013
-  },
-  "Arcane": {
-    "tracks": [{ "name": "Enemy", "search": "Imagine Dragons Enemy Arcane" }],
-    "composer": "Imagine Dragons",
-    "year": 2021
-  },
-  "Severance": {
-    "tracks": ["Main Theme"],
-    "composer": "Theodore Shapiro",
-    "year": 2022
-  },
-  "Succession": {
-    "tracks": ["Main Title Theme"],
-    "composer": "Nicholas Britell",
-    "year": 2018
-  },
-  "Le Fabuleux Destin d'Amélie Poulain": {
-    "tracks": ["Comptine d'un autre été : L'après-midi"],
-    "composer": "Yann Tiersen",
-    "year": 2001
-  },
-  "La La Land": {
-    "tracks": ["City of Stars"],
-    "composer": "Justin Hurwitz",
-    "year": 2016
-  },
-  "Whiplash": {
-    "tracks": ["Whiplash"],
-    "composer": "Hank Levy",
-    "year": 2014
-  },
-  "Le Voyage de Chihiro": {
-    "tracks": ["One Summer's Day"],
-    "composer": "Joe Hisaishi",
-    "year": 2001
-  },
-  "La Panthère rose": {
-    "tracks": ["The Pink Panther Theme"],
-    "composer": "Henry Mancini",
-    "year": 1963
-  },
-  "S.O.S Fantômes": {
-    "tracks": [{ "name": "Ghostbusters", "search": "Ray Parker Jr Ghostbusters" }],
-    "composer": "Ray Parker Jr.",
-    "year": 1984
-  },
-  "Il était une fois dans l'Ouest": {
-    "tracks": ["The Man with the Harmonica"],
-    "composer": "Ennio Morricone",
-    "year": 1968
-  },
-  "Kill Bill": {
-    "tracks": ["Battle Without Honor or Humanity"],
-    "composer": "Hotei",
-    "year": 2003
-  },
-  "Requiem for a Dream": {
-    "tracks": ["Lux Aeterna"],
-    "composer": "Clint Mansell",
-    "year": 2000
-  },
-  "Wall-E": {
-    "tracks": ["Define Dancing"],
-    "composer": "Thomas Newman",
-    "year": 2008
-  },
-  "Toy Story": {
-    "tracks": [{ "name": "You've Got a Friend in Me", "search": "Randy Newman You've Got a Friend in Me" }],
-    "composer": "Randy Newman",
-    "year": 1995
-  },
-  "Coco": {
-    "tracks": ["Remember Me"],
-    "composer": "Kristen Anderson-Lopez & Robert Lopez",
-    "year": 2017
-  },
-  "La Reine des neiges": {
-    "tracks": ["Let It Go"],
-    "composer": "Kristen Anderson-Lopez & Robert Lopez",
-    "year": 2013
-  },
-  "Aladdin": {
-    "tracks": ["A Whole New World"],
-    "composer": "Alan Menken",
-    "year": 1992
-  },
-  "La Petite Sirène": {
-    "tracks": ["Under the Sea"],
-    "composer": "Alan Menken",
-    "year": 1989
-  },
-  "La Belle et la Bête": {
-    "tracks": ["Beauty and the Beast"],
-    "composer": "Alan Menken",
-    "year": 1991
-  },
-  "Mulan": {
-    "tracks": ["Reflection"],
-    "composer": "Jerry Goldsmith",
-    "year": 1998
-  },
-  "Hercule": {
-    "tracks": ["Go the Distance"],
-    "composer": "Alan Menken",
-    "year": 1997
-  },
-  "Pocahontas": {
-    "tracks": ["Colors of the Wind"],
-    "composer": "Alan Menken",
-    "year": 1995
-  },
-  "Tarzan": {
-    "tracks": ["You'll Be in My Heart"],
-    "composer": "Phil Collins",
-    "year": 1999
-  },
-  "Cendrillon": {
-    "tracks": ["A Dream Is a Wish Your Heart Makes"],
-    "composer": "Mack David",
-    "year": 1950
-  },
   "Blanche-Neige": {
-    "tracks": ["Heigh-Ho"],
+    "tracks": [
+      {
+        "name": "Heigh-Ho",
+        "search": "Blanche-Neige et les Sept Nains Heigh-Ho"
+      }
+    ],
     "composer": "Frank Churchill",
     "year": 1937
   },
-  "Peter Pan": {
-    "tracks": ["You Can Fly"],
-    "composer": "Sammy Cahn",
-    "year": 1953
+  "Breaking Bad": {
+    "tracks": [
+      "Main Theme"
+    ],
+    "composer": "Dave Porter",
+    "year": 2008
   },
-  "Vaiana": {
-    "tracks": ["How Far I'll Go"],
-    "composer": "Lin-Manuel Miranda",
-    "year": 2016
+  "Cendrillon": {
+    "tracks": [
+      {
+        "name": "A Dream Is a Wish Your Heart Makes",
+        "search": "Cendrillon Les rêves sont faits pour se réaliser"
+      }
+    ],
+    "composer": "Mack David",
+    "year": 1950
   },
-  "Raiponce": {
-    "tracks": ["I See the Light"],
-    "composer": "Alan Menken",
-    "year": 2010
-  },
-  "Zootopie": {
-    "tracks": ["Try Everything"],
-    "composer": "Various",
-    "year": 2016
-  },
-  "Encanto": {
-    "tracks": ["We Don't Talk About Bruno"],
-    "composer": "Lin-Manuel Miranda",
-    "year": 2021
-  },
-  "Lilo et Stitch": {
-    "tracks": ["Hawaiian Roller Coaster Ride"],
-    "composer": "Various",
-    "year": 2002
-  },
-  "Le Monde de Nemo": {
-    "tracks": ["Nemo Egg (Main Title)"],
-    "composer": "Thomas Newman",
-    "year": 2003
-  },
-  "Les Indestructibles": {
-    "tracks": ["The Incredits"],
-    "composer": "Michael Giacchino",
-    "year": 2004
-  },
-  "Ratatouille": {
-    "tracks": ["Le Festin"],
-    "composer": "Michael Giacchino",
-    "year": 2007
-  },
-  "Là-haut": {
-    "tracks": ["Married Life"],
-    "composer": "Michael Giacchino",
-    "year": 2009
-  },
-  "Monstres et Cie": {
-    "tracks": ["If I Didn't Have You"],
-    "composer": "Randy Newman",
-    "year": 2001
-  },
-  "Vice-versa": {
-    "tracks": ["Bundle of Joy"],
-    "composer": "Michael Giacchino",
-    "year": 2015
-  },
-  "Soul": {
-    "tracks": ["Epiphany"],
-    "composer": "Trent Reznor & Atticus Ross",
-    "year": 2020
+  "Coco": {
+    "tracks": [
+      {
+        "name": "Remember Me",
+        "search": "Coco Ne m'oublie pas"
+      }
+    ],
+    "composer": "Kristen Anderson-Lopez & Robert Lopez",
+    "year": 2017
   },
   "Dragons": {
-    "tracks": ["Test Drive"],
+    "tracks": [
+      {
+        "name": "Test Drive",
+        "search": "Dragons Test Drive"
+      }
+    ],
     "composer": "John Powell",
     "year": 2010
   },
+  "E.T": {
+    "tracks": [
+      "Flying Theme"
+    ],
+    "composer": "John Williams",
+    "year": 1982
+  },
+  "Encanto": {
+    "tracks": [
+      {
+        "name": "We Don't Talk About Bruno",
+        "search": "Encanto Ne parlons pas de Bruno"
+      }
+    ],
+    "composer": "Lin-Manuel Miranda",
+    "year": 2021
+  },
+  "Fight Club": {
+    "tracks": [
+      {
+        "name": "Where Is My Mind",
+        "search": "Pixies Where Is My Mind"
+      }
+    ],
+    "composer": "Dust Brothers",
+    "year": 1999
+  },
+  "Forrest Gump": {
+    "tracks": [
+      "Feather Theme"
+    ],
+    "composer": "Alan Silvestri",
+    "year": 1994
+  },
+  "Friends": {
+    "tracks": [
+      {
+        "name": "I'll Be There for You",
+        "search": "The Rembrandts I'll Be There for You"
+      }
+    ],
+    "composer": "The Rembrandts",
+    "year": 1994
+  },
+  "Futurama": {
+    "tracks": [
+      "Main Theme"
+    ],
+    "composer": "Christopher Tyng",
+    "year": 1999
+  },
+  "Game of Thrones": {
+    "tracks": [
+      "Main Title"
+    ],
+    "composer": "Ramin Djawadi",
+    "year": 2011
+  },
+  "Gladiator": {
+    "tracks": [
+      "Now We Are Free"
+    ],
+    "composer": "Hans Zimmer",
+    "year": 2000
+  },
+  "Harry Potter": {
+    "tracks": [
+      "Hedwig's Theme"
+    ],
+    "composer": "John Williams",
+    "year": 2001
+  },
+  "Hercule": {
+    "tracks": [
+      {
+        "name": "Go the Distance",
+        "search": "Hercule Le monde qui est le mien"
+      }
+    ],
+    "composer": "Alan Menken",
+    "year": 1997
+  },
+  "Il était une fois dans l'Ouest": {
+    "tracks": [
+      "The Man with the Harmonica"
+    ],
+    "composer": "Ennio Morricone",
+    "year": 1968
+  },
+  "Inception": {
+    "tracks": [
+      "Time"
+    ],
+    "composer": "Hans Zimmer",
+    "year": 2010
+  },
+  "Indiana Jones": {
+    "tracks": [
+      "Raiders March"
+    ],
+    "composer": "John Williams",
+    "year": 1981
+  },
+  "Interstellar": {
+    "tracks": [
+      "Cornfield Chase"
+    ],
+    "composer": "Hans Zimmer",
+    "year": 2014
+  },
+  "Jurassic Park": {
+    "tracks": [
+      "Theme from Jurassic Park"
+    ],
+    "composer": "John Williams",
+    "year": 1993
+  },
+  "Kiki la petite sorcière": {
+    "tracks": [
+      {
+        "name": "A Town with an Ocean View",
+        "search": "Kiki la petite sorcière Une ville avec vue sur la mer"
+      }
+    ],
+    "composer": "Joe Hisaishi",
+    "year": 1989
+  },
+  "Kill Bill": {
+    "tracks": [
+      "Battle Without Honor or Humanity"
+    ],
+    "composer": "Hotei",
+    "year": 2003
+  },
+  "La Belle et la Bête": {
+    "tracks": [
+      {
+        "name": "Beauty and the Beast",
+        "search": "La Belle et la Bête Histoire éternelle"
+      }
+    ],
+    "composer": "Alan Menken",
+    "year": 1991
+  },
+  "La Casa de Papel": {
+    "tracks": [
+      "Bella Ciao"
+    ],
+    "composer": "Various",
+    "year": 2017
+  },
+  "La La Land": {
+    "tracks": [
+      "City of Stars"
+    ],
+    "composer": "Justin Hurwitz",
+    "year": 2016
+  },
+  "La Panthère rose": {
+    "tracks": [
+      "The Pink Panther Theme"
+    ],
+    "composer": "Henry Mancini",
+    "year": 1963
+  },
+  "La Petite Sirène": {
+    "tracks": [
+      {
+        "name": "Under the Sea",
+        "search": "La Petite Sirène Sous l'océan"
+      }
+    ],
+    "composer": "Alan Menken",
+    "year": 1989
+  },
+  "La Reine des neiges": {
+    "tracks": [
+      {
+        "name": "Let It Go",
+        "search": "La Reine des neiges Libérée, délivrée"
+      }
+    ],
+    "composer": "Kristen Anderson-Lopez & Robert Lopez",
+    "year": 2013
+  },
+  "Là-haut": {
+    "tracks": [
+      {
+        "name": "Married Life",
+        "search": "Là-haut La vie"
+      }
+    ],
+    "composer": "Michael Giacchino",
+    "year": 2009
+  },
+  "Le Cinquième Élément": {
+    "tracks": [
+      "The Diva Dance"
+    ],
+    "composer": "Éric Serra",
+    "year": 1997
+  },
+  "Le Fabuleux Destin d'Amélie Poulain": {
+    "tracks": [
+      "Comptine d'un autre été : L'après-midi"
+    ],
+    "composer": "Yann Tiersen",
+    "year": 2001
+  },
+  "Le Monde de Nemo": {
+    "tracks": [
+      {
+        "name": "Nemo Egg (Main Title)",
+        "search": "Le Monde de Nemo Nemo Egg thème principal"
+      }
+    ],
+    "composer": "Thomas Newman",
+    "year": 2003
+  },
+  "Le Parrain": {
+    "tracks": [
+      "The Godfather Waltz"
+    ],
+    "composer": "Nino Rota",
+    "year": 1972
+  },
   "Le Prince d'Égypte": {
-    "tracks": ["When You Believe"],
+    "tracks": [
+      {
+        "name": "When You Believe",
+        "search": "Le Prince d'Égypte Quand tu crois"
+      }
+    ],
     "composer": "Hans Zimmer",
     "year": 1998
   },
-  "Mon voisin Totoro": {
-    "tracks": ["My Neighbor Totoro"],
-    "composer": "Joe Hisaishi",
-    "year": 1988
+  "Le Roi Lion": {
+    "tracks": [
+      {
+        "name": "Circle of Life",
+        "search": "Le Roi Lion L'histoire de la vie"
+      }
+    ],
+    "composer": "Hans Zimmer",
+    "year": 1994
   },
-  "Kiki la petite sorcière": {
-    "tracks": ["A Town with an Ocean View"],
+  "Le Seigneur des Anneaux": {
+    "tracks": [
+      "Concerning Hobbits"
+    ],
+    "composer": "Howard Shore",
+    "year": 2001
+  },
+  "Le Voyage de Chihiro": {
+    "tracks": [
+      {
+        "name": "One Summer's Day",
+        "search": "Le Voyage de Chihiro Un jour d'été"
+      }
+    ],
     "composer": "Joe Hisaishi",
+    "year": 2001
+  },
+  "Les Dents de la mer": {
+    "tracks": [
+      "Main Theme"
+    ],
+    "composer": "John Williams",
+    "year": 1975
+  },
+  "Les Indestructibles": {
+    "tracks": [
+      {
+        "name": "The Incredits",
+        "search": "Les Indestructibles The Incredits"
+      }
+    ],
+    "composer": "Michael Giacchino",
+    "year": 2004
+  },
+  "Les Simpson": {
+    "tracks": [
+      "The Simpsons Theme"
+    ],
+    "composer": "Danny Elfman",
     "year": 1989
   },
-  "Moi, moche et méchant": {
-    "tracks": ["Despicable Me"],
-    "composer": "Pharrell Williams",
-    "year": 2010
+  "Lilo et Stitch": {
+    "tracks": [
+      {
+        "name": "Hawaiian Roller Coaster Ride",
+        "search": "Lilo et Stitch Hawaiian Roller Coaster Ride"
+      }
+    ],
+    "composer": "Various",
+    "year": 2002
+  },
+  "Mad Max": {
+    "tracks": [
+      "Brothers in Arms"
+    ],
+    "composer": "Junkie XL",
+    "year": 2015
   },
   "Madagascar": {
-    "tracks": ["I Like to Move It"],
+    "tracks": [
+      {
+        "name": "I Like to Move It",
+        "search": "Madagascar I Like to Move It"
+      }
+    ],
     "composer": "Various",
     "year": 2005
   },
+  "Malcolm": {
+    "tracks": [
+      {
+        "name": "Boss of Me",
+        "search": "They Might Be Giants Boss of Me"
+      }
+    ],
+    "composer": "They Might Be Giants",
+    "year": 2000
+  },
+  "Matrix": {
+    "tracks": [
+      {
+        "name": "Clubbed to Death",
+        "search": "Rob Dougan Clubbed to Death Matrix"
+      }
+    ],
+    "composer": "Don Davis",
+    "year": 1999
+  },
+  "Mission Impossible": {
+    "tracks": [
+      "Mission Impossible Theme"
+    ],
+    "composer": "Lalo Schifrin",
+    "year": 1996
+  },
+  "Moi, moche et méchant": {
+    "tracks": [
+      {
+        "name": "Despicable Me",
+        "search": "Moi, moche et méchant Despicable Me"
+      }
+    ],
+    "composer": "Pharrell Williams",
+    "year": 2010
+  },
+  "Mon voisin Totoro": {
+    "tracks": [
+      {
+        "name": "My Neighbor Totoro",
+        "search": "Mon voisin Totoro Thème principal"
+      }
+    ],
+    "composer": "Joe Hisaishi",
+    "year": 1988
+  },
+  "Monstres et Cie": {
+    "tracks": [
+      {
+        "name": "If I Didn't Have You",
+        "search": "Monstres et Cie Si je n'avais pas toi"
+      }
+    ],
+    "composer": "Randy Newman",
+    "year": 2001
+  },
+  "Mulan": {
+    "tracks": [
+      {
+        "name": "Reflection",
+        "search": "Mulan Réflexion"
+      }
+    ],
+    "composer": "Jerry Goldsmith",
+    "year": 1998
+  },
+  "Peter Pan": {
+    "tracks": [
+      {
+        "name": "You Can Fly",
+        "search": "Peter Pan Tu t'envoles"
+      }
+    ],
+    "composer": "Sammy Cahn",
+    "year": 1953
+  },
+  "Pirates des Caraibes": {
+    "tracks": [
+      "He's a Pirate"
+    ],
+    "composer": "Hans Zimmer",
+    "year": 2003
+  },
+  "Pocahontas": {
+    "tracks": [
+      {
+        "name": "Colors of the Wind",
+        "search": "Pocahontas L'air du vent"
+      }
+    ],
+    "composer": "Alan Menken",
+    "year": 1995
+  },
+  "Pulp Fiction": {
+    "tracks": [
+      {
+        "name": "Misirlou",
+        "search": "Dick Dale Misirlou"
+      }
+    ],
+    "composer": "Various",
+    "year": 1994
+  },
+  "Raiponce": {
+    "tracks": [
+      {
+        "name": "I See the Light",
+        "search": "Raiponce Je veux y croire"
+      }
+    ],
+    "composer": "Alan Menken",
+    "year": 2010
+  },
+  "Ratatouille": {
+    "tracks": [
+      {
+        "name": "Le Festin",
+        "search": "Ratatouille Le Festin"
+      }
+    ],
+    "composer": "Michael Giacchino",
+    "year": 2007
+  },
+  "Requiem for a Dream": {
+    "tracks": [
+      "Lux Aeterna"
+    ],
+    "composer": "Clint Mansell",
+    "year": 2000
+  },
+  "Retour vers le futur": {
+    "tracks": [
+      "Back to the Future Theme"
+    ],
+    "composer": "Alan Silvestri",
+    "year": 1985
+  },
+  "Rick et Morty": {
+    "tracks": [
+      "Intro"
+    ],
+    "composer": "Ryan Elder",
+    "year": 2013
+  },
+  "Rocky": {
+    "tracks": [
+      "Gonna Fly Now"
+    ],
+    "composer": "Bill Conti",
+    "year": 1976
+  },
+  "S.O.S Fantômes": {
+    "tracks": [
+      {
+        "name": "Ghostbusters",
+        "search": "Ray Parker Jr Ghostbusters"
+      }
+    ],
+    "composer": "Ray Parker Jr.",
+    "year": 1984
+  },
+  "Scrubs": {
+    "tracks": [
+      {
+        "name": "Superman",
+        "search": "Lazlo Bane Superman Scrubs"
+      }
+    ],
+    "composer": "Lazlo Bane",
+    "year": 2001
+  },
+  "Severance": {
+    "tracks": [
+      "Main Theme"
+    ],
+    "composer": "Theodore Shapiro",
+    "year": 2022
+  },
+  "Shrek": {
+    "tracks": [
+      {
+        "name": "All Star",
+        "search": "Shrek All Star version française"
+      }
+    ],
+    "composer": "Harry Gregson-Williams",
+    "year": 2001
+  },
+  "Soul": {
+    "tracks": [
+      {
+        "name": "Epiphany",
+        "search": "Soul Epiphany"
+      }
+    ],
+    "composer": "Trent Reznor & Atticus Ross",
+    "year": 2020
+  },
   "South Park": {
-    "tracks": ["South Park Theme"],
+    "tracks": [
+      "South Park Theme"
+    ],
     "composer": "Primus",
     "year": 1997
   },
-  "Les Simpson": {
-    "tracks": ["The Simpsons Theme"],
-    "composer": "Danny Elfman",
-    "year": 1989
+  "Star Wars": {
+    "tracks": [
+      "Main Title"
+    ],
+    "composer": "John Williams",
+    "year": 1977
+  },
+  "Stranger Things": {
+    "tracks": [
+      "Main Theme"
+    ],
+    "composer": "Kyle Dixon & Michael Stein",
+    "year": 2016
+  },
+  "Succession": {
+    "tracks": [
+      "Main Title Theme"
+    ],
+    "composer": "Nicholas Britell",
+    "year": 2018
+  },
+  "Tarzan": {
+    "tracks": [
+      {
+        "name": "You'll Be in My Heart",
+        "search": "Tarzan Je veux savoir"
+      }
+    ],
+    "composer": "Phil Collins",
+    "year": 1999
+  },
+  "Terminator": {
+    "tracks": [
+      "Main Theme"
+    ],
+    "composer": "Brad Fiedel",
+    "year": 1991
+  },
+  "The Boys": {
+    "tracks": [
+      "Main Theme"
+    ],
+    "composer": "Christopher Lennertz",
+    "year": 2019
+  },
+  "The Last of Us": {
+    "tracks": [
+      "The Last of Us Theme"
+    ],
+    "composer": "Gustavo Santaolalla",
+    "year": 2023
+  },
+  "The Walking Dead": {
+    "tracks": [
+      "Main Theme"
+    ],
+    "composer": "Bear McCreary",
+    "year": 2010
+  },
+  "Titanic": {
+    "tracks": [
+      "My Heart Will Go On"
+    ],
+    "composer": "James Horner",
+    "year": 1997
+  },
+  "Top Gun": {
+    "tracks": [
+      {
+        "name": "Danger Zone",
+        "search": "Kenny Loggins Danger Zone"
+      }
+    ],
+    "composer": "Harold Faltermeyer",
+    "year": 1986
+  },
+  "Toy Story": {
+    "tracks": [
+      {
+        "name": "You've Got a Friend in Me",
+        "search": "Toy Story Tu as un ami en moi"
+      }
+    ],
+    "composer": "Randy Newman",
+    "year": 1995
+  },
+  "Vaiana": {
+    "tracks": [
+      {
+        "name": "How Far I'll Go",
+        "search": "Vaiana Le bleu lumière"
+      }
+    ],
+    "composer": "Lin-Manuel Miranda",
+    "year": 2016
+  },
+  "Vice-versa": {
+    "tracks": [
+      {
+        "name": "Bundle of Joy",
+        "search": "Vice-versa Bundle of Joy"
+      }
+    ],
+    "composer": "Michael Giacchino",
+    "year": 2015
+  },
+  "Wall-E": {
+    "tracks": [
+      {
+        "name": "Define Dancing",
+        "search": "Wall-E Define Dancing"
+      }
+    ],
+    "composer": "Thomas Newman",
+    "year": 2008
+  },
+  "Westworld": {
+    "tracks": [
+      "Main Theme"
+    ],
+    "composer": "Ramin Djawadi",
+    "year": 2016
+  },
+  "Whiplash": {
+    "tracks": [
+      "Whiplash"
+    ],
+    "composer": "Hank Levy",
+    "year": 2014
+  },
+  "Zootopie": {
+    "tracks": [
+      {
+        "name": "Try Everything",
+        "search": "Zootopie Essaie"
+      }
+    ],
+    "composer": "Various",
+    "year": 2016
   }
 }
