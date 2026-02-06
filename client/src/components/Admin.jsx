@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 
 const API_URL = import.meta.env.VITE_SOCKET_URL || (import.meta.env.PROD ? '' : 'http://localhost:3001')
 
@@ -43,6 +43,7 @@ export default function Admin() {
   const [editForm, setEditForm] = useState(null) // null = closed, object = open
   const [isNew, setIsNew] = useState(false)
   const [hasChanges, setHasChanges] = useState(false)
+  const formRef = useRef(null)
 
   const fetchData = useCallback(async () => {
     setLoading(true)
@@ -71,6 +72,12 @@ export default function Admin() {
   useEffect(() => {
     fetchData()
   }, [fetchData])
+
+  useEffect(() => {
+    if (editForm && formRef.current) {
+      formRef.current.scrollIntoView({ behavior: 'smooth', block: 'nearest' })
+    }
+  }, [editForm])
 
   const save = async () => {
     setSaving(true)
@@ -221,7 +228,7 @@ export default function Admin() {
 
             {/* Edit form modal */}
             {editForm && (
-              <div className="mb-4 p-4 bg-slate-800/80 rounded-xl border border-slate-600 space-y-3">
+              <div ref={formRef} className="mb-4 p-4 bg-slate-800/80 rounded-xl border border-slate-600 space-y-3">
                 <h3 className="font-semibold text-sm text-slate-300">
                   {isNew ? `Add ${label}` : `Edit "${editForm.key}"`}
                 </h3>
