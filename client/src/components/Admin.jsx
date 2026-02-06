@@ -76,9 +76,11 @@ export default function Admin() {
     setSaving(true)
     setSaveMsg('')
     try {
+      const sorted = Object.keys(data).sort((a, b) => a.localeCompare(b))
+        .reduce((obj, key) => { obj[key] = data[key]; return obj }, {})
       const res = await adminFetch(`${API_URL}/api/admin/${tab}`, {
         method: 'PUT',
-        body: JSON.stringify(data)
+        body: JSON.stringify(sorted)
       })
       const result = await res.json()
       if (!res.ok) {
@@ -141,7 +143,7 @@ export default function Admin() {
     setHasChanges(true)
   }
 
-  const entries = Object.entries(data)
+  const entries = Object.entries(data).sort(([a], [b]) => a.localeCompare(b))
   const label = tab === 'movies' ? 'Movie' : 'Video Game'
 
   if (!getAdminKey()) {
