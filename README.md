@@ -29,7 +29,7 @@ npm test
 - **Last.fm track ranking** - All-time top tracks by scrobbles (not just current popularity)
 - **Local cache** - Artist tracks cached locally with 90-day TTL, auto-refreshes on startup
 - **Multilanguage UI** - English and French with a language switcher (defaults to browser language, remembers choice)
-- **Admin page** - Edit movie and video game lists from the browser (`/admin?key=yourSecret`)
+- **Admin page** - Edit movie and video game lists from the browser, inline editing, audio preview, re-download clips (`/admin?key=yourSecret`)
 
 ## Game Modes
 
@@ -119,7 +119,14 @@ ADMIN_KEY=your_secret_key
 
 ## Admin Page
 
-Visit `/admin?key=yourSecret` (where `yourSecret` matches the `ADMIN_KEY` env var) to add, edit, or delete entries in `movies.json` and `videogames.json` from the browser. Changes take effect immediately without restarting the server.
+Visit `/admin?key=yourSecret` (where `yourSecret` matches the `ADMIN_KEY` env var) to manage `movies.json` and `videogames.json` from the browser.
+
+- **Inline editing** - Click Edit to modify entries directly in the table row
+- **Auto-save** - All changes (add, edit, delete) are saved to the server immediately
+- **Play** - Preview cached audio clips to verify the right track was downloaded
+- **Re-download** - Force re-download a clip (useful after changing the YouTube search override)
+- **Sorted** - Entries are displayed and saved alphabetically
+- New/changed entries automatically trigger clip download in the background
 
 ## Localization
 
