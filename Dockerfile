@@ -23,7 +23,7 @@ WORKDIR /app
 
 # System deps for movie clip cache
 # yt-dlp[default]: includes EJS challenge solver scripts for YouTube
-# Node.js (already in base image) is used as the JS runtime via audioCache.js args
+# Node.js (already in base image) is used as the JS runtime via --js-runtimes node
 RUN apk add --no-cache ffmpeg python3 py3-pip && \
     pip install --break-system-packages "yt-dlp[default]"
 

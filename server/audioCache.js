@@ -17,7 +17,8 @@ const CLIP_START_PERCENT = Number.isFinite(clipStartPercent) ? clipStartPercent 
 const defaultYtDlpArgs = [
   '--extractor-args',
   'youtube:player_client=web',
-  '--js-runtimes', 'nodejs'
+  '--js-runtimes', 'node',
+  '--remote-components', 'ejs:github'
 ];
 
 function getYtDlpArgs() {
