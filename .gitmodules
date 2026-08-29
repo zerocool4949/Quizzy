@@ -1,3 +1,0 @@
-[submodule ".build-tools"]
-	path = .build-tools
-	url = https://github.com/zerocool4949/docker-build-tools.git
